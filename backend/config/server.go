@@ -12,16 +12,20 @@ import (
 	"github.com/go-chi/render"
 )
 
+var (
+	Serv *Server
+)
+
 type Server struct {
 	Router *chi.Mux
 	Port   string
-	// Db, config
 }
 
 func CreateNewServer() *Server {
 	s := &Server{}
 	s.Router = chi.NewRouter()
 	s.Port = os.Getenv("PORT")
+
 	return s
 }
 
@@ -39,10 +43,11 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
 
-	// Routes
+	// Manual routes
 	s.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hi"))
 	})
 
+	// Route handlers
 	s.Router.Mount("/users", handlers.UsersResource{}.Routes())
 }

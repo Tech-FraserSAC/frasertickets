@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aritrosaha10/frasertickets/config"
+	"github.com/aritrosaha10/frasertickets/lib"
 	"github.com/joho/godotenv"
 )
 
@@ -16,8 +17,15 @@ func Run() {
 	}
 	godotenv.Load(".env." + env)
 
+	// Set up datastore
+	ds := lib.CreateNewDB()
+	ds.Connect()
+	lib.Datastore = ds
+
 	// Set up server
-	serv := config.CreateNewServer()
-	serv.MountHandlers()
-	http.ListenAndServe(":"+serv.Port, serv.Router)
+	s := config.CreateNewServer()
+	s.MountHandlers()
+	config.Serv = s
+
+	http.ListenAndServe(":"+s.Port, s.Router)
 }
