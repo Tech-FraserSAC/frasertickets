@@ -12,7 +12,7 @@ import (
 )
 
 type User struct {
-	ID            primitive.ObjectID   `bson:"_id,omitmany"`
+	ID            primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
 	Admin         bool                 `json:"admin" bson:"admin"`
 	StudentNumber string               `json:"student_number" bson:"student_number"`
 	FirstName     string               `json:"first_name" bson:"first_name"`
@@ -51,16 +51,17 @@ func (rs UsersResource) List(w http.ResponseWriter, r *http.Request) {
 	// Attempt to convert MongoDB data into Go data
 	var results []User
 	if err := cursor.All(r.Context(), &results); err != nil {
-		http.Error(w, http.StatusText(500), 500)
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}
 
+	// Convert into list of renderers to turn into JSON
 	list := []render.Renderer{}
 	for _, user := range results {
 		list = append(list, &user)
 	}
 
+	// Return as JSON array, fallback if it fails
 	if err := render.RenderList(w, r, list); err != nil {
 		render.Render(w, r, util.ErrRender(err))
 		return
@@ -68,24 +69,30 @@ func (rs UsersResource) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs UsersResource) Create(w http.ResponseWriter, r *http.Request) {
+	// Create fake user for now
+	// TODO: Fill in using info from token given
 	tmpUser := User{
 		Admin:         false,
 		StudentNumber: "709121",
-		FirstName:     "Aritro",
+		FirstName:     "Arnab",
 		LastName:      "Saha",
 		ProfilePicURL: "https://www.pngall.com/wp-content/uploads/5/Linux-PNG-Photo.png",
 		TicketsOwned:  []primitive.ObjectID{},
 	}
 
-	_, err := lib.Datastore.Db.Collection("users").InsertOne(r.Context(), tmpUser)
+	// Create the user doc in MongoDB
+	res, err := lib.Datastore.Db.Collection("users").InsertOne(r.Context(), tmpUser)
 	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
+		render.Render(w, r, util.ErrServer(err))
 		return
 	}
+	tmpUser.ID = res.InsertedID.(primitive.ObjectID)
 
-	w.Write([]byte("Done"))
-
-	// render.Render(w, r)
+	// Return as JSON, fallback if it fails
+	if err := render.Render(w, r, &tmpUser); err != nil {
+		render.Render(w, r, util.ErrRender(err))
+		return
+	}
 }
 
 func (rs UsersResource) Get(w http.ResponseWriter, r *http.Request) {
