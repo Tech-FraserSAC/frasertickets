@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"net/http"
@@ -35,9 +35,5 @@ func (rs UsersResource) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs UsersResource) Update(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("..."))
-}
-
-func (rs UsersResource) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("..."))
 }

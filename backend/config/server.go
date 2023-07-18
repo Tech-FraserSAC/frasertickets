@@ -1,32 +1,16 @@
-package main
+package config
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin/render"
+	"github.com/aritrosaha10/frasertickets/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
-	"github.com/joho/godotenv"
 )
-
-func main() {
-	// Load in environment file according to environment
-	env := os.Getenv("FRASERTICKETS_ENV")
-	if env == "" {
-		env = "development"
-	}
-	godotenv.Load(".env." + env + ".local")
-
-	// Set up server
-	serv := CreateNewServer()
-	serv.MountHandlers()
-	log.Fatal(http.ListenAndServe(":"+serv.Port, serv.Router))
-}
 
 type Server struct {
 	Router *chi.Mux
@@ -59,4 +43,6 @@ func (s *Server) MountHandlers() {
 	s.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hi"))
 	})
+
+	s.Router.Mount("/users", handlers.UsersResource{}.Routes())
 }

@@ -2,5 +2,5 @@ root = "."
 tmp_dir = ".air-tmp/"
 
 [build]
-cmd = "go build -o ./.air-tmp/main cmd/main.go"
+cmd = "go build -o ./.air-tmp/main main.go"
 bin = "./.air-tmp/main"
