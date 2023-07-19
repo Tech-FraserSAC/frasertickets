@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -20,6 +21,7 @@ func Run() {
 	// Set up datastore
 	ds := lib.CreateNewDB()
 	ds.Connect()
+	defer ds.Disconnect()
 	lib.Datastore = ds
 
 	// Set up server
@@ -27,5 +29,5 @@ func Run() {
 	s.MountHandlers()
 	config.Serv = s
 
-	http.ListenAndServe(":"+s.Port, s.Router)
+	log.Fatal(http.ListenAndServe(":"+s.Port, s.Router))
 }

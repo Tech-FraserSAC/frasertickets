@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aritrosaha10/frasertickets/handlers"
+	"github.com/aritrosaha10/frasertickets/controllers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -35,6 +35,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.RealIP)
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Timeout(60 * time.Second))
+	s.Router.Use(middleware.Heartbeat("/ping"))
 	s.Router.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"https://*", "http://*"}, // !! CHANGE THIS LATER
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -49,5 +50,5 @@ func (s *Server) MountHandlers() {
 	})
 
 	// Route handlers
-	s.Router.Mount("/users", handlers.UsersResource{}.Routes())
+	s.Router.Mount("/users", controllers.UserController{}.Routes())
 }
