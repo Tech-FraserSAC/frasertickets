@@ -1,7 +1,6 @@
 package config
 
 import (
-	"net/http"
 	"os"
 	"time"
 
@@ -46,11 +45,8 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
 
-	// Manual routes
-	s.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi"))
-	})
-
 	// Route handlers
 	s.Router.Mount("/users", controllers.UserController{}.Routes())
+	s.Router.Mount("/events", controllers.EventController{}.Routes())
+	s.Router.Mount("/tickets", controllers.TicketController{}.Routes())
 }
