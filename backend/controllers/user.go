@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -13,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -96,7 +95,7 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println(err)
+		log.Error().AnErr("err", err).Stack()
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}
@@ -115,9 +114,8 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get JSON body
 	var requestedUpdates map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&requestedUpdates)
-	fmt.Println("whadahell")
 	if err != nil {
-		log.Println(err)
+		log.Error().AnErr("err", err).Stack()
 		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
@@ -126,6 +124,7 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	err = models.UpdateExistingUserByKeys(r.Context(), id, requestedUpdates)
 	if err != nil {
 		if err == models.ErrNoDocumentModified {
+			log.Error().AnErr("err", err).Stack().Send()
 			render.Render(w, r, util.ErrNotFound)
 			return
 		} else if err == models.ErrEditNotAllowed {
@@ -133,7 +132,7 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println(err)
+		log.Error().AnErr("err", err).Stack()
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}

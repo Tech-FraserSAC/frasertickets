@@ -1,12 +1,12 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/aritrosaha10/frasertickets/config"
 	"github.com/aritrosaha10/frasertickets/lib"
+	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/joho/godotenv"
 )
 
@@ -17,6 +17,9 @@ func Run() {
 		env = "development"
 	}
 	godotenv.Load(".env." + env)
+
+	// Set up logging
+	util.ConfigureZeroLog()
 
 	// Set up datastore
 	ds := lib.CreateNewDB()
@@ -29,5 +32,5 @@ func Run() {
 	s.MountHandlers()
 	config.Serv = s
 
-	log.Fatal(http.ListenAndServe(":"+s.Port, s.Router))
+	http.ListenAndServe(":"+s.Port, s.Router)
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aritrosaha10/frasertickets/controllers"
+	middlewarecustom "github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -33,7 +34,8 @@ func (s *Server) MountHandlers() {
 	// Middleware stack
 	s.Router.Use(middleware.RequestID)
 	s.Router.Use(middleware.RealIP)
-	s.Router.Use(middleware.Logger)
+	// s.Router.Use(middleware.Logger)
+	s.Router.Use(middlewarecustom.LoggerMiddleware())
 	s.Router.Use(middleware.Timeout(60 * time.Second))
 	s.Router.Use(middleware.Heartbeat("/ping"))
 	s.Router.Use(cors.Handler(cors.Options{
