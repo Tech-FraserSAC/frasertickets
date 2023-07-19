@@ -115,8 +115,16 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	var requestedUpdates map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&requestedUpdates)
 	if err != nil {
-		log.Error().AnErr("err", err).Stack()
+		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Check if it exists
+	_, err = models.GetUserByKey(r.Context(), "_id", id)
+	if err == mongo.ErrNoDocuments {
+		log.Error().Stack().Err(err).Send()
+		render.Render(w, r, util.ErrNotFound)
 		return
 	}
 
@@ -124,15 +132,15 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	err = models.UpdateExistingUserByKeys(r.Context(), id, requestedUpdates)
 	if err != nil {
 		if err == models.ErrNoDocumentModified {
-			log.Error().AnErr("err", err).Stack().Send()
-			render.Render(w, r, util.ErrNotFound)
+			log.Error().Stack().Err(err).Send()
+			render.Render(w, r, util.ErrUnmodified)
 			return
 		} else if err == models.ErrEditNotAllowed {
 			render.Render(w, r, util.ErrInvalidRequest(err))
 			return
 		}
 
-		log.Error().AnErr("err", err).Stack()
+		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}

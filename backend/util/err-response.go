@@ -47,9 +47,11 @@ func ErrServer(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
 		HTTPStatusCode: 500,
-		StatusText:     "Server error..",
+		StatusText:     "Server error.",
 		ErrorText:      err.Error(),
 	}
 }
 
 var ErrNotFound = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
+
+var ErrUnmodified = &ErrResponse{HTTPStatusCode: 304, StatusText: "Resource not modified."}
