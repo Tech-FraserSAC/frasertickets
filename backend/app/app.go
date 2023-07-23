@@ -27,6 +27,10 @@ func Run() {
 	defer ds.Disconnect()
 	lib.Datastore = ds
 
+	// Set up authentication
+	auth := lib.CreateNewAuth()
+	lib.Auth = auth
+
 	// Set up server
 	s := config.CreateNewServer()
 	s.MountHandlers()

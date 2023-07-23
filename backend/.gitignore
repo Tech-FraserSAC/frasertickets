@@ -4,3 +4,6 @@
 
 # air
 .air-tmp/
+
+# google cloud
+service-account.json
