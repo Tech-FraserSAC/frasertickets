@@ -97,12 +97,16 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 
 func DeleteEvent(ctx context.Context, id primitive.ObjectID) error {
 	// Check if event exists
-	_, err := GetEventByKey(ctx, "_id", id)
+	event, err := GetEventByKey(ctx, "_id", id)
 	if err != nil {
 		return err
 	}
 
-	// TODO: Delete all tickets to event
+	// Delete all tickets to event
+	_, err = lib.Datastore.Db.Collection(ticketsColName).DeleteMany(ctx, bson.M{"_id": bson.M{"$in": event.Tickets}})
+	if err != nil {
+		return err
+	}
 
 	// Delete event
 	res, err := lib.Datastore.Db.Collection(eventsColName).DeleteOne(ctx, bson.M{"_id": id})
