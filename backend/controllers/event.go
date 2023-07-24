@@ -16,13 +16,13 @@ import (
 )
 
 type eventControllerCreateRequestBody struct {
-	Name           string `json:"name" validate:"required"`
-	Description    string `json:"description" validate:"required"`
-	ImageURL       string `json:"img_url" validate:"required"`
-	Location       string `json:"location" validate:"required"`
-	Address        string `json:"address" validate:"required"`
+	Name           string `json:"name"            validate:"required"`
+	Description    string `json:"description"     validate:"required"`
+	ImageURL       string `json:"img_url"         validate:"required"`
+	Location       string `json:"location"        validate:"required"`
+	Address        string `json:"address"         validate:"required"`
 	StartTimestamp string `json:"start_timestamp" validate:"required,datetime=2006-01-01T15:00:00,ltefield=EndTimestamp"`
-	EndTimestamp   string `json:"end_timestamp" validate:"required,datetime=2006-01-02T15:00:00"`
+	EndTimestamp   string `json:"end_timestamp"   validate:"required,datetime=2006-01-02T15:00:00"`
 }
 
 type EventController struct{}

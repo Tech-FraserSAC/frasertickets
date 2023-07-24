@@ -12,13 +12,13 @@ import (
 )
 
 type User struct {
-	ID            string               `json:"id" bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
-	Admin         bool                 `json:"admin" bson:"admin"`
+	ID            string               `json:"id"             bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
+	Admin         bool                 `json:"admin"          bson:"admin"`
 	StudentNumber string               `json:"student_number" bson:"student_number"`
-	FirstName     string               `json:"first_name" bson:"first_name"`
-	LastName      string               `json:"last_name" bson:"last_name"`
-	ProfilePicURL string               `json:"pfp_url" bson:"pfp_url"`
-	TicketsOwned  []primitive.ObjectID `json:"tickets_owned" bson:"tickets_owned"`
+	FirstName     string               `json:"first_name"     bson:"first_name"`
+	LastName      string               `json:"last_name"      bson:"last_name"`
+	ProfilePicURL string               `json:"pfp_url"        bson:"pfp_url"`
+	TicketsOwned  []primitive.ObjectID `json:"tickets_owned"  bson:"tickets_owned"`
 }
 
 func (user *User) Render(w http.ResponseWriter, r *http.Request) error {
@@ -85,7 +85,8 @@ func UpdateExistingUserByStruct(ctx context.Context, user User, fieldsToUpdate U
 	newUser := userValue.Interface().(User)
 
 	// Run replace operation
-	_, err = lib.Datastore.Db.Collection(usersColName).ReplaceOne(ctx, bson.D{{Key: "_id", Value: user.ID}}, newUser)
+	_, err = lib.Datastore.Db.Collection(usersColName).
+		ReplaceOne(ctx, bson.D{{Key: "_id", Value: user.ID}}, newUser)
 
 	// Error checking
 	if err != nil {
@@ -95,8 +96,18 @@ func UpdateExistingUserByStruct(ctx context.Context, user User, fieldsToUpdate U
 	return newUser, nil
 }
 
-func UpdateExistingUserByKeys(ctx context.Context, id string, updates map[string]interface{}) error {
-	UPDATABLE_KEYS := map[string]bool{"admin": true, "student_number": true, "first_name": true, "last_name": true, "pfp_url": true}
+func UpdateExistingUserByKeys(
+	ctx context.Context,
+	id string,
+	updates map[string]interface{},
+) error {
+	UPDATABLE_KEYS := map[string]bool{
+		"admin":          true,
+		"student_number": true,
+		"first_name":     true,
+		"last_name":      true,
+		"pfp_url":        true,
+	}
 
 	// Convert the string/interface map to BSON updates
 	bsonUpdates := bson.D{}
@@ -111,7 +122,8 @@ func UpdateExistingUserByKeys(ctx context.Context, id string, updates map[string
 	}
 
 	// Try to update document in DB
-	res, err := lib.Datastore.Db.Collection(usersColName).UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
+	res, err := lib.Datastore.Db.Collection(usersColName).
+		UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
 	if err != nil {
 		return err
 	}

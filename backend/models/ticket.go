@@ -11,9 +11,9 @@ import (
 )
 
 type Ticket struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Owner     string             `json:"ownerID" bson:"owner"` // owner ID
-	Event     primitive.ObjectID `json:"eventID" bson:"event"`
+	ID        primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
+	Owner     string             `json:"ownerID"   bson:"owner"` // owner ID
+	Event     primitive.ObjectID `json:"eventID"   bson:"event"`
 	Timestamp time.Time          `json:"timestamp" bson:"timestamp"`
 }
 
@@ -37,10 +37,16 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 	return tickets, nil
 }
 
-func SearchForTicket(ctx context.Context, eventID primitive.ObjectID, userID string) (Ticket, error) {
+func SearchForTicket(
+	ctx context.Context,
+	eventID primitive.ObjectID,
+	userID string,
+) (Ticket, error) {
 	// Try to get data from DB
 	var ticket Ticket
-	err := lib.Datastore.Db.Collection(ticketsColName).FindOne(ctx, bson.M{"event": eventID, "owner": userID}).Decode(&ticket)
+	err := lib.Datastore.Db.Collection(ticketsColName).
+		FindOne(ctx, bson.M{"event": eventID, "owner": userID}).
+		Decode(&ticket)
 
 	// No error handling needed (ticket & err default to empty struct / nil)
 	return ticket, err
@@ -49,7 +55,9 @@ func SearchForTicket(ctx context.Context, eventID primitive.ObjectID, userID str
 func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 	// Try to get data from DB
 	var ticket Ticket
-	err := lib.Datastore.Db.Collection(ticketsColName).FindOne(ctx, bson.M{"_id": id}).Decode(&ticket)
+	err := lib.Datastore.Db.Collection(ticketsColName).
+		FindOne(ctx, bson.M{"_id": id}).
+		Decode(&ticket)
 
 	// No error handling needed (ticket & err default to empty struct / nil)
 	return ticket, err

@@ -30,7 +30,11 @@ func LoggerMiddleware() func(next http.Handler) http.Handler {
 						Interface("recover_info", rec).
 						Bytes("debug_stack", debug.Stack()).
 						Msg("log system error")
-					http.Error(ww, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+					http.Error(
+						ww,
+						http.StatusText(http.StatusInternalServerError),
+						http.StatusInternalServerError,
+					)
 				}
 
 				// log end request

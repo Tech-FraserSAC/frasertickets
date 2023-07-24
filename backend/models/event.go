@@ -11,15 +11,15 @@ import (
 )
 
 type Event struct {
-	ID             primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	Name           string               `json:"name" bson:"name"`
-	Description    string               `json:"description" bson:"description"`
-	ImageURL       string               `json:"img_url" bson:"img_url"`
-	Location       string               `json:"location" bson:"location"` // Ex. name of venue
-	Address        string               `json:"address" bson:"address"`
+	ID             primitive.ObjectID   `json:"id"              bson:"_id,omitempty"`
+	Name           string               `json:"name"            bson:"name"`
+	Description    string               `json:"description"     bson:"description"`
+	ImageURL       string               `json:"img_url"         bson:"img_url"`
+	Location       string               `json:"location"        bson:"location"` // Ex. name of venue
+	Address        string               `json:"address"         bson:"address"`
 	StartTimestamp time.Time            `json:"start_timestamp" bson:"start_timestamp"`
-	EndTimestamp   time.Time            `json:"end_timestamp" bson:"end_timestamp"`
-	Tickets        []primitive.ObjectID `json:"tickets" bson:"tickets"`
+	EndTimestamp   time.Time            `json:"end_timestamp"   bson:"end_timestamp"`
+	Tickets        []primitive.ObjectID `json:"tickets"         bson:"tickets"`
 }
 
 func (event *Event) Render(w http.ResponseWriter, r *http.Request) error {
@@ -45,7 +45,9 @@ func GetAllEvents(ctx context.Context) ([]Event, error) {
 func GetEventByKey(ctx context.Context, key string, value interface{}) (Event, error) {
 	// Try to fetch data from DB
 	var event Event
-	err := lib.Datastore.Db.Collection(eventsColName).FindOne(ctx, bson.M{key: value}).Decode(&event)
+	err := lib.Datastore.Db.Collection(eventsColName).
+		FindOne(ctx, bson.M{key: value}).
+		Decode(&event)
 
 	// No error handling needed (user & err will default to empty struct / nil)
 	return event, err
@@ -85,7 +87,8 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 	}
 
 	// Try to update document in DB
-	res, err := lib.Datastore.Db.Collection(eventsColName).UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
+	res, err := lib.Datastore.Db.Collection(eventsColName).
+		UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
 	if err != nil {
 		return err
 	}
@@ -103,7 +106,8 @@ func DeleteEvent(ctx context.Context, id primitive.ObjectID) error {
 	}
 
 	// Delete all tickets to event
-	_, err = lib.Datastore.Db.Collection(ticketsColName).DeleteMany(ctx, bson.M{"_id": bson.M{"$in": event.Tickets}})
+	_, err = lib.Datastore.Db.Collection(ticketsColName).
+		DeleteMany(ctx, bson.M{"_id": bson.M{"$in": event.Tickets}})
 	if err != nil {
 		return err
 	}
