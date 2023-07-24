@@ -11,8 +11,9 @@ type TicketController struct{}
 func (ctrl TicketController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", ctrl.List)    // GET /tickets - returns all tickets, only available to admins
-	r.Post("/", ctrl.Create) // POST /tickets - create a new ticket, only available to admins
+	r.Get("/", ctrl.ListUser)   // GET /tickets - returns a user's tickets, available to any user
+	r.Get("/all", ctrl.ListAll) // GET /tickets/all - returns all tickets, only available to admins
+	r.Post("/", ctrl.Create)    // POST /tickets - create a new ticket, only available to admins
 
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", ctrl.Get)       // GET /tickets/{id} - returns ticket data, available to admins & ticket owner
@@ -22,7 +23,11 @@ func (ctrl TicketController) Routes() chi.Router {
 	return r
 }
 
-func (ctrl TicketController) List(w http.ResponseWriter, r *http.Request) {
+func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 
 }
 
