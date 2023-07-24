@@ -3,6 +3,7 @@ package lib
 import (
 	"context"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -30,6 +31,7 @@ func (ds *MongoDatastore) Connect() {
 	// Set MongoDB API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(ds.connectionStr).SetServerAPIOptions(serverAPI)
+	opts.SetConnectTimeout(2 * time.Second)
 
 	// Create client & connect to server
 	client, err := mongo.Connect(context.TODO(), opts)
