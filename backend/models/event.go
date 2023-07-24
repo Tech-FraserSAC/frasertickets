@@ -52,6 +52,9 @@ func GetEventByKey(ctx context.Context, key string, value interface{}) (Event, e
 }
 
 func CreateNewEvent(ctx context.Context, event Event) (primitive.ObjectID, error) {
+	// Make sure it's an empty array, not nil
+	event.Tickets = make([]primitive.ObjectID, 0)
+
 	// Try to add document
 	res, err := lib.Datastore.Db.Collection(eventsColName).InsertOne(ctx, event)
 
