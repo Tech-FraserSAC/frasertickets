@@ -21,7 +21,7 @@ func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func GetTickets(ctx context.Context, filter bson.D) ([]Ticket, error) {
+func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 	// Try to get data from MongoDB
 	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Find(ctx, filter)
 	if err != nil {
@@ -37,10 +37,19 @@ func GetTickets(ctx context.Context, filter bson.D) ([]Ticket, error) {
 	return tickets, nil
 }
 
-func GetTicket(ctx context.Context, eventID primitive.ObjectID, userID string) (Ticket, error) {
+func SearchForTicket(ctx context.Context, eventID primitive.ObjectID, userID string) (Ticket, error) {
 	// Try to get data from DB
 	var ticket Ticket
 	err := lib.Datastore.Db.Collection(ticketsColName).FindOne(ctx, bson.M{"event": eventID, "owner": userID}).Decode(&ticket)
+
+	// No error handling needed (ticket & err default to empty struct / nil)
+	return ticket, err
+}
+
+func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
+	// Try to get data from DB
+	var ticket Ticket
+	err := lib.Datastore.Db.Collection(ticketsColName).FindOne(ctx, bson.M{"_id": id}).Decode(&ticket)
 
 	// No error handling needed (ticket & err default to empty struct / nil)
 	return ticket, err
