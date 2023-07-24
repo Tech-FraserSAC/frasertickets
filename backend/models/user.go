@@ -44,10 +44,16 @@ func GetAllUsers(ctx context.Context) ([]User, error) {
 func GetUserByKey(ctx context.Context, key string, value string) (User, error) {
 	// Try to fetch data from DB
 	var user User
-	err := lib.Datastore.Db.Collection(usersColName).FindOne(ctx, bson.D{{Key: key, Value: value}}).Decode(&user)
+	err := lib.Datastore.Db.Collection(usersColName).FindOne(ctx, bson.M{key: value}).Decode(&user)
 
 	// No error handling needed (user & err will default to empty struct / nil)
 	return user, err
+}
+
+func CheckIfUserExists(ctx context.Context, uid string) (bool, error) {
+	// Directly return results from DB
+	count, err := lib.Datastore.Db.Collection(usersColName).CountDocuments(ctx, bson.M{"_id": uid})
+	return count == 1, err
 }
 
 func CreateNewUser(ctx context.Context, user User) (string, error) {
