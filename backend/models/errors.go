@@ -10,6 +10,6 @@ var (
 )
 
 func init() {
-	ErrNoDocumentModified = errors.New("models: no documents were modified")
+	ErrNoDocumentModified = errors.New("models: no documents were modified/deleted")
 	ErrEditNotAllowed = errors.New("models: cannot update forbidden / unknown attr")
 }
