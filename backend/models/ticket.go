@@ -8,6 +8,8 @@ import (
 	"github.com/aritrosaha10/frasertickets/lib"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Ticket struct {
@@ -19,6 +21,42 @@ type Ticket struct {
 
 func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
+}
+
+func CreateTicketIndices(ctx context.Context) error {
+	// Create appropriate indices
+	eventOwnerPairIdxModel := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "event", Value: 1},
+			{Key: "owner", Value: 1},
+		},
+	}
+	eventIdxModel := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "event", Value: 1},
+		},
+	}
+	ownerIdxModel := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "owner", Value: 1},
+		},
+	}
+
+	// Try creating the indices
+	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
+	_, err := lib.Datastore.Db.Collection(ticketsColName).
+		Indexes().
+		CreateMany(
+			ctx,
+			[]mongo.IndexModel{
+				eventOwnerPairIdxModel,
+				eventIdxModel,
+				ownerIdxModel,
+			},
+			opts,
+		)
+
+	return err
 }
 
 func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
@@ -63,12 +101,45 @@ func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 	return ticket, err
 }
 
+func CheckIfTicketExists(ctx context.Context, filter bson.M) (bool, error) {
+	// Directly return results from DB
+	count, err := lib.Datastore.Db.Collection(ticketsColName).CountDocuments(ctx, filter)
+	return count == 1, err
+}
+
 func CreateNewTicket(ctx context.Context, ticket Ticket) (primitive.ObjectID, error) {
 	// Set timestamp to now
 	ticket.Timestamp = time.Now()
 
+	// Check if ticket already exists
+	_, err := SearchForTicket(ctx, ticket.Event, ticket.Owner)
+	if err == nil {
+		return primitive.NilObjectID, ErrAlreadyExists
+	}
+
+	// Check if event exists
+	eventExists, err := CheckIfEventExists(ctx, ticket.Event)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	if !eventExists {
+		return primitive.NilObjectID, ErrNotFound
+	}
+
+	// Check if user exists
+	userExists, err := CheckIfUserExists(ctx, ticket.Owner)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	if !userExists {
+		return primitive.NilObjectID, ErrNotFound
+	}
+
 	// Try to add ticket
 	res, err := lib.Datastore.Db.Collection(ticketsColName).InsertOne(ctx, ticket)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
 
 	// Return object ID
 	return res.InsertedID.(primitive.ObjectID), err
@@ -84,5 +155,11 @@ func DeleteTicket(ctx context.Context, id primitive.ObjectID) error {
 			err = ErrNoDocumentModified
 		}
 	}
+	return err
+}
+
+func DeleteAllTicketsForEvent(ctx context.Context, eventID primitive.ObjectID) error {
+	// Delete all tickets to event
+	_, err := lib.Datastore.Db.Collection(ticketsColName).DeleteMany(ctx, bson.M{"event": eventID})
 	return err
 }

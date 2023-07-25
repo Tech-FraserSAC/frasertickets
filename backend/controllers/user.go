@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -63,7 +62,6 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		FirstName:     "Arnab",
 		LastName:      "Saha",
 		ProfilePicURL: "https://www.pngall.com/wp-content/uploads/5/Linux-PNG-Photo.png",
-		TicketsOwned:  []primitive.ObjectID{},
 	}
 
 	// Create the user doc in MongoDB

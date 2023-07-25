@@ -34,6 +34,15 @@ func ErrInvalidRequest(err error) render.Renderer {
 	}
 }
 
+func ErrConflict(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 409,
+		StatusText:     "Conflict.",
+		ErrorText:      err.Error(),
+	}
+}
+
 func ErrRender(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,

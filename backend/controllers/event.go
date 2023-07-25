@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -54,8 +55,7 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 	// Convert into list of renderers to turn into JSON
 	renderers := []render.Renderer{}
 	for _, event := range events {
-		e := event      // Duplicate before passing by reference
-		e.Tickets = nil // Remove tickets since endpoint available to all
+		e := event // Duplicate before passing by reference
 		renderers = append(renderers, &e)
 	}
 
@@ -140,13 +140,13 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 	// Try to convert the given ID into an Object ID
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Error().Err(err).Msg("could not convert hex to object id")
+		log.Error().Err(err).Msg("could not convert url param to object id")
 		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
 
 	// Try to fetch from DB
-	event, err := models.GetEventByKey(r.Context(), "_id", objID)
+	event, err := models.GetEvent(r.Context(), bson.M{"_id": objID})
 
 	// Handle errors
 	if err != nil {
@@ -159,9 +159,6 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}
-
-	// Null out tickets to prevent leakage
-	event.Tickets = nil
 
 	// Return as JSON, fallback if it fails
 	if err := render.Render(w, r, &event); err != nil {
@@ -175,32 +172,32 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// Try to convert the given ID into an Object ID
-	objID, err := primitive.ObjectIDFromHex(id)
+	eventID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Error().Err(err).Msg("could not convert hex to object id")
+		log.Error().Err(err).Msg("could not convert url param to object id")
 		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
 
-	// Try to fetch from DB
-	// event, err := models.GetEventByKey(r.Context(), "_id", objID)
-	_, err = models.GetEventByKey(r.Context(), "_id", objID)
-
-	// Handle errors
+	// Check if event exists
+	exists, err := models.CheckIfEventExists(r.Context(), eventID)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			render.Render(w, r, util.ErrNotFound)
-			return
-		}
-
-		log.Error().Err(err).Msg("could not find event")
+		log.Error().Err(err).Msg("could not check if event exists")
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}
+	if !exists {
+		render.Render(w, r, util.ErrNotFound)
+		return
+	}
 
-	// TODO: Fetch list of tickets
-	// ticketRefs := event.Tickets
-	var tickets []models.Ticket
+	// Fetch list of tickets
+	tickets, err := models.GetTickets(r.Context(), bson.M{"event": eventID})
+	if err != nil {
+		log.Error().Err(err).Msg("could not fetch tickets of event")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
 
 	// Convert into list of renderers to turn into JSON
 	renderers := []render.Renderer{}
@@ -230,7 +227,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if it exists
-	_, err = models.GetEventByKey(r.Context(), "_id", id)
+	_, err = models.GetEvent(r.Context(), bson.M{"_id": id})
 	if err == mongo.ErrNoDocuments {
 		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrNotFound)
@@ -270,7 +267,7 @@ func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 
 	// Try to delete document
 	err = models.DeleteEvent(r.Context(), objID)
-	if err == models.ErrNoDocumentModified || err == mongo.ErrNoDocuments {
+	if err == models.ErrNotFound {
 		log.Error().Err(err).Msg("could not find event to delete")
 		render.Render(w, r, util.ErrNotFound)
 		return

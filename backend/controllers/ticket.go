@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -17,12 +18,12 @@ import (
 )
 
 type ticketControllerCreateRequestBody struct {
-	OwnerID string `json:"ownerID" validate:"required,mongodb"`
+	OwnerID string `json:"ownerID" validate:"required"`
 	EventID string `json:"eventID" validate:"required,mongodb"`
 }
 
 type ticketControllerSearchRequestBody struct {
-	OwnerID string `json:"ownerID" validate:"required,mongodb"`
+	OwnerID string `json:"ownerID" validate:"required"`
 	EventID string `json:"eventID" validate:"required,mongodb"`
 }
 
@@ -154,8 +155,32 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	// Try to add to DB
 	id, err := models.CreateNewTicket(r.Context(), ticket)
 	if err != nil {
-		log.Error().Err(err).Msg("could not add ticket to DB")
-		render.Render(w, r, util.ErrServer(err))
+		var (
+			renderErr render.Renderer
+			errMsg    string
+		)
+
+		// Customize logged err msg & err sent to user depending on error
+		switch err {
+		case models.ErrAlreadyExists:
+			{
+				errMsg = "ticket with given event and owner ID already exists"
+				renderErr = util.ErrConflict(errors.New(errMsg))
+			}
+		case models.ErrNotFound:
+			{
+				errMsg = "event or user given was not found"
+				renderErr = util.ErrInvalidRequest(errors.New(errMsg))
+			}
+		default:
+			{
+				errMsg = "could not add ticket to db"
+				renderErr = util.ErrServer(err)
+			}
+		}
+
+		log.Error().Err(err).Str("owner", ticketRaw.OwnerID).Str("event", ticketRaw.EventID).Msg(errMsg)
+		render.Render(w, r, renderErr)
 		return
 	}
 	ticket.ID = id
@@ -165,7 +190,6 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
-
 }
 
 func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +199,7 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 	// Try to convert the given ID into an Object ID
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Error().Err(err).Msg("could not convert hex to object id")
+		log.Error().Err(err).Msg("could not convert url param to object id")
 		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
@@ -280,3 +304,6 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// event ID: 64bdebd2be3ba505e0c17137
+// user ID: 37907632-77e4-46ad-b133-6c589e5172e6

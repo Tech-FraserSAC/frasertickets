@@ -5,24 +5,48 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/aritrosaha10/frasertickets/lib"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type User struct {
-	ID            string               `json:"id"             bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
-	Admin         bool                 `json:"admin"          bson:"admin"`
-	StudentNumber string               `json:"student_number" bson:"student_number"`
-	FirstName     string               `json:"first_name"     bson:"first_name"`
-	LastName      string               `json:"last_name"      bson:"last_name"`
-	ProfilePicURL string               `json:"pfp_url"        bson:"pfp_url"`
-	TicketsOwned  []primitive.ObjectID `json:"tickets_owned"  bson:"tickets_owned"`
+	ID            string `json:"id"             bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
+	Admin         bool   `json:"admin"          bson:"admin"`
+	StudentNumber string `json:"student_number" bson:"student_number"`
+	FirstName     string `json:"first_name"     bson:"first_name"`
+	LastName      string `json:"last_name"      bson:"last_name"`
+	ProfilePicURL string `json:"pfp_url"        bson:"pfp_url"`
 }
 
 func (user *User) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
+}
+
+func CreateUserIndices(ctx context.Context) error {
+	// Create appropriate indices
+	studentNumberIdxModel := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "student_number", Value: 1},
+		},
+	}
+
+	// Try creating the indices
+	opts := options.CreateIndexes().SetMaxTime(10 * time.Second)
+	_, err := lib.Datastore.Db.Collection(usersColName).
+		Indexes().
+		CreateMany(
+			ctx,
+			[]mongo.IndexModel{
+				studentNumberIdxModel,
+			},
+			opts,
+		)
+
+	return err
 }
 
 func GetAllUsers(ctx context.Context) ([]User, error) {
