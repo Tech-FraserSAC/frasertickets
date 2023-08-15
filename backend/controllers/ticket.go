@@ -50,7 +50,47 @@ func (ctrl TicketController) Routes() chi.Router {
 }
 
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
-	// TODO: Work on this, can only do after auth object passed into context
+	// Get user UID
+	userRecord, err := util.GetUserRecordFromContext(r.Context())
+	if err != nil {
+		log.Error().Err(err).Send()
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+	uid := userRecord.UID
+
+	// Check if user exists
+	exists, err := models.CheckIfUserExists(r.Context(), uid)
+	if err != nil {
+		log.Error().Err(err).Msg("could not check if user exists")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	} else if !exists {
+		log.Info().Err(err).Str("uid", uid).Msg("user could not be found")
+		render.Render(w, r, util.ErrNotFound)
+		return
+	}
+
+	// Try to get tickets
+	tickets, err := models.GetTickets(r.Context(), bson.M{"owner": uid})
+	if err != nil {
+		log.Error().Err(err).Str("uid", uid).Msg("could not fetch user's tickets")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Convert into list of renderers to turn into JSON
+	renderers := []render.Renderer{}
+	for _, ticket := range tickets {
+		t := ticket // Duplicate it before passing by reference to avoid only passing the last user obj
+		renderers = append(renderers, &t)
+	}
+
+	// Return as JSON array, fallback if it fails
+	if err := render.RenderList(w, r, renderers); err != nil {
+		render.Render(w, r, util.ErrRender(err))
+		return
+	}
 }
 
 func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {

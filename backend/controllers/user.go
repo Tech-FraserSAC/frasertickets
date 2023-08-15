@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -54,11 +53,11 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 
 func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	userRecord, ok := util.GetUserRecordFromContext(ctx)
+	userRecord, err := util.GetUserRecordFromContext(ctx)
 
-	if !ok {
-		log.Error().Msg("could not get user token from context")
-		render.Render(w, r, util.ErrServer(errors.New("could not get user token from context")))
+	if err != nil {
+		log.Error().Err(err)
+		render.Render(w, r, util.ErrServer(err))
 		return
 	}
 

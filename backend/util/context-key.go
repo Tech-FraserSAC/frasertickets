@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 
 	"firebase.google.com/go/auth"
 )
@@ -24,7 +25,10 @@ func GetUserTokenFromContext(ctx context.Context) (*auth.Token, bool) {
 }
 
 // GetUserRecordFromContext gets the user record from context.
-func GetUserRecordFromContext(ctx context.Context) (*auth.UserRecord, bool) {
+func GetUserRecordFromContext(ctx context.Context) (*auth.UserRecord, error) {
 	userToken, ok := ctx.Value(ContextKeyUserRecord).(*auth.UserRecord)
-	return userToken, ok
+	if !ok {
+		return nil, fmt.Errorf("could not get user record from context")
+	}
+	return userToken, nil
 }

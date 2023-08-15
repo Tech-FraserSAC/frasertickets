@@ -31,7 +31,8 @@ export default function Home() {
   const sendRequestToBackend = async () => {
     const token = await user?.getIdToken()
 
-    const res = await fetch("http://localhost:3001/events", {
+    // Try registering them if they're weren't already
+    const res = await fetch("http://localhost:3001/tickets", {
       method: "GET",
       mode: "cors",
       headers: {
@@ -39,8 +40,13 @@ export default function Home() {
       }
     })
 
-    console.log(res.status)
-    console.log(await res.json())
+    if (res.status !== 200) {
+      throw res.statusText, await res.text()
+    }
+
+    const data = await res.json()
+
+    console.log(data)
   }
 
   const logOut = () => {
