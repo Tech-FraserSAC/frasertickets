@@ -33,7 +33,6 @@ func (s *Server) MountHandlers() {
 	// Middleware stack
 	s.Router.Use(middleware.RequestID)
 	s.Router.Use(middleware.RealIP)
-	// s.Router.Use(middleware.Logger)
 	s.Router.Use(middlewarecustom.LoggerMiddleware())
 	s.Router.Use(middleware.Timeout(60 * time.Second))
 	s.Router.Use(middleware.Heartbeat("/ping"))
@@ -44,6 +43,8 @@ func (s *Server) MountHandlers() {
 	}))
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
+
+	s.Router.Use(middlewarecustom.AuthenticatorMiddleware) // Every route should require some sort of auth
 
 	// Route handlers
 	s.Router.Mount("/users", controllers.UserController{}.Routes())
