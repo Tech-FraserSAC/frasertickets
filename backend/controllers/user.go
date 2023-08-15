@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -20,8 +20,8 @@ type UserController struct{}
 func (ctrl UserController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", ctrl.List)    // GET /users - returns list of users, only available to admins
-	r.Post("/", ctrl.Create) // POST /users - add new user to database, only run during sign up process
+	r.Get("/", ctrl.List)       // GET /users - returns list of users, only available to admins
+	r.Post("/add", ctrl.Create) // POST /users/add - add new user to database, only run during sign up process
 
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", ctrl.Get)      // GET /users/{id} - returns user data, only available to admins and user
@@ -53,15 +53,36 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
-	// Create fake user for now
-	// TODO: Fill in using info from token given
+	ctx := r.Context()
+	userRecord, ok := util.GetUserRecordFromContext(ctx)
+
+	if !ok {
+		log.Error().Msg("could not get user token from context")
+		render.Render(w, r, util.ErrServer(errors.New("could not get user token from context")))
+		return
+	}
+
+	// Check if they already have a user record in db
+	userExists, err := models.CheckIfUserExists(ctx, userRecord.UID)
+	if err != nil {
+		log.Error().Err(err).Msg("could not check if user already exists in db")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+	if userExists {
+		log.Info().Str("uid", userRecord.UID).Msg("user with existing entry in db tried to re-register")
+		render.Render(w, r, util.ErrForbidden)
+		return
+	}
+
+	// TODO: Get first & last name from somewhere?
+	// TODO: Get student number through email (not doing yet until application gets approval for PDSB sign in)
 	tmpUser := models.User{
-		ID:            uuid.NewString(),
+		ID:            userRecord.UID,
 		Admin:         false,
 		StudentNumber: strconv.Itoa(rand.Intn(500000) + 500000),
-		FirstName:     "Arnab",
-		LastName:      "Saha",
-		ProfilePicURL: "https://www.pngall.com/wp-content/uploads/5/Linux-PNG-Photo.png",
+		FullName:      userRecord.DisplayName,
+		ProfilePicURL: userRecord.PhotoURL,
 	}
 
 	// Create the user doc in MongoDB

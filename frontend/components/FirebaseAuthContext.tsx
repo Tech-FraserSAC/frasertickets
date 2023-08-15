@@ -13,7 +13,7 @@ const FirebaseAuthProvider: React.FC<Props> = ({ children }: Props) => {
     const value = { user }
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (e) => {setUser(e); console.log("hello")} )
+        const unsubscribe = onAuthStateChanged(auth, setUser)
         return unsubscribe
     }, [])
 

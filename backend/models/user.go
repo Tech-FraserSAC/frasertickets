@@ -17,8 +17,7 @@ type User struct {
 	ID            string `json:"id"             bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
 	Admin         bool   `json:"admin"          bson:"admin"`
 	StudentNumber string `json:"student_number" bson:"student_number"`
-	FirstName     string `json:"first_name"     bson:"first_name"`
-	LastName      string `json:"last_name"      bson:"last_name"`
+	FullName      string `json:"full_name"     bson:"full_name"`
 	ProfilePicURL string `json:"pfp_url"        bson:"pfp_url"`
 }
 
