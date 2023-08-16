@@ -1,0 +1,35 @@
+scalar Time
+
+type User {
+  uid: ID!
+  fullName: String!
+  profilePicURL: String!
+  studentNumber: Int!
+  admin: Boolean!
+  tickets: [Ticket!]!
+}
+
+type Event {
+  id: ID!
+  name: String!
+  description: String!
+  imageURL: String!
+  startTimestamp: Time!
+  endTimestamp: Time!
+  tickets: [Ticket!]!
+}
+
+type Ticket {
+  id: ID!
+  event: Event!
+  user: User!
+  creationTimestamp: Time!
+  scans: [TicketScan!]!
+}
+
+type TicketScan {
+  id: ID!
+  ticket: Ticket!
+  scanner: User!
+  timestamp: Time!
+}
