@@ -67,4 +67,4 @@ var ErrUnmodified = &ErrResponse{HTTPStatusCode: 304, StatusText: "Resource not 
 
 var ErrUnauthorized = &ErrResponse{HTTPStatusCode: 401, StatusText: "Unauthorized."}
 
-var ErrForbidden = &ErrResponse{HTTPStatusCode: 401, StatusText: "Forbidden."}
+var ErrForbidden = &ErrResponse{HTTPStatusCode: 403, StatusText: "Forbidden."}
