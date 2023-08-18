@@ -156,6 +156,13 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
+	// Update keys that should not be touched by a non-admin user
+	PRIVILEGED_UPDATE_KEYS := map[string]bool{
+		"admin":          true,
+		"student_number": true,
+		"pfp_url":        true,
+	}
+
 	// Get ID of requested user
 	id := chi.URLParam(r, "id")
 
@@ -169,11 +176,27 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if it exists
-	_, err = models.GetUserByKey(r.Context(), "_id", id)
+	userData, err := models.GetUserByKey(r.Context(), "_id", id)
 	if err == mongo.ErrNoDocuments {
 		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrNotFound)
 		return
+	}
+
+	// Check if non-admin user is attempting to change prohibited traits
+	if !userData.Admin {
+		for key, val := range requestedUpdates {
+			if _, ok := PRIVILEGED_UPDATE_KEYS[key]; ok {
+				log.
+					Warn().
+					Str("uid", id).
+					Str("desired-key", key).
+					Any("desired-value", val).
+					Msg("user attempted to update forbidden key")
+				render.Render(w, r, util.ErrForbidden)
+				return
+			}
+		}
 	}
 
 	// Try updating the appropriate document
