@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
@@ -32,18 +33,29 @@ type TicketController struct{}
 func (ctrl TicketController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", ctrl.ListSelf)      // GET /tickets - returns the requester's tickets, available to any user
-	r.Post("/", ctrl.Create)       // POST /tickets - create a new ticket, only available to admins
-	r.Get("/all", ctrl.ListAll)    // GET /tickets/all - returns all tickets, only available to admins
-	r.Post("/search", ctrl.Search) // POST /tickets/search - search for a ticket given an owner and event, only available to admins
+	r.Get("/", ctrl.ListSelf) // GET /tickets - returns the requester's tickets, available to any user
+
+	// Admin-only routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuthorizerMiddleware)
+		r.Post("/", ctrl.Create)       // POST /tickets - create a new ticket, only available to admins
+		r.Get("/all", ctrl.ListAll)    // GET /tickets/all - returns all tickets, only available to admins
+		r.Post("/search", ctrl.Search) // POST /tickets/search - search for a ticket given an owner and event, only available to admins
+	})
 
 	r.Route("/user/{uid}", func(r chi.Router) {
+		r.Use(middleware.AdminAuthorizerMiddleware)
 		r.Get("/", ctrl.ListUser) // GET /tickets/user/{uid} - returns a user's tickets, only available to admins
 	})
 
 	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/", ctrl.Get)       // GET /tickets/{id} - returns ticket data, available to admins & ticket owner
-		r.Delete("/", ctrl.Delete) // DELETE /events/{id} - delete ticket, only available to admins
+		r.Get("/", ctrl.Get) // GET /tickets/{id} - returns ticket data, available to admins & ticket owner
+
+		// Admin-only routes
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AdminAuthorizerMiddleware)
+			r.Delete("/", ctrl.Delete) // DELETE /events/{id} - delete ticket, only available to admins
+		})
 	})
 
 	return r
@@ -256,6 +268,26 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 
 		log.Error().Err(err).Msg("could not find ticket")
 		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Check if they are authorized to use endpoint (admin or ticket owner)
+	// This runs after the data fetch process so we can grab the ticket owner UID
+	isAdmin, err := util.CheckIfAdmin(r.Context())
+	if err != nil {
+		log.Error().Err(err).Msg("could not check if requester is admin")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Check if they're the owner of the ticket
+	idToken, _ := util.GetUserTokenFromContext(r.Context()) // Not error-checking because this gets fetched in admin check
+	isOwner := ticket.Owner == idToken.UID
+
+	// Do final authorization check
+	if !(isAdmin || isOwner) {
+		log.Warn().Str("uid", idToken.UID).Msg("unauthorized user attempting to access another person's ticket")
+		render.Render(w, r, util.ErrForbidden)
 		return
 	}
 

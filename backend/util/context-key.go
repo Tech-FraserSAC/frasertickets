@@ -19,9 +19,12 @@ var (
 )
 
 // GetUserTokenFromContext gets the user token from context.
-func GetUserTokenFromContext(ctx context.Context) (*auth.Token, bool) {
+func GetUserTokenFromContext(ctx context.Context) (*auth.Token, error) {
 	userToken, ok := ctx.Value(ContextKeyUserToken).(*auth.Token)
-	return userToken, ok
+	if !ok {
+		return nil, fmt.Errorf("could not get user token from context")
+	}
+	return userToken, nil
 }
 
 // GetUserRecordFromContext gets the user record from context.

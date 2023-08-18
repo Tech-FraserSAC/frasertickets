@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
@@ -19,10 +20,39 @@ type UserController struct{}
 func (ctrl UserController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", ctrl.List)       // GET /users - returns list of users, only available to admins
 	r.Post("/add", ctrl.Create) // POST /users/add - add new user to database, only run during sign up process
 
+	// Admin-only route(s)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuthorizerMiddleware)
+		r.Get("/", ctrl.List) // GET /users - returns list of users, only available to admins
+	})
+
 	r.Route("/{id}", func(r chi.Router) {
+		// Custom middleware function made specifically to check if requester if admin or accessing self data
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Get ID token to get user's identity / UID
+				idToken, err := util.GetUserTokenFromContext(r.Context())
+				if err != nil {
+					log.Error().Err(err).Msg("could not fetch user token from context")
+					render.Render(w, r, util.ErrServer(err))
+					return
+				}
+
+				// Get two main criteria for authorization
+				isAdmin, _ := util.CheckIfAdmin(r.Context()) // error doesn't matter, bool defaults to false anyways
+				isSelf := chi.URLParam(r, "id") == idToken.UID
+				if !(isAdmin || isSelf) {
+					log.Warn().Str("uid", idToken.UID).Msg("unauthorized user attempted to access another person's user profile")
+					render.Render(w, r, util.ErrForbidden)
+					return
+				}
+
+				next.ServeHTTP(w, r)
+			})
+		})
+
 		r.Get("/", ctrl.Get)      // GET /users/{id} - returns user data, only available to admins and user
 		r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins and user
 	})

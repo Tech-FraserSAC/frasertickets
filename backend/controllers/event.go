@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
@@ -31,14 +32,24 @@ type EventController struct{}
 func (ctrl EventController) Routes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", ctrl.List)    // GET /events - returns list of events, available to all
-	r.Post("/", ctrl.Create) // POST /events - add new event to database, only available to admins
+	r.Get("/", ctrl.List) // GET /events - returns list of events, available to all
+
+	// Admin-only routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuthorizerMiddleware)
+		r.Post("/", ctrl.Create) // POST /events - add new event to database, only available to admins
+	})
 
 	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/", ctrl.Get)               // GET /events/{id} - returns event data, available to all
-		r.Get("/tickets", ctrl.GetTickets) // GET /events/{id}/tickets - returns all tickets for an event, only for admins
-		r.Patch("/", ctrl.Update)          // PATCH /events/{id} - updates event data, only available to admins
-		r.Delete("/", ctrl.Delete)         // DELETE /events/{id} - deletes event, only available to admins
+		r.Get("/", ctrl.Get) // GET /events/{id} - returns event data, available to all
+
+		// Admin-only routes
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AdminAuthorizerMiddleware)
+			r.Get("/tickets", ctrl.GetTickets) // GET /events/{id}/tickets - returns all tickets for an event, only for admins
+			r.Patch("/", ctrl.Update)          // PATCH /events/{id} - updates event data, only available to admins
+			r.Delete("/", ctrl.Delete)         // DELETE /events/{id} - deletes event, only available to admins
+		})
 	})
 
 	return r
