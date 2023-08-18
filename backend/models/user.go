@@ -124,6 +124,8 @@ func UpdateExistingUserByKeys(
 	id string,
 	updates map[string]interface{},
 ) error {
+	// TODO: Somehow enforce schema during these updates, especially since users can run this function
+	// to limited extent
 	UPDATABLE_KEYS := map[string]bool{
 		"admin":          true,
 		"student_number": true,

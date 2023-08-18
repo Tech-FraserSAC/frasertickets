@@ -24,7 +24,7 @@ func AdminAuthorizerMiddleware(next http.Handler) http.Handler {
 			}
 
 			log.Warn().Str("uid", idToken.UID).Msg("unauthorized user attempting to access admin-only route")
-			render.Render(w, r, util.ErrServer(err))
+			render.Render(w, r, util.ErrForbidden)
 			return
 		}
 
