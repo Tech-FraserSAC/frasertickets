@@ -3,17 +3,21 @@ import { User as firebaseUser, onAuthStateChanged } from 'firebase/auth'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 type User = firebaseUser | null
-type ContextState = { user: User }
+type ContextState = { user: User, loaded: boolean }
 type Props = { children?: ReactNode }
 
 const FirebaseAuthContext = createContext<ContextState | undefined>(undefined)
 
 const FirebaseAuthProvider: React.FC<Props> = ({ children }: Props) => {
     const [user, setUser] = useState<User>(null)
-    const value = { user }
+    const [loaded, setLoaded] = useState(false)
+    const value = { user, loaded }
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, setUser)
+        const unsubscribe = onAuthStateChanged(auth, newUser => {
+            setUser(newUser)
+            setLoaded(true)
+        })
         return unsubscribe
     }, [])
 
@@ -31,7 +35,7 @@ function useFirebaseAuth() {
             "useFirebaseAuth must be used within a FirebaseAuthProvider"
         )
     }
-    return context.user
+    return { user: context.user, loaded: context.loaded }
 }
 
 export { FirebaseAuthProvider, useFirebaseAuth }

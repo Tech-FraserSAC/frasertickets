@@ -1,9 +1,12 @@
 import Head from "next/head"
+import router from "next/router"
 
 // import Navbar from "./Navbar"
 // import Footer from "./Footer"
 
 import { motion } from "framer-motion"
+import { useFirebaseAuth } from "./FirebaseAuthContext";
+import { useEffect } from "react";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -14,10 +17,19 @@ const contentVariants = {
     transition: { duration: 0.4, ...transition }
 }
 
-export default function Layout({ name, children, noAnim, className }: { name: string, children: any, noAnim?: boolean, className?: string }) {
+export default function Layout({ name, children, noAnim, className, userProtected }: { name: string, children: any, noAnim?: boolean, className?: string, userProtected?: boolean }) {
+    const { user, loaded } = useFirebaseAuth()
+    
     const title = `${name} | FraserTickets`;
     const description = "WEBSITE DESCRIPTION";
     const imageSrc = "CHANGE ME"
+
+    useEffect(() => {
+        if (user === null && loaded && userProtected) {
+            alert("You must be signed in to access this route. Redirecting...")
+            router.push("/")
+        }
+    }, [user])
 
     return (
         <div className="flex flex-col min-h-screen bg-blue-50 overflow-hidden" key={name}>
