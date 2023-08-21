@@ -1,11 +1,14 @@
 import { FirebaseAuthProvider } from '@/components/FirebaseAuthContext'
 import '@/styles/globals.css'
+import { ThemeProvider } from '@material-tailwind/react'
 import type { AppProps } from 'next/app'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <FirebaseAuthProvider>
-      <Component {...pageProps} />
-    </FirebaseAuthProvider>
+    <ThemeProvider>
+      <FirebaseAuthProvider>
+        <Component {...pageProps} />
+      </FirebaseAuthProvider>
+    </ThemeProvider>
   )
 }

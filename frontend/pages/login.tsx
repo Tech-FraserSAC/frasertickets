@@ -1,0 +1,104 @@
+import { useEffect, useState } from "react";
+import router from "next/router";
+import axios from "axios";
+
+import { 
+    GoogleAuthProvider, 
+    browserLocalPersistence, 
+    getRedirectResult, 
+    setPersistence, 
+    signInWithRedirect, 
+    signOut 
+} from "firebase/auth";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import auth from "@/lib/firebase/auth";
+
+import Layout from "@/components/Layout";
+import getBackendRoute from "@/util/getBackendRoute";
+
+import { Typography } from "@material-tailwind/react";
+import GoogleButton from "react-google-button";
+
+export default function Login() {
+    const user = useFirebaseAuth()
+    const [redirectStatus, setRedirectStatus] = useState({
+        checked: false,
+        redirected: false,
+        actedUpon: false
+    })
+
+    const authProvider = new GoogleAuthProvider()
+    authProvider.setCustomParameters({
+        // Currently commented out because of new (stupid) Google admin rule
+        // login_hint: "000000@pdsb.net",
+        // hd: "pdsb.net", // Only allows users part of pdsb.net organization
+    })
+
+    const logIn = () => {
+        // Prompt user to log in
+        setPersistence(auth, browserLocalPersistence).then(() => {
+            return signInWithRedirect(auth, authProvider)
+        })
+    }
+
+    // Check whether a new login occured, if so, try to create a user object in DB
+    useEffect(() => {
+        (async () => {
+            const redirectRes = await getRedirectResult(auth)
+
+            if (redirectRes) {
+                const token = await redirectRes?.user.getIdToken()
+
+                try {
+                    // Try registering them if they're weren't already
+                    await axios.post(getBackendRoute("/users/add"), null, {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        },
+                        validateStatus: status => status === 200 || status === 403 
+                    })
+
+                    router.push("/")
+                } catch (e) {
+                    alert("Sorry, something went wrong when signing you in.")
+                    console.error(e)
+
+                    // Sign them out so they can sign in again
+                    await signOut(auth)
+                }
+            }
+
+            setRedirectStatus({
+                checked: true,
+                redirected: redirectRes !== null,
+                actedUpon: false
+            })
+        })()
+    }, [])
+
+    useEffect(() => {
+        // Ensure that a redirect login didn't happen and the redirect was checked
+        if (redirectStatus.checked && !redirectStatus.redirected && !redirectStatus.actedUpon && user !== null) {
+            alert("You are already signed in. Redirecting...")
+            router.push("/")
+
+            setRedirectStatus({
+                checked: true,
+                redirected: redirectStatus.redirected,
+                actedUpon: true
+            })
+        } 
+    }, [user, redirectStatus])
+
+    return (
+        <Layout name="Login" className="flex flex-col items-center justify-center">
+            <div className="p-8 bg-white rounded-lg shadow-md">
+                <Typography variant="h3" color="blue-gray" className="text-center mb-4">Login</Typography>
+
+                <GoogleButton
+                    onClick={logIn}
+                />
+            </div>
+        </Layout>
+    )
+}
