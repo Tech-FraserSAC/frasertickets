@@ -14,7 +14,7 @@ import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import auth from "@/lib/firebase/auth";
 
 import Layout from "@/components/Layout";
-import getBackendRoute from "@/util/getBackendRoute";
+import addUser from "@/lib/backend/user/addUser";
 
 import { Typography } from "@material-tailwind/react";
 import GoogleButton from "react-google-button";
@@ -51,12 +51,7 @@ export default function Login() {
 
                 try {
                     // Try registering them if they're weren't already
-                    await axios.post(getBackendRoute("/users/add"), null, {
-                        headers: {
-                            "Authorization": `Bearer ${token}`
-                        },
-                        validateStatus: status => status === 200 || status === 403 
-                    })
+                    await addUser()
 
                     router.push("/")
                 } catch (e) {
