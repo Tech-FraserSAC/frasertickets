@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -23,8 +24,8 @@ type eventControllerCreateRequestBody struct {
 	ImageURL       string `json:"img_url"         validate:"required"`
 	Location       string `json:"location"        validate:"required"`
 	Address        string `json:"address"         validate:"required"`
-	StartTimestamp string `json:"start_timestamp" validate:"required,datetime=2006-01-01T15:00:00,ltefield=EndTimestamp"`
-	EndTimestamp   string `json:"end_timestamp"   validate:"required,datetime=2006-01-02T15:00:00"`
+	StartTimestamp string `json:"start_timestamp" validate:"required"`
+	EndTimestamp   string `json:"end_timestamp"   validate:"required"`
 }
 
 type EventController struct{}
@@ -116,7 +117,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	startTs, err := time.Parse("2006-01-02T15:00:00", eventRaw.StartTimestamp)
 	if err != nil {
 		log.Error().Err(err).Msg("could not parse start timestamp")
-		render.Render(w, r, util.ErrServer(err))
+		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
 	event.StartTimestamp = startTs
@@ -124,10 +125,16 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	endTs, err := time.Parse("2006-01-02T15:00:00", eventRaw.EndTimestamp)
 	if err != nil {
 		log.Error().Err(err).Msg("could not parse end timestamp")
-		render.Render(w, r, util.ErrServer(err))
+		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
 	event.EndTimestamp = endTs
+
+	if startTs.Compare(endTs) != -1 {
+		log.Error().Time("start", startTs).Time("end", endTs).Msg("start timestamp is not before end timestamp")
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("start timestamp is not before end timestamp")))
+		return
+	}
 
 	// Try to add to DB
 	id, err := models.CreateNewEvent(r.Context(), event)
