@@ -20,7 +20,7 @@ import { Typography } from "@material-tailwind/react";
 import GoogleButton from "react-google-button";
 
 export default function Login() {
-    const user = useFirebaseAuth()
+    const { user } = useFirebaseAuth()
     const [redirectStatus, setRedirectStatus] = useState({
         checked: false,
         redirected: false,
@@ -47,8 +47,6 @@ export default function Login() {
             const redirectRes = await getRedirectResult(auth)
 
             if (redirectRes) {
-                const token = await redirectRes?.user.getIdToken()
-
                 try {
                     // Try registering them if they're weren't already
                     await addUser()
@@ -63,6 +61,8 @@ export default function Login() {
                 }
             }
 
+            console.log(redirectRes)
+
             setRedirectStatus({
                 checked: true,
                 redirected: redirectRes !== null,
@@ -73,6 +73,7 @@ export default function Login() {
 
     useEffect(() => {
         // Ensure that a redirect login didn't happen and the redirect was checked
+        console.log(redirectStatus)
         if (redirectStatus.checked && !redirectStatus.redirected && !redirectStatus.actedUpon && user !== null) {
             alert("You are already signed in. Redirecting...")
             router.push("/")

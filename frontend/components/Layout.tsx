@@ -7,6 +7,7 @@ import router from "next/router"
 import { motion } from "framer-motion"
 import { useFirebaseAuth } from "./FirebaseAuthContext";
 import { useEffect } from "react";
+import { ComplexNavbar } from "./user/Navbar";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -19,7 +20,7 @@ const contentVariants = {
 
 export default function Layout({ name, children, noAnim, className, userProtected }: { name: string, children: any, noAnim?: boolean, className?: string, userProtected?: boolean }) {
     const { user, loaded } = useFirebaseAuth()
-    
+
     const title = `${name} | FraserTickets`;
     const description = "WEBSITE DESCRIPTION";
     const imageSrc = "CHANGE ME"
@@ -50,6 +51,8 @@ export default function Layout({ name, children, noAnim, className, userProtecte
                 <meta property="twitter:description" content={description} />
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
+
+            {userProtected && <ComplexNavbar />}
 
             {/* <Navbar /> */}
 
