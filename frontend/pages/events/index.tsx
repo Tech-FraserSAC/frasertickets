@@ -40,13 +40,50 @@ export default function EventsIndex() {
 
     if (error) console.error(error)
 
+    const currentEvents = events?.filter(event => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now())
+    const upcomingEvents = events?.filter(event => event.start_timestamp.getTime() > Date.now())
+    const previousEvents = events?.filter(event => event.end_timestamp.getTime() < Date.now())
+
+    console.log(currentEvents, upcomingEvents, previousEvents)
+
     return (
         <Layout name="Events" userProtected={true} className="p-4">
             <Typography variant="h1" className="mb-4 text-center">Events</Typography>
 
-            <div className="flex flex-wrap gap-4">
-                {!(isLoading || error) ? events?.map(event => <EventCard event={event} />) : <span className="text-center">Loading...</span>}
-            </div>
+            {!(isLoading || error) ? (
+                <div className="flex flex-col gap-4">
+                    {currentEvents && currentEvents.length !== 0 &&
+                        <div>
+                            <Typography variant="h3" className="mb-2" color="blue-gray">Happening now</Typography>
+                            <div className="flex flex-wrap gap-4">
+                                {currentEvents.map(event => <EventCard event={event} />)}
+                            </div>
+                        </div>
+                    }
+
+                    {upcomingEvents && upcomingEvents.length !== 0 &&
+                        <div>
+                            <Typography variant="h3" className="mb-2" color="blue-gray">Upcoming</Typography>
+                            <div className="flex flex-wrap gap-4">
+                                {upcomingEvents.map(event => <EventCard event={event} />)}
+                            </div>
+                        </div>
+                    }
+
+                    {previousEvents && previousEvents.length !== 0 &&
+                        <div>
+                            <Typography variant="h3" className="mb-2" color="blue-gray">Previous</Typography>
+                            <div className="flex flex-wrap gap-4">
+                                {previousEvents.map(event => <EventCard event={event} />)}
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            ) :
+                <span className="text-center">Loading...</span>
+            }
+
         </Layout>
     )
 }
