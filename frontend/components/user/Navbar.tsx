@@ -1,6 +1,5 @@
 import {
     Navbar,
-    MobileNav,
     Typography,
     Button,
     Menu,
@@ -8,6 +7,7 @@ import {
     MenuList,
     MenuItem,
     IconButton,
+    Collapse,
 } from "@material-tailwind/react";
 import {
     UserCircleIcon,
@@ -172,9 +172,9 @@ export function ComplexNavbar() {
                 </IconButton>
                 <ProfileMenu />
             </div>
-            <MobileNav open={isNavOpen} className="h-full">
+            <Collapse open={isNavOpen} className="h-full">
                 <NavList />
-            </MobileNav>
+            </Collapse>
         </Navbar>
     );
 }
