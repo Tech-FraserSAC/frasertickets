@@ -30,7 +30,7 @@ export default function Layout({ name, children, noAnim, className, userProtecte
             alert("You must be signed in to access this route. Redirecting...")
             router.push("/")
         }
-    }, [user])
+    }, [user, loaded])
 
     return (
         <div className="flex flex-col min-h-screen bg-blue-50 overflow-hidden" key={name}>
