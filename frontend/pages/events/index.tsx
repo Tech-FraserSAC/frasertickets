@@ -47,7 +47,7 @@ export default function EventsIndex() {
     console.log(currentEvents, upcomingEvents, previousEvents)
 
     return (
-        <Layout name="Events" userProtected={true} className="p-4">
+        <Layout name="Events" userProtected={true} className="p-4 md:p-8 lg:px-12">
             <Typography variant="h1" className="mb-4 text-center">Events</Typography>
 
             {!(isLoading || error) ? (

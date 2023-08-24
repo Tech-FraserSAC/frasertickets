@@ -37,7 +37,7 @@ export default function EventSpecificPage() {
     console.log(data)
 
     return (
-        <Layout name={pageName} userProtected={true} className="p-4 lg:p-12">
+        <Layout name={pageName} userProtected={true} className="p-4 md:p-8 lg:px-12">
             {
                 (isLoading || error) ? (
                     isLoading ? (
@@ -47,14 +47,14 @@ export default function EventSpecificPage() {
                     )
                 ) : (
 
-                    <div className="flex flex-col lg:flex-row items-center gap-4 ">
+                    <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 xl:gap-12">
                         <div className="flex flex-col items-center lg:items-start lg:w-1/2 mb-6">
                             <Link href="/events" className="flex items-center gap-1 self-start text-blue-500 hover:text-blue-600 text-lg font-medium mb-2">
                                 <AiOutlineArrowLeft />
                                 <span>Events</span>
                             </Link>
 
-                            <Carousel className="md:w-1/2 rounded-xl" autoplay={true}>
+                            <Carousel className="md:w-1/2 lg:w-full rounded-xl" autoplay={true}>
                                 <Image src={data!.img_url as string} width={1000} height={1000} className="w-full h-full object-cover object-center" alt=""></Image>
                                 <Image src={data!.img_url as string} width={1000} height={1000} className="w-full h-full object-cover object-center" alt=""></Image>
                             </Carousel>
