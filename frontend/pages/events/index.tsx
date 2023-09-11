@@ -56,7 +56,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Happening now</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {currentEvents.map(event => <EventCard event={event} />)}
+                                {currentEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
                     }
@@ -65,7 +65,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Upcoming</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {upcomingEvents.map(event => <EventCard event={event} />)}
+                                {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
                     }
@@ -74,7 +74,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Previous</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {previousEvents.map(event => <EventCard event={event} />)}
+                                {previousEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
                     }
