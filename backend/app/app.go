@@ -27,27 +27,32 @@ func Run() {
 	// Set up datastore
 	ds := lib.CreateNewDB()
 	ds.Connect()
+	log.Debug().Msg("connected to database")
 	defer ds.Disconnect()
 	lib.Datastore = ds
 
 	// Set up authentication
 	auth := lib.CreateNewAuth()
 	lib.Auth = auth
+	log.Debug().Msg("connected to auth server")
 
 	// Initialize all indices on the database
 	err := models.CreateTicketIndices(context.Background())
 	if err != nil {
-		log.Warn().Err(err).Msg("could not set up ticket indices")
+		log.Fatal().Err(err).Msg("could not set up ticket indices")
 	}
+	log.Debug().Msg("created ticket indices")
 	err = models.CreateUserIndices(context.Background())
 	if err != nil {
-		log.Warn().Err(err).Msg("could not set up user indices")
+		log.Fatal().Err(err).Msg("could not set up user indices")
 	}
+	log.Debug().Msg("created user indices")
 
 	// Set up server
 	s := config.CreateNewServer()
 	s.MountHandlers()
 	config.Serv = s
 
-	http.ListenAndServe(":"+s.Port, s.Router)
+	log.Info().Str("port", s.Port).Str("env", env).Msg("server now listening for requests")
+	log.Fatal().Err(http.ListenAndServe(":"+s.Port, s.Router)).Send()
 }
