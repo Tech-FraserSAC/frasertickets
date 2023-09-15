@@ -29,7 +29,7 @@ const profileMenuItems = [
     {
         label: "Profile",
         icon: UserCircleIcon,
-        action: () => router.push('/profile')
+        action: () => router.push('/profile'),
     },
     {
         label: "Sign Out",
@@ -107,21 +107,23 @@ const navListItems = [
     {
         label: "Events",
         icon: CalendarDaysIcon,
+        link: "/events"
     },
     {
         label: "Tickets",
         icon: TicketIcon,
+        link: "/tickets"
     },
 ];
 
 function NavList() {
     return (
         <ul className="my-2 flex flex-col gap-2 md:mb-0 md:mt-0 md:flex-row md:items-center">
-            {navListItems.map(({ label, icon }, key) => (
+            {navListItems.map(({ label, icon, link }, key) => (
                 <Typography
-                    key={label}
+                    key={key}
                     as="a"
-                    href="#"
+                    href={link}
                     variant="small"
                     color="blue-gray"
                     className="font-normal"
