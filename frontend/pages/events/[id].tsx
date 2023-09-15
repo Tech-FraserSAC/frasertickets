@@ -30,7 +30,7 @@ export default function EventSpecificPage() {
     })
 
     const isLoading = !(router.isReady) || rqLoading
-    const pageName = isLoading ? data?.name as string : "Events"
+    const pageName = !isLoading ? data?.name as string : "Events"
 
     if (error) console.error(error)
 
