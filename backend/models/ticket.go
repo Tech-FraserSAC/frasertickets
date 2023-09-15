@@ -123,7 +123,7 @@ func SearchForTicket(
 	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
 	cursor.Next(ctx)
-	if err := cursor.Decode(ticket); err != nil {
+	if err := cursor.Decode(&ticket); err != nil {
 		return Ticket{}, err
 	}
 
@@ -156,7 +156,7 @@ func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
 	cursor.Next(ctx)
-	if err := cursor.Decode(ticket); err != nil {
+	if err := cursor.Decode(&ticket); err != nil {
 		return Ticket{}, err
 	}
 
