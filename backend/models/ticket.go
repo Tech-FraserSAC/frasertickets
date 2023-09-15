@@ -16,6 +16,7 @@ type Ticket struct {
 	ID        primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
 	Owner     string             `json:"ownerID"   bson:"owner"` // owner ID
 	Event     primitive.ObjectID `json:"eventID"   bson:"event"`
+	EventData Event              `json:"eventData" bson:"eventData"`
 	Timestamp time.Time          `json:"timestamp" bson:"timestamp"`
 }
 
@@ -60,8 +61,26 @@ func CreateTicketIndices(ctx context.Context) error {
 }
 
 func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: filter},
+		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "events"},
+				{Key: "localField", Value: "event"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "eventData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$eventData"},
+		},
+	}
+
 	// Try to get data from MongoDB
-	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Find(ctx, filter)
+	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
 	if err != nil {
 		return []Ticket{}, err
 	}
@@ -80,22 +99,66 @@ func SearchForTicket(
 	eventID primitive.ObjectID,
 	userID string,
 ) (Ticket, error) {
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: bson.M{"event": eventID, "owner": userID}},
+		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "events"},
+				{Key: "localField", Value: "event"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "eventData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$eventData"},
+		},
+	}
+
 	// Try to get data from DB
+	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
+
+	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
-	err := lib.Datastore.Db.Collection(ticketsColName).
-		FindOne(ctx, bson.M{"event": eventID, "owner": userID}).
-		Decode(&ticket)
+	cursor.Next(ctx)
+	if err := cursor.Decode(ticket); err != nil {
+		return Ticket{}, err
+	}
 
 	// No error handling needed (ticket & err default to empty struct / nil)
 	return ticket, err
 }
 
 func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: bson.M{"_id": id}},
+		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "events"},
+				{Key: "localField", Value: "event"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "eventData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$eventData"},
+		},
+	}
+
 	// Try to get data from DB
+	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
+
+	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
-	err := lib.Datastore.Db.Collection(ticketsColName).
-		FindOne(ctx, bson.M{"_id": id}).
-		Decode(&ticket)
+	cursor.Next(ctx)
+	if err := cursor.Decode(ticket); err != nil {
+		return Ticket{}, err
+	}
 
 	// No error handling needed (ticket & err default to empty struct / nil)
 	return ticket, err

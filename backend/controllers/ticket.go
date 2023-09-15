@@ -199,9 +199,22 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if event exists
+	event, err := models.GetEvent(r.Context(), bson.M{"_id": eventID})
+	if err == mongo.ErrNoDocuments {
+		log.Error().Err(err).Str("id", ticketRaw.EventID).Msg("no such event exists")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	} else if err != nil {
+		log.Error().Err(err).Str("id", ticketRaw.EventID).Msg("could not fetch event data")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
 	// Transfer all data from raw to actual ticket
 	ticket.Owner = ticketRaw.OwnerID
 	ticket.Event = eventID
+	ticket.EventData = event
 	ticket.Timestamp = time.Now()
 
 	// Try to add to DB
