@@ -20,7 +20,6 @@ import { Typography } from "@material-tailwind/react";
 import GoogleButton from "react-google-button";
 
 export default function Login() {
-    const { user } = useFirebaseAuth()
     const [redirectStatus, setRedirectStatus] = useState({
         checked: false,
         redirected: false,
@@ -45,6 +44,7 @@ export default function Login() {
     useEffect(() => {
         (async () => {
             const redirectRes = await getRedirectResult(auth)
+            console.log("Redirect res", redirectRes)
 
             if (redirectRes) {
                 try {
@@ -59,9 +59,15 @@ export default function Login() {
                     // Sign them out so they can sign in again
                     await signOut(auth)
                 }
+            } else {
+                // Check if they're already signed in
+                // Current user should have already loaded by now, I'd assume?
+                // Since redirect result has already run
+                if (auth.currentUser) {
+                    alert("You are already signed in. Redirecting...")
+                    router.push("/")
+                }
             }
-
-            console.log(redirectRes)
 
             setRedirectStatus({
                 checked: true,
@@ -71,9 +77,10 @@ export default function Login() {
         })()
     }, [])
 
+    /*
     useEffect(() => {
         // Ensure that a redirect login didn't happen and the redirect was checked
-        console.log(redirectStatus)
+        console.log("Redirect status", redirectStatus)
         if (redirectStatus.checked && !redirectStatus.redirected && !redirectStatus.actedUpon && user !== null) {
             alert("You are already signed in. Redirecting...")
             router.push("/")
@@ -85,6 +92,7 @@ export default function Login() {
             })
         } 
     }, [user, redirectStatus])
+    */
 
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
@@ -93,6 +101,7 @@ export default function Login() {
 
                 <GoogleButton
                     onClick={logIn}
+                    disabled={!redirectStatus.checked}
                 />
             </div>
         </Layout>
