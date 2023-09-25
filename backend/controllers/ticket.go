@@ -28,6 +28,10 @@ type ticketControllerSearchRequestBody struct {
 	EventID string `json:"eventID" validate:"required,mongodb"`
 }
 
+type ticketControllerScanRequestBody struct {
+	TicketID string `json:"ticketID" validate:"required,mongodb"`
+}
+
 type TicketController struct{}
 
 func (ctrl TicketController) Routes() chi.Router {
@@ -41,6 +45,7 @@ func (ctrl TicketController) Routes() chi.Router {
 		r.Post("/", ctrl.Create)       // POST /tickets - create a new ticket, only available to admins
 		r.Get("/all", ctrl.ListAll)    // GET /tickets/all - returns all tickets, only available to admins
 		r.Post("/search", ctrl.Search) // POST /tickets/search - search for a ticket given an owner and event, only available to admins
+		r.Post("/scan", ctrl.Scan)     // POST /tickets/scan - scan a ticket, only available to admins
 	})
 
 	r.Route("/user/{uid}", func(r chi.Router) {
@@ -358,6 +363,89 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 
 	// Return as JSON, fallback if it fails
 	if err := render.Render(w, r, &ticket); err != nil {
+		render.Render(w, r, util.ErrRender(err))
+		return
+	}
+}
+
+func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
+	var searchQuery ticketControllerScanRequestBody
+
+	// Parse JSON body
+	bodyDecoder := json.NewDecoder(r.Body)
+	bodyDecoder.DisallowUnknownFields()
+	err := bodyDecoder.Decode(&searchQuery)
+	if err != nil {
+		log.Error().Err(err).Msg("could not parse body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Validate JSON body
+	validate := validator.New()
+	err = validate.Struct(searchQuery)
+	if err != nil {
+		log.Error().Err(err).Msg("could not validate body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Convert to ObjectID from string
+	ticketID, err := primitive.ObjectIDFromHex(searchQuery.TicketID)
+	if err != nil {
+		log.Error().Err(err).Str("id", searchQuery.TicketID).Msg("could not parse ticket id")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Try to fetch from DB
+	ticket, err := models.GetTicket(r.Context(), ticketID)
+
+	// Handle errors
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			render.Render(w, r, util.ErrNotFound)
+			return
+		}
+
+		log.Error().Err(err).Msg("could not find ticket")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Get user associated with ticket
+	ticketOwner, err := models.GetUserByKey(r.Context(), "_id", ticket.Owner)
+	// Handle errors
+	if err != nil {
+		log.Error().Err(err).Msg("could not find user associated with ticket")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Create scan info obj to return
+	scanData := models.TicketScan{
+		Index:      ticket.ScanCount + 1,
+		Timestamp:  time.Now(),
+		TicketData: ticket,
+		UserData:   ticketOwner,
+	}
+
+	// Update ticket info with new scan data
+	ticket.ScanCount = scanData.Index
+	ticket.LastScanTimestamp = scanData.Timestamp
+	err = models.UpdateExistingTicketByKeys(r.Context(), ticket.ID, map[string]interface{}{
+		"lastScanTime": scanData.Timestamp,
+		"scanCount":    scanData.Index,
+	})
+	// Handle errors
+	if err != nil {
+		log.Error().Err(err).Msg("could not update ticket with new info")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Return as JSON, fallback if it fails
+	if err := render.Render(w, r, &scanData); err != nil {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}

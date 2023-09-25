@@ -13,14 +13,27 @@ import (
 )
 
 type Ticket struct {
-	ID        primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
-	Owner     string             `json:"ownerID"   bson:"owner"` // owner ID
-	Event     primitive.ObjectID `json:"eventID"   bson:"event"`
-	EventData Event              `json:"eventData" bson:"eventData"`
-	Timestamp time.Time          `json:"timestamp" bson:"timestamp"`
+	ID                primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
+	Owner             string             `json:"ownerID"   bson:"owner"` // owner ID
+	Event             primitive.ObjectID `json:"eventID"   bson:"event"`
+	EventData         Event              `json:"eventData" bson:"eventData"`
+	Timestamp         time.Time          `json:"timestamp" bson:"timestamp"`
+	ScanCount         int                `json:"scanCount" bson:"scanCount"`
+	LastScanTimestamp time.Time          `json:"lastScanTime" bson:"lastScanTime"`
 }
 
 func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+type TicketScan struct {
+	Index      int       `json:"index"`
+	Timestamp  time.Time `json:"timestamp"`
+	TicketData Ticket    `json:"ticketData"`
+	UserData   User      `json:"userData"`
+}
+
+func (scan *TicketScan) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
@@ -206,6 +219,41 @@ func CreateNewTicket(ctx context.Context, ticket Ticket) (primitive.ObjectID, er
 
 	// Return object ID
 	return res.InsertedID.(primitive.ObjectID), err
+}
+
+func UpdateExistingTicketByKeys(
+	ctx context.Context,
+	id primitive.ObjectID,
+	updates map[string]interface{},
+) error {
+	// TODO: Somehow enforce schema during these updates
+	UPDATABLE_KEYS := map[string]bool{
+		"scanCount":    true,
+		"lastScanTime": true,
+	}
+
+	// Convert the string/interface map to BSON updates
+	bsonUpdates := bson.D{}
+	for key, val := range updates {
+		// Don't allow other keys to be updated
+		if !UPDATABLE_KEYS[key] {
+			return ErrEditNotAllowed
+		}
+
+		// Add the key/val pair in BSON
+		bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: val})
+	}
+
+	// Try to update document in DB
+	res, err := lib.Datastore.Db.Collection(ticketsColName).
+		UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
+		return ErrNoDocumentModified
+	}
+	return nil
 }
 
 func DeleteTicket(ctx context.Context, id primitive.ObjectID) error {
