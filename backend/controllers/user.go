@@ -2,9 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net/http"
-	"strconv"
+	"strings"
 
 	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
@@ -104,12 +103,13 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Get first & last name from somewhere?
-	// TODO: Get student number through email (not doing yet until application gets approval for PDSB sign in)
+	// Extract student number from email
+	studentNumber := strings.Replace(userRecord.Email, "@pdsb.net", "", -1)
+
 	tmpUser := models.User{
 		ID:            userRecord.UID,
 		Admin:         false,
-		StudentNumber: strconv.Itoa(rand.Intn(500000) + 500000),
+		StudentNumber: studentNumber,
 		FullName:      userRecord.DisplayName,
 		ProfilePicURL: userRecord.PhotoURL,
 	}
