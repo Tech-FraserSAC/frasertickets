@@ -1,6 +1,6 @@
 import sendBackendRequest from "../sendBackendRequest";
 import { convertToTicket } from "./ticket";
-import { convertToTicketWithEventData } from "./ticketWithEventData";
+import { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
 
 export default async function getTicket(id: string) {
     const res = await sendBackendRequest(`/tickets/${id}`, 'get')

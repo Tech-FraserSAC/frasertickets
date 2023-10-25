@@ -7,12 +7,12 @@ import { useQuery } from "react-query"
 
 import Image from "next/image"
 import Link from "next/link"
-import TicketWithEventData from "@/lib/backend/ticket/ticketWithEventData"
+import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData"
 import getSelfTickets from "@/lib/backend/ticket/getSelfTickets"
 import formatDateRange from "@/util/formatFullDate"
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext"
 
-const TicketCard = ({ ticket, fullName, allowTicketShow = true }: { ticket: TicketWithEventData, fullName: string, allowTicketShow?: boolean }) => {
+const TicketCard = ({ ticket, fullName, allowTicketShow = true }: { ticket: TicketWithUserAndEventData, fullName: string, allowTicketShow?: boolean }) => {
     return (
         <Card className="w-96">
             <CardBody>
