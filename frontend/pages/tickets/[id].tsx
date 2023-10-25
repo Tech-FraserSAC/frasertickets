@@ -11,8 +11,12 @@ import { AiOutlineArrowLeft } from "react-icons/ai"
 import formatFullDate from "@/util/formatFullDate"
 import getTicket from "@/lib/backend/ticket/getTicket"
 import QRCode from "react-qr-code"
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext"
+
+const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
 
 export default function TicketSpecificPage() {
+    const { user, loaded } = useFirebaseAuth()
     const router = useRouter()
     const { id } = router.query
 
@@ -43,6 +47,7 @@ export default function TicketSpecificPage() {
 
     const isLoading = !(router.isReady) || rqLoading
     const pageName = !isLoading ? data?.eventData.name as string : "Ticket"
+    const studentNumber = user && studentNameRegex.exec(user?.displayName!)?.[1];
 
     if (error) console.error(error)
 
@@ -60,7 +65,12 @@ export default function TicketSpecificPage() {
                 ) : (
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="lg:text-start">Your Ticket for {data!.eventData.name}</Typography>
-                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center lg:w-3/4">
+                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center mb-4">
+                            {studentNumber && <>
+                                Student Number: {studentNumber}</>}
+                        </Typography>
+
+                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center lg:w-1/2">
                             This is your ticket for the event. It will be required to check-in.
                             Please screenshot this page for later use or use the buttons below to add them to your digital wallet.
                         </Typography>
