@@ -52,17 +52,27 @@ export default function TicketViewingPage() {
                                                 {ticket.eventData.name}
                                             </Link>
                                         </td>
-                                        <td className='flex flex-col items-center px-4 py-1'>
-                                            {ticket.ownerData.pfp_url && (
-                                                <div className="flex flex-row gap-1 items-center">
+                                        <td className='px-4 py-1 border border-gray-500'>
+                                            {ticket.ownerData.pfp_url ? (
+                                                <div className="flex flex-row gap-1 items-center justify-center w-full">
                                                     <Image src={ticket.ownerData.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
                                                     <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
                                                 </div>
+                                            ) : (
+                                                <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</td>
                                             )}
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
                                         <td className='border border-gray-500 px-4 py-1'>0</td>
-                                        <td className='border border-gray-500 px-4 py-1'></td>
+                                        <td className='border border-gray-500 px-4 py-2'>
+                                            <Link
+                                                href={`/tickets/${ticket.id}`}
+                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 font-semibold text-sm text-white rounded-lg"
+                                                rel="noopener noreferrer" target="_blank"
+                                            >
+                                                View
+                                            </Link>
+                                        </td>
                                     </tr>
                                 )
                             })}
