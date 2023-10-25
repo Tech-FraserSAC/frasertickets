@@ -4,12 +4,37 @@ import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEv
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 
 export default function TicketViewingPage() {
-    const { isLoading, error, data: tickets } = useQuery('frasertix-admin-tickets', () => (
-        getAllTickets()
-    ))
+    const { isLoading, error, data: tickets } = useQuery('frasertix-admin-tickets', async () => {
+        const tickets = await getAllTickets()
+        setFilteredTickets(tickets)
+        return tickets
+    })
+
+    const [eventNameFilter, setEventNameFilter] = useState("");
+    const [studentNameFilter, setStudentNameFilter] = useState("");
+    const [studentNumberFilter, setStudentNumberFilter] = useState("");
+    const [filteredTickets, setFilteredTickets] = useState<TicketWithUserAndEventData[] | null>(null);
+
+    // TODO: Replace this with logic that requests the server
+    const updateFilteredTickets = () => {
+        setFilteredTickets(!tickets ? null : tickets.filter((ticket) => {
+            const eventNameMatches = ticket.eventData.name.toLocaleLowerCase().indexOf(eventNameFilter.toLocaleLowerCase()) != -1;
+            const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
+            const studentNumberMatches = ticket.ownerData.student_number.indexOf(studentNumberFilter) != -1;
+            
+            return eventNameMatches && studentNameMatches && studentNumberMatches;
+        }))
+    }
+
+    // Only refresh the table once done typing
+    useEffect(() => {
+        const timeoutId = setTimeout(() => updateFilteredTickets(), 250);
+        return () => clearTimeout(timeoutId);
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter])
 
     return (
         <Layout name="Tickets" className="p-4 md:p-8 lg:px-12">
@@ -19,9 +44,39 @@ export default function TicketViewingPage() {
             )}
             {tickets && (
                 <div className='overflow-x-auto max-w-full'>
-                    <table className="table table-fixed border border-gray-500 border-collapse mb-6 w-full">
-                        <thead className='text-black font-semibold text-md lg:text-xl bg-gray-400'>
-                            <tr>
+                    <table className="table table-fixed border-collapse mb-6 w-full">
+                        <thead>
+                            <tr className="bg-transparent">
+                                <th></th>
+                                <th>
+                                    <input
+                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
+                                        placeholder="Event name..."
+                                        value={eventNameFilter}
+                                        onInput={e => setEventNameFilter(e.currentTarget.value)}
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
+                                        placeholder="Student name..."
+                                        value={studentNameFilter}
+                                        onInput={e => setStudentNameFilter(e.currentTarget.value)}
+                                    />
+                                </th>
+                                <th>
+                                    <input
+                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
+                                        placeholder="Student number..."
+                                        value={studentNumberFilter}
+                                        onInput={e => setStudentNumberFilter(e.currentTarget.value)}
+                                    />
+                                </th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+
+                            <tr className="bg-gray-400 border border-gray-500 border-collapse text-black font-semibold text-md lg:text-xl">
                                 <th className='px-4 border border-gray-500 py-1'>Created Time</th>
                                 <th className='px-6 border border-gray-500'>Event</th>
                                 <th className='px-4 border border-gray-500'>Student Name</th>
@@ -32,7 +87,7 @@ export default function TicketViewingPage() {
                         </thead>
 
                         <tbody className='text-gray-800 text-center text-md'>
-                            {tickets.map(ticket => {
+                            {filteredTickets.map(ticket => {
                                 const timestamp = new Date(ticket.timestamp);
                                 const timestampStr = timestamp.toLocaleString("en-US", {
                                     day: '2-digit',

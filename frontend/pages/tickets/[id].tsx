@@ -47,7 +47,7 @@ export default function TicketSpecificPage() {
 
     const isLoading = !(router.isReady) || rqLoading
     const pageName = !isLoading ? data?.eventData.name as string : "Ticket"
-    const studentNumber = user && studentNameRegex.exec(user?.displayName!)?.[1];
+    const studentNumber = data?.ownerData.student_number;
 
     if (error) console.error(error)
 
