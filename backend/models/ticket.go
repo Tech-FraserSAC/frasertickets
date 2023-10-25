@@ -15,6 +15,7 @@ import (
 type Ticket struct {
 	ID                primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
 	Owner             string             `json:"ownerID"   bson:"owner"` // owner ID
+	OwnerData         User               `json:"ownerData" bson:"ownerData"`
 	Event             primitive.ObjectID `json:"eventID"   bson:"event"`
 	EventData         Event              `json:"eventData" bson:"eventData"`
 	Timestamp         time.Time          `json:"timestamp" bson:"timestamp"`
@@ -90,6 +91,18 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 		{
 			{Key: "$unwind", Value: "$eventData"},
 		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "users"},
+				{Key: "localField", Value: "owner"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "ownerData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$ownerData"},
+		},
 	}
 
 	// Try to get data from MongoDB
@@ -128,6 +141,18 @@ func SearchForTicket(
 		{
 			{Key: "$unwind", Value: "$eventData"},
 		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "users"},
+				{Key: "localField", Value: "owner"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "ownerData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$ownerData"},
+		},
 	}
 
 	// Try to get data from DB
@@ -160,6 +185,18 @@ func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 		},
 		{
 			{Key: "$unwind", Value: "$eventData"},
+		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "users"},
+				{Key: "localField", Value: "owner"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "ownerData"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$ownerData"},
 		},
 	}
 
