@@ -29,8 +29,8 @@ export default function Login() {
     const authProvider = new GoogleAuthProvider()
     authProvider.setCustomParameters({
         // Currently commented out because of new (stupid) Google admin rule
-        // login_hint: "000000@pdsb.net",
-        // hd: "pdsb.net", // Only allows users part of pdsb.net organization
+        login_hint: "000000@pdsb.net",
+        hd: "pdsb.net", // Only allows users part of pdsb.net organization
     })
 
     const logIn = () => {

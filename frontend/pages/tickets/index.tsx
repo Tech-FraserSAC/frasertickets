@@ -67,6 +67,12 @@ export default function EventsIndex() {
 
             {!(isLoading || error) ? (
                 <div className="flex flex-col gap-4">
+                    {tickets && tickets.length === 0 && 
+                        <div className="flex flex-col items-center">
+                            <Typography variant="h3" className="mb-2 text-center" color="blue-gray">No tickets</Typography>
+                            <Typography variant="lead" className="text-center lg:w-3/4">It looks like you don&apos;t have any tickets yet. If you have recently purchased a ticket either through SchoolCashOnline, or in-person, it may take a while to show up.</Typography>
+                        </div>
+                    }
                     {currentTickets && currentTickets.length !== 0 &&
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Happening now</Typography>
