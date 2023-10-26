@@ -57,8 +57,6 @@ export default function TicketViewingPage() {
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
 
-    console.log(modalEventChosen)
-
     const filteredEventNames =
         modalEventQuery === ""
             ? eventNames
@@ -102,7 +100,6 @@ export default function TicketViewingPage() {
     const createNewTicketUI = async () => {
         setModalSubmitting(true)
 
-        console.log(modalStudentNumberRef.current?.value)
         const studentNumber = Number(modalStudentNumberRef.current?.value);
         if (Number.isNaN(studentNumber) || studentNumber < 100000 || studentNumber > 9999999) {
             alert("Please provide a valid student number.")
@@ -110,8 +107,6 @@ export default function TicketViewingPage() {
             // If the query isn't empty, this means they were searching for something but didn't select anything
             alert("Please provide a valid event and make sure it is selected.");
         } else {
-            console.log("Submitted info", studentNumber, modalEventChosen);
-
             try {
                 await createNewTicket(studentNumber.toString(), modalEventChosen.id)
                 alert("Ticket has been created.")
@@ -131,7 +126,6 @@ export default function TicketViewingPage() {
                 }
                 console.error(err)
             }
-
         }
 
         setModalSubmitting(false);
