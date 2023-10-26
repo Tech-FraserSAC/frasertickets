@@ -44,10 +44,10 @@ export default function Header() {
     ]
 
     return (
-        <header className="bg-[#131313] py-2 lg:py-4 sticky z-[9999999999]">
+        <header className="bg-blue-gray-900 py-2 lg:py-4 sticky z-[9999999999]">
             <div className="container px-4 mx-auto lg:flex lg:items-center">
                 <div className="flex justify-between items-center">
-                    <Link href="/" className="font-bold text-xl text-white">
+                    <Link href="/" className="font-bold text-2xl text-white">
                         FraserTickets
                     </Link>
 
