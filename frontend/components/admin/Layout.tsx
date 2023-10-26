@@ -46,11 +46,9 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
 
-            <AdminRestrictedPage>
                 <ComplexNavbar />
 
-                {/* <Navbar /> */}
-
+            <AdminRestrictedPage>
                 <motion.div
                     initial={noAnim ? undefined : contentVariants.initial}
                     animate={noAnim ? undefined : contentVariants.animate}
