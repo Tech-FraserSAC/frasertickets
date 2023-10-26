@@ -322,14 +322,14 @@ export default function TicketViewingPage() {
                                 <th className='px-4 border border-gray-500'>Student Name</th>
                                 <th className='px-4 border border-gray-500'>Student #</th>
                                 <th className='px-4 border border-gray-500'>Scans</th>
+                                <th className='px-4 border border-gray-500'>Last Scan Time</th>
                                 <th className='px-4 border border-gray-500'>Actions</th>
                             </tr>
                         </thead>
 
                         <tbody className='text-gray-800 text-center text-md'>
                             {filteredTickets && filteredTickets.map(ticket => {
-                                const timestamp = new Date(ticket.timestamp);
-                                const timestampStr = timestamp.toLocaleString("en-US", {
+                                const timestampStr = ticket.timestamp.toLocaleString("en-US", {
                                     day: '2-digit',
                                     month: '2-digit',
                                     year: 'numeric',
@@ -338,6 +338,18 @@ export default function TicketViewingPage() {
                                     minute: '2-digit',
                                     second: '2-digit',
                                 });
+
+                                const lastScanTimestampStr = ticket.scanCount === 0
+                                    ? "N/A"
+                                    : ticket.lastScanTime.toLocaleString("en-US", {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit',
+                                    });
 
                                 return (
                                     <tr key={ticket.id}>
@@ -358,7 +370,8 @@ export default function TicketViewingPage() {
                                             )}
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
-                                        <td className='border border-gray-500 px-4 py-1'>0</td>
+                                        <td className='border border-gray-500 px-4 py-1'>{ticket.scanCount.toString()}</td>
+                                        <td className='border border-gray-500 px-4 py-1'>{lastScanTimestampStr}</td>
                                         <td className='border border-gray-500 px-4 py-2'>
                                             <div className="flex flex-row flex-wrap gap-2 items-center justify-center">
                                                 <Link
