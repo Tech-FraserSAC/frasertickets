@@ -12,6 +12,7 @@ import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import createNewTicket from "@/lib/backend/ticket/createNewTicket";
 import DatePickerModal from "@/components/DatePicker";
+import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
@@ -58,6 +59,14 @@ export default function TicketViewingPage() {
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
 
+    const [datePickerSelection, setDatePickerSelection] = useState<Range>(
+        {
+            startDate: undefined,
+            endDate: undefined,
+            key: 'selection'
+        }
+    );
+
     const filteredEventNames =
         modalEventQuery === ""
             ? eventNames
@@ -72,7 +81,13 @@ export default function TicketViewingPage() {
             const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
             const studentNumberMatches = ticket.ownerData.student_number.indexOf(studentNumberFilter) != -1;
 
-            return eventNameMatches && studentNameMatches && studentNumberMatches;
+            const timestampMatchesStartDate = datePickerSelection.startDate ? 
+            datePickerSelection.startDate.getTime() < ticket.timestamp.getTime() : true;
+            const timestampMatchesEndDate = datePickerSelection.endDate ? 
+            datePickerSelection.endDate.getTime() > ticket.timestamp.getTime() : true;
+            let timestampMatches = timestampMatchesStartDate && timestampMatchesEndDate;
+
+            return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
         }))
     }
 
@@ -80,7 +95,7 @@ export default function TicketViewingPage() {
     useEffect(() => {
         const timeoutId = setTimeout(() => updateFilteredTickets(tickets), 250);
         return () => clearTimeout(timeoutId);
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter])
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
 
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?")
@@ -289,7 +304,10 @@ export default function TicketViewingPage() {
                         <thead>
                             <tr className="bg-transparent">
                                 <th>
-                                    <DatePickerModal />
+                                    <DatePickerModal
+                                        state={datePickerSelection}
+                                        setState={setDatePickerSelection}
+                                    />
                                 </th>
                                 <th>
                                     <input
