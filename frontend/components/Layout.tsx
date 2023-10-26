@@ -22,7 +22,7 @@ export default function Layout({ name, children, noAnim, className, userProtecte
     const { user, loaded } = useFirebaseAuth()
 
     const title = `${name} | FraserTickets`;
-    const description = "WEBSITE DESCRIPTION";
+    const description = "The digital ticketing platform for John Fraser S.S.";
     const imageSrc = "CHANGE ME"
 
     useEffect(() => {

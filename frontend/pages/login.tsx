@@ -51,7 +51,7 @@ export default function Login() {
                     // Try registering them if they're weren't already
                     await addUser()
 
-                    router.push("/")
+                    router.push("/events")
                 } catch (e) {
                     alert("Sorry, something went wrong when signing you in.")
                     console.error(e)
@@ -65,7 +65,7 @@ export default function Login() {
                 // Since redirect result has already run
                 if (auth.currentUser) {
                     alert("You are already signed in. Redirecting...")
-                    router.push("/")
+                    router.push("/events")
                 }
             }
 
@@ -96,8 +96,8 @@ export default function Login() {
 
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
-            <div className="p-8 bg-white rounded-lg shadow-md">
-                <Typography variant="h3" color="blue-gray" className="text-center mb-4">Login</Typography>
+            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-md">
+                <Typography variant="h3" color="blue-gray" className="text-center mb-4">Log into FraserTickets</Typography>
 
                 <GoogleButton
                     onClick={logIn}
