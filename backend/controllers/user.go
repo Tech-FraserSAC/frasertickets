@@ -52,8 +52,8 @@ func (ctrl UserController) Routes() chi.Router {
 			})
 		})
 
-		r.Get("/", ctrl.Get)      // GET /users/{id} - returns user data, only available to admins and user
-		r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins and user
+		r.Get("/", ctrl.Get) // GET /users/{id} - returns user data, only available to admins and user
+		// r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins and user
 	})
 
 	return r
