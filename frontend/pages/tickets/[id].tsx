@@ -48,6 +48,15 @@ export default function TicketSpecificPage() {
     const isLoading = !(router.isReady) || rqLoading
     const pageName = !isLoading ? data?.eventData.name as string : "Ticket"
     const studentNumber = data?.ownerData.student_number;
+    const scanCount = data?.scanCount;
+    const lastScanTimestampStr = data?.lastScanTime.toLocaleString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
 
     if (error) console.error(error)
 
@@ -65,12 +74,24 @@ export default function TicketSpecificPage() {
                 ) : (
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="lg:text-start">Your Ticket for {data!.eventData.name}</Typography>
+
                         <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center mb-4">
-                            {studentNumber && <>
+                            {studentNumber !== undefined && <>
                                 Student Number: {studentNumber}</>}
+                            <br />
+                            {scanCount !== undefined && <>
+                                # of scans: {scanCount}</>}
+                            <br />
+                            {
+                                lastScanTimestampStr &&
+                                scanCount !== 0 &&
+                                scanCount !== undefined && <>
+                                    Last scanned at {lastScanTimestampStr}
+                                </>
+                            }
                         </Typography>
 
-                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center lg:w-1/2">
+                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center lg:w-1/2 mb-4">
                             This is your ticket for the event. It will be required to check-in.
                             Please screenshot this page for later use or use the buttons below to add them to your digital wallet.
                         </Typography>
@@ -81,6 +102,6 @@ export default function TicketSpecificPage() {
                     </div>
                 )
             }
-        </Layout>
+        </Layout >
     )
 }
