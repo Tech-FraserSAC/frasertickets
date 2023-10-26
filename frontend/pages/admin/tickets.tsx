@@ -11,6 +11,7 @@ import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import createNewTicket from "@/lib/backend/ticket/createNewTicket";
+import DatePickerModal from "@/components/DatePicker";
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
@@ -287,7 +288,9 @@ export default function TicketViewingPage() {
                     <table className="table table-fixed border-collapse mb-6 w-full">
                         <thead>
                             <tr className="bg-transparent">
-                                <th></th>
+                                <th>
+                                    <DatePickerModal />
+                                </th>
                                 <th>
                                     <input
                                         className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
