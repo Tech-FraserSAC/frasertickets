@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import createNewTicket from "@/lib/backend/ticket/createNewTicket";
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
@@ -51,13 +52,12 @@ export default function TicketViewingPage() {
     const [filteredTickets, setFilteredTickets] = useState<TicketWithUserAndEventData[] | null>(null);
 
     const [modalOpen, setModalOpen] = useState(false);
-    const modalDateTimeRef = useRef<HTMLInputElement>(null);
-    const [modalEventChosen, setModalEventChosen] = useState<string>((eventNames && eventNames.length !== 0) ? eventNames[0].name : "");
+    const modalStudentNumberRef = useRef<HTMLInputElement>(null);
+    const [modalEventChosen, setModalEventChosen] = useState<any>((eventNames && eventNames.length !== 0) ? eventNames[0] : null);
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
 
     console.log(modalEventChosen)
-    const cancelButtonRef = useRef(null)
 
     const filteredEventNames =
         modalEventQuery === ""
@@ -97,6 +97,44 @@ export default function TicketViewingPage() {
             alert("Something went wrong when deleting the ticket. Please try again.");
             throw err;
         }
+    }
+
+    const createNewTicketUI = async () => {
+        setModalSubmitting(true)
+
+        console.log(modalStudentNumberRef.current?.value)
+        const studentNumber = Number(modalStudentNumberRef.current?.value);
+        if (Number.isNaN(studentNumber) || studentNumber < 100000 || studentNumber > 9999999) {
+            alert("Please provide a valid student number.")
+        } else if (!modalEventChosen || modalEventQuery !== "") {
+            // If the query isn't empty, this means they were searching for something but didn't select anything
+            alert("Please provide a valid event and make sure it is selected.");
+        } else {
+            console.log("Submitted info", studentNumber, modalEventChosen);
+
+            try {
+                await createNewTicket(studentNumber.toString(), modalEventChosen.id)
+                alert("Ticket has been created.")
+
+                modalStudentNumberRef.current!.value = "";
+                setModalOpen(false);
+                queryClient.invalidateQueries({ queryKey: ['frasertix-admin-tickets'] });
+            } catch (err: any) {
+                if (err && err.response) {
+                    if (err.response.status === 409) {
+                        alert("The user already has a ticket. Please check this and try again.");
+                    } else if (err.response.status === 400) {
+                        alert("There are no accounts associated with the given student number. Please ask them to register and try again.");
+                    }
+                } else {
+                    alert("Something went wrong. Please try again.");
+                }
+                console.error(err)
+            }
+
+        }
+
+        setModalSubmitting(false);
     }
 
     return (
@@ -143,7 +181,7 @@ export default function TicketViewingPage() {
                                                     required
                                                     minLength={6}
                                                     maxLength={7}
-                                                    ref={modalDateTimeRef}
+                                                    ref={modalStudentNumberRef}
                                                 />
 
                                                 <span className='text-md text-gray-900'>Event</span>
@@ -153,7 +191,7 @@ export default function TicketViewingPage() {
                                                         <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                                                             <Combobox.Input
                                                                 className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none"
-                                                                displayValue={(event: any) => event.name}
+                                                                displayValue={(event: any) => event && event.name}
                                                                 onChange={(event) => setModalEventQuery(event.target.value)}
                                                             />
                                                             <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -215,16 +253,17 @@ export default function TicketViewingPage() {
                                     <div className="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                         <button
                                             type="button"
-                                            className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto"
-                                        // onClick={createNewEntry}
+                                            className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold shadow-md text-white hover:bg-green-500 sm:ml-3 sm:w-auto duration-75"
+                                            disabled={modalSubmitting}
+                                            onClick={createNewTicketUI}
                                         >
                                             Create
                                         </button>
                                         <button
                                             type="button"
-                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-md ring-1 ring-inset ring-gray-300 hover:bg-gray-200 duration-75 sm:mt-0 sm:w-auto"
                                             onClick={() => setModalOpen(false)}
-                                            ref={cancelButtonRef}
+                                            disabled={modalSubmitting}
                                         >
                                             Cancel
                                         </button>
