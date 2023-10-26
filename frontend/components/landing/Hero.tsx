@@ -36,7 +36,7 @@ export default function Hero() {
     const signedIn = loaded && user !== null;
 
     return (
-        <div className="flex flex-col h-[93vh] relative w-full">
+        <div className="flex flex-col h-[100vh] relative w-full">
             <div className='overflow-hidden' style={{ boxShadow: "inset 0 0 200px #000000" }}>
                 <Image
                     src={BannerPhoto}
@@ -50,9 +50,9 @@ export default function Hero() {
                 />
             </div>
 
-            <div className='w-full h-[93vh] absolute bg-black/60 mix-blend-normal' />
+            <div className='w-full h-[100vh] absolute bg-black/60 mix-blend-normal' />
 
-            <div className="absolute p-4 xs:p-8 sm:p-16 z-1 flex flex-col justify-center items-center h-[93vh] w-full">
+            <div className="absolute p-4 xs:p-8 sm:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
                 <div className="text-center">
                     <div className="mb-4">
                         <motion.div variants={lineVariants} initial="initial" animate="animate" className="font-bold flex flex-col flex-wrap gap-2 text-6xl sm:text-7xl lg:text-9xl">
@@ -64,7 +64,7 @@ export default function Hero() {
                 <motion.div variants={subtitleVariants} initial="initial" animate="animate" className="text-white text-3xl font-light text-center mb-6 md:w-3/4 lg:w-1/3">
                     The online event ticketing platform for John Fraser S.S. students, made by the <a href="https://www.johnfrasersac.com" className="text-blue-500 hover:text-blue-700 duration-75">SAC</a>.
                 </motion.div>
-
+                
                 {signedIn ?
                     <Link
                         href="/events"
