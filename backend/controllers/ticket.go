@@ -19,8 +19,8 @@ import (
 )
 
 type ticketControllerCreateRequestBody struct {
-	OwnerID string `json:"ownerID" validate:"required"`
-	EventID string `json:"eventID" validate:"required,mongodb"`
+	StudentNumber string `json:"studentNumber" validate:"required"`
+	EventID       string `json:"eventID" validate:"required,mongodb"`
 }
 
 type ticketControllerSearchRequestBody struct {
@@ -216,8 +216,20 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Try to find the user object associated with student number
+	user, err := models.GetUserByKey(r.Context(), "student_number", ticketRaw.StudentNumber)
+	if err == mongo.ErrNoDocuments {
+		log.Error().Err(err).Str("id", ticketRaw.StudentNumber).Msg("no such user exists")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	} else if err != nil {
+		log.Error().Err(err).Str("id", ticketRaw.StudentNumber).Msg("could not fetch user data")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
 	// Transfer all data from raw to actual ticket
-	ticket.Owner = ticketRaw.OwnerID
+	ticket.Owner = user.ID
 	ticket.Event = eventID
 	ticket.EventData = event
 	ticket.Timestamp = time.Now()
@@ -249,7 +261,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		log.Error().Err(err).Str("owner", ticketRaw.OwnerID).Str("event", ticketRaw.EventID).Msg(errMsg)
+		log.Error().Err(err).Str("owner", user.ID).Str("event", ticketRaw.EventID).Msg(errMsg)
 		render.Render(w, r, renderErr)
 		return
 	}
