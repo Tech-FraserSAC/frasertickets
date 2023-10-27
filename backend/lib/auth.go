@@ -48,7 +48,14 @@ func CreateNewAuth() *IdentityPlatformAuth {
 	}
 
 	// Initialize Firebase app
-	fbApp, err := firebase.NewApp(context.Background(), nil, auth.credentials)
+	var fbApp *firebase.App
+	var err error
+	if auth.credentials != nil {
+		fbApp, err = firebase.NewApp(context.Background(), nil, auth.credentials)
+	} else {
+		fbApp, err = firebase.NewApp(context.Background(), nil)
+	}
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not initialize firebase app")
 	}
