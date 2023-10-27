@@ -3,7 +3,7 @@ import User, { convertToUser } from "./user";
 
 // Admin-only route!
 export default async function getAllUsers() {
-    const res = await sendBackendRequest("/users", 'get')
+    const res = await sendBackendRequest("/users", 'get', true, true)
 
     const rawUsers = res.data as { [key: string]: any }[]
     const users = rawUsers.map(data => convertToUser(data))

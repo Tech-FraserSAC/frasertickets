@@ -4,7 +4,7 @@ import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./tick
 
 // Admin-only route!
 export default async function getAllTickets() {
-    const res = await sendBackendRequest("/tickets/all", 'get')
+    const res = await sendBackendRequest("/tickets/all", 'get', true, true)
 
     const rawTickets = res.data as { [key: string]: any }[]
     const tickets = rawTickets.map(data => convertToTicketWithEventData(data))

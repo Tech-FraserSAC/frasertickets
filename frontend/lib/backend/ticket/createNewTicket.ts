@@ -7,6 +7,7 @@ export default async function createNewTicket(ownerID: string, eventID: string) 
         "/tickets", 
         'post', 
         true, 
+        true,
         {
             "studentNumber": ownerID,
             "eventID": eventID

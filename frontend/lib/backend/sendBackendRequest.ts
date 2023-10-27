@@ -5,7 +5,7 @@ import auth from "../firebase/auth";
 type Method = "get" | "post" | "patch" | "delete"
 
 // Sends a request to the backend server while also handling authentication.
-export default async function sendBackendRequest(path: string, method: Method, authenticate?: boolean, data?: object, headers?: { [key: string]: string }, axiosConfig?: AxiosRequestConfig<object>) {
+export default async function sendBackendRequest(path: string, method: Method, authenticate?: boolean, adminRoute?: boolean, data?: object, headers?: { [key: string]: string }, axiosConfig?: AxiosRequestConfig<object>) {
     const route = getBackendRoute(path)
 
     // Get token if authentication required
@@ -16,7 +16,19 @@ export default async function sendBackendRequest(path: string, method: Method, a
             throw "User is not signed in"
         }
 
-        bearerToken = `Bearer ${await user.getIdToken()}`
+        // Always make sure to generate a new token for admin routes,
+        // since their admin status is stored in the token itself
+        // and should always be up-to-date. An example case where using 
+        // the cached token could go wrong is if a user has been given 
+        // or had their admin privileges revoked. In this case, the user would
+        // still have the same permissions as they did before, until the token
+        // expires (max. 5 min).
+        const tokenRes = await user.getIdTokenResult()
+        const token = adminRoute
+            ? await user.getIdToken(true) 
+            : tokenRes.token
+
+        bearerToken = `Bearer ${token}`
     }
 
     return await axios({

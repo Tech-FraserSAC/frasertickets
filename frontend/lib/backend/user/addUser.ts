@@ -5,6 +5,7 @@ export default async function addUser() {
         `/users/add`, 
         'post',
         true,
+        true,
         undefined,
         undefined,
         {
