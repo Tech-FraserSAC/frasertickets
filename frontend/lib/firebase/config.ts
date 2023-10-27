@@ -1,6 +1,6 @@
 const firebaseConfig = {
     apiKey: "AIzaSyCS3ptp8Ls-4FZKvtFadHP5NqjFPADbLoY",
-    authDomain: "frasertickets.firebaseapp.com",
+    authDomain: "frasertickets.vercel.app",
     projectId: "frasertickets",
     storageBucket: "frasertickets.appspot.com",
     messagingSenderId: "68422885738",
