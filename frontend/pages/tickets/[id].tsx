@@ -73,9 +73,9 @@ export default function TicketSpecificPage() {
                     )
                 ) : (
                     <div className="flex flex-col items-center">
-                        <Typography variant="h2" className="lg:text-start">Your Ticket for {data!.eventData.name}</Typography>
+                        <Typography variant="h2" className="text-center">Your Ticket for {data!.eventData.name}</Typography>
 
-                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center mb-4">
+                        <Typography variant="lead" color="blue-gray" className="font-medium text-center mb-4">
                             {studentNumber !== undefined && <>
                                 Student Number: {studentNumber}</>}
                             <br />
@@ -91,9 +91,9 @@ export default function TicketSpecificPage() {
                             }
                         </Typography>
 
-                        <Typography variant="lead" color="blue-gray" className="font-medium lg:text-center lg:w-1/2 mb-4">
+                        <Typography variant="lead" color="blue-gray" className="font-medium text-center lg:w-1/2 mb-4">
                             This is your ticket for the event. It will be required to check-in.
-                            Please screenshot this page for later use or use the buttons below to add them to your digital wallet.
+                            Please screenshot this page for later use or use the buttons below to add it to your digital wallet.
                         </Typography>
 
                         <div style={{ background: 'white', padding: '16px' }}>
