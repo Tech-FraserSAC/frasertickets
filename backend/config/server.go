@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/go-chi/render"
 )
 
@@ -41,6 +42,7 @@ func (s *Server) MountHandlers() {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
 	}))
+	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
 
