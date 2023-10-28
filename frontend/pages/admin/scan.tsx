@@ -18,6 +18,7 @@ enum ScanStatus {
 }
 
 export default function TicketScanningPage() {
+    const router = useRouter()
     const codeReader = new BrowserQRCodeReader()
     const previewElem = useRef<HTMLVideoElement | null>(null);
     const [videoControls, setVideoControls] = useState<IScannerControls>();
@@ -26,8 +27,6 @@ export default function TicketScanningPage() {
     const [scanData, setScanData] = useState<TicketScan>();
 
     useEffect(() => {
-        console.log("intruign");
-
         if (scanStatus === ScanStatus.SCANNER_LOADING || scanStatus === ScanStatus.UNSCANNED) {
             (async () => {
                 try {
@@ -56,18 +55,14 @@ export default function TicketScanningPage() {
                         previewElem.current!,
                         (result, err, controls) => {
                             if (result) {
-                                console.log(`Result: ${result}`);
                                 setScanStatus(ScanStatus.PROCESSING_SCAN);
                                 setQRCodeResult(result.getText());
                                 controls.stop(); // Stop only when a QR code is successfully read
                             }
 
-                            if (err && err.name === "NotFoundException") {
+                            if (err && err.name !== "NotFoundException") {
+                                // Only show issues that aren't the "not found exception" since its expected
                                 console.error(`Error: ${err}`);
-                                // Don't stop controls here; let it continue scanning
-                            } else if (err) {
-                                console.error(`Error: ${err}`);
-                                // There might be an actual problem, just stop
                             }
                         }
                     ))
@@ -106,7 +101,6 @@ export default function TicketScanningPage() {
         })();
     }, [qrCodeResult])
 
-    const router = useRouter()
 
     const innerComponent = (() => {
         switch (scanStatus) {
