@@ -31,21 +31,7 @@ export default function TicketViewingPage() {
                 name: event.name,
                 id: event.id
             }));
-        return [
-            ...mappedEvents,
-            {
-                name: "abc",
-                id: "askjdjklads"
-            },
-            {
-                name: "bcd",
-                id: "asdadsasd"
-            },
-            {
-                name: "sdf",
-                id: "dfgdfgfdg"
-            },
-        ];
+        return mappedEvents;
     });
 
     const [eventNameFilter, setEventNameFilter] = useState("");
