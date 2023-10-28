@@ -26,7 +26,7 @@ export default function UserTablePage() {
                                 <th className='px-4 border border-gray-500'>Student Name</th>
                                 <th className='px-4 border border-gray-500'>Student #</th>
                                 <th className='px-4 border border-gray-500'>Admin?</th>
-                                <th className='px-4 border border-gray-500'>Actions</th>
+                                {/* <th className='px-4 border border-gray-500'>Actions</th> */}
                             </tr>
                         </thead>
 
@@ -46,7 +46,7 @@ export default function UserTablePage() {
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{user.student_number}</td>
                                         <td className='border border-gray-500 px-4 py-1'>{user.admin ? "Yes" : "No"}</td>
-                                        <td className='border border-gray-500 px-4 py-1'></td>
+                                        {/* <td className='border border-gray-500 px-4 py-1'></td> */}
                                     </tr>
                                 )
                             })}

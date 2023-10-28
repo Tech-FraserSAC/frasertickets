@@ -15,6 +15,9 @@ import {
     PowerIcon,
     Bars2Icon,
     CalendarDaysIcon,
+    ArrowRightOnRectangleIcon,
+    UserIcon,
+    UsersIcon,
     TicketIcon,
     QrCodeIcon
 } from "@heroicons/react/24/outline";
@@ -22,14 +25,20 @@ import { createElement, useEffect, useState } from "react";
 import { useFirebaseAuth } from "../FirebaseAuthContext";
 import Image from "next/image";
 import DefaultAvatar from "@/assets/default-avatar.jpg"
-import router from "next/router";
 import logOut from "@/util/logOut";
+import Link from "next/link";
+import router from "next/router";
 
 // profile menu component
 const profileMenuItems = [
     {
+        label: "Enter User Portal",
+        icon: UserIcon,
+        action: () => router.push("/events")
+    },
+    {
         label: "Sign Out",
-        icon: PowerIcon,
+        icon: ArrowRightOnRectangleIcon,
         action: () => logOut()
     },
 ];
@@ -111,6 +120,11 @@ const navListItems = [
         link: "/admin/tickets"
     },
     {
+        label: "Users",
+        icon: UsersIcon,
+        link: "/admin/users"
+    },
+    {
         label: "Scan",
         icon: QrCodeIcon,
         link: "/admin/scan"
@@ -154,13 +168,13 @@ export function ComplexNavbar() {
     return (
         <Navbar className="md:mx-4 md:mt-2 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
-                <Typography
-                    as="a"
-                    href="#"
-                    className="mr-4 ml-2 cursor-pointer font-medium text-xl"
-                >
-                    FraserTickets (Admin)
-                </Typography>
+                <Link href="/admin">
+                    <Typography
+                        className="mr-4 ml-2 cursor-pointer font-medium text-xl"
+                    >
+                        FraserTickets (Admin)
+                    </Typography>
+                </Link>
                 <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 md:block">
                     <NavList />
                 </div>

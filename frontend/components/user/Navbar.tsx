@@ -12,9 +12,9 @@ import {
 import {
     UserCircleIcon,
     ChevronDownIcon,
-    PowerIcon,
     Bars2Icon,
     CalendarDaysIcon,
+    ArrowRightOnRectangleIcon,
     TicketIcon
 } from "@heroicons/react/24/outline";
 import { createElement, useEffect, useState } from "react";
@@ -35,7 +35,7 @@ const profileMenuItems = [
     */
     {
         label: "Sign Out",
-        icon: PowerIcon,
+        icon: ArrowRightOnRectangleIcon,
         action: () => logOut()
     },
 ];
