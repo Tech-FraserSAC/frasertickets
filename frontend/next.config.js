@@ -4,6 +4,14 @@ const nextConfig = {
   images: {
     domains: ['storage.googleapis.com', 'lh3.googleusercontent.com']
   },
+  async rewrites() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin/tickets'
+      }
+    ]
+  }
 }
 
 module.exports = nextConfig
