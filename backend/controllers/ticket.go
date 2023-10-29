@@ -68,13 +68,13 @@ func (ctrl TicketController) Routes() chi.Router {
 
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
-	userRecord, err := util.GetUserRecordFromContext(r.Context())
+	userToken, err := util.GetUserTokenFromContext(r.Context())
 	if err != nil {
 		log.Error().Err(err).Send()
 		render.Render(w, r, util.ErrServer(err))
 		return
 	}
-	uid := userRecord.UID
+	uid := userToken.UID
 
 	// Check if user exists
 	exists, err := models.CheckIfUserExists(r.Context(), uid)

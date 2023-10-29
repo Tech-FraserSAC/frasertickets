@@ -38,21 +38,8 @@ func AuthenticatorMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Get user data from UID
-		uid := decodedToken.UID
-		userRecord, err := lib.Auth.Client.GetUser(ctx, uid)
-		if err != nil {
-			log.Error().Err(err).Str("uid", uid).Msg("could not find user record with given uid")
-			render.Render(w, r, util.ErrUnauthorized)
-			return
-		}
-
 		// Attach user token to request context
 		ctx = context.WithValue(ctx, util.ContextKeyUserToken, decodedToken)
-		r = r.WithContext(ctx)
-
-		// Attach user record to request context
-		ctx = context.WithValue(ctx, util.ContextKeyUserRecord, userRecord)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aritrosaha10/frasertickets/lib"
 	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
@@ -81,12 +82,19 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
+	// Get UID and user record
 	ctx := r.Context()
-	userRecord, err := util.GetUserRecordFromContext(ctx)
-
+	userToken, err := util.GetUserTokenFromContext(ctx)
 	if err != nil {
 		log.Error().Err(err)
 		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	userRecord, err := lib.Auth.Client.GetUser(ctx, userToken.UID)
+	if err != nil {
+		log.Error().Err(err).Str("uid", userToken.UID).Msg("could not find user record with given uid")
+		render.Render(w, r, util.ErrUnauthorized)
 		return
 	}
 
