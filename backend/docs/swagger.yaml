@@ -1,0 +1,40 @@
+definitions:
+  models.Event:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      end_timestamp:
+        type: string
+      id:
+        type: string
+      img_url:
+        type: string
+      location:
+        description: Ex. name of venue
+        type: string
+      name:
+        type: string
+      start_timestamp:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /events:
+    get:
+      description: Lists all events in the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+      summary: List all events
+      tags:
+      - event
+swagger: "2.0"

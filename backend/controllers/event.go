@@ -56,6 +56,14 @@ func (ctrl EventController) Routes() chi.Router {
 	return r
 }
 
+// List godoc
+//
+// @Summary List all events
+// @Description Lists all events in the database
+// @Tags event
+// @Produce json
+// @Success 200 {object} []models.Event
+// @Router /events [get]
 func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 	events, err := models.GetAllEvents(r.Context())
 	if err != nil {
