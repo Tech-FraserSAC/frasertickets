@@ -23,6 +23,7 @@ import Image from "next/image";
 import DefaultAvatar from "@/assets/default-avatar.jpg"
 import router from "next/router";
 import logOut from "@/util/logOut";
+import Link from "next/link";
 
 // profile menu component
 const profileMenuItems = [
@@ -122,19 +123,18 @@ function NavList() {
     return (
         <ul className="my-2 flex flex-col gap-2 md:mb-0 md:mt-0 md:flex-row md:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
-                <Typography
-                    key={key}
-                    as="a"
-                    href={link}
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal"
-                >
-                    <MenuItem className="flex items-center gap-2 md:rounded-full">
-                        {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
-                        {label}
-                    </MenuItem>
-                </Typography>
+                <Link href={link} key={key}>
+                    <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal"
+                    >
+                        <MenuItem className="flex items-center gap-2 md:rounded-full">
+                            {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
+                            {label}
+                        </MenuItem>
+                    </Typography>
+                </Link>
             ))}
         </ul>
     );
@@ -155,13 +155,13 @@ export function ComplexNavbar() {
     return (
         <Navbar className="md:mx-4 md:mt-2 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
-                <Typography
-                    as="a"
-                    href="#"
-                    className="mr-4 ml-2 cursor-pointer font-medium text-xl"
-                >
-                    FraserTickets
-                </Typography>
+                <Link href="/events">
+                    <Typography
+                        className="mr-4 ml-2 cursor-pointer font-medium text-xl"
+                    >
+                        FraserTickets
+                    </Typography>
+                </Link>
                 <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 md:block">
                     <NavList />
                 </div>

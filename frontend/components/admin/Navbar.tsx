@@ -135,19 +135,18 @@ function NavList() {
     return (
         <ul className="my-2 flex flex-col gap-2 md:mb-0 md:mt-0 md:flex-row md:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
-                <Typography
-                    key={key}
-                    as="a"
-                    href={link}
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal"
-                >
-                    <MenuItem className="flex items-center gap-2 md:rounded-full">
-                        {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
-                        {label}
-                    </MenuItem>
-                </Typography>
+                <Link key={key} href={link}>
+                    <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal"
+                    >
+                        <MenuItem className="flex items-center gap-2 md:rounded-full">
+                            {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
+                            {label}
+                        </MenuItem>
+                    </Typography>
+                </Link>
             ))}
         </ul>
     );
