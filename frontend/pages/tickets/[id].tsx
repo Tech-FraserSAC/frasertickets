@@ -60,8 +60,6 @@ export default function TicketSpecificPage() {
 
     if (error) console.error(error)
 
-    console.log(data)
-
     return (
         <Layout name={pageName} userProtected={true} className="p-4 md:p-8 lg:px-12">
             {

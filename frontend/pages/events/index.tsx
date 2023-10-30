@@ -44,8 +44,6 @@ export default function EventsIndex() {
     const upcomingEvents = events?.filter(event => event.start_timestamp.getTime() > Date.now())
     const previousEvents = events?.filter(event => event.end_timestamp.getTime() < Date.now())
 
-    console.log(currentEvents, upcomingEvents, previousEvents)
-
     return (
         <Layout name="Events" userProtected={true} className="p-4 md:p-8 lg:px-12">
             <Typography variant="h1" className="mb-4 text-center">Events</Typography>

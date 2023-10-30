@@ -53,13 +53,9 @@ export default function EventsIndex() {
 
     if (error) console.error(error)
 
-    console.log(tickets)
-
     const currentTickets = tickets?.filter(ticket => ticket.eventData.start_timestamp.getTime() < Date.now() && ticket.eventData.end_timestamp.getTime() > Date.now())
     const upcomingTickets = tickets?.filter(ticket => ticket.eventData.start_timestamp.getTime() > Date.now())
     const previousTickets = tickets?.filter(ticket => ticket.eventData.end_timestamp.getTime() < Date.now())
-
-    console.log(currentTickets, upcomingTickets, previousTickets)
 
     return (
         <Layout name="Events" userProtected={true} className="p-4 md:p-8 lg:px-12">

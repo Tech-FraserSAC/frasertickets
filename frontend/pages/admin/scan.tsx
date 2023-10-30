@@ -37,7 +37,6 @@ export default function TicketScanningPage() {
                     }
 
                     const selectedDeviceId = videoInputDevices[0].deviceId;
-                    console.log(`Selected device ID: ${selectedDeviceId}`);
 
                     const stream = await navigator.mediaDevices.getUserMedia({
                         video: {

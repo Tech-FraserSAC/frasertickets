@@ -44,7 +44,6 @@ export default function Login() {
     useEffect(() => {
         (async () => {
             const redirectRes = await getRedirectResult(auth)
-            console.log("Redirect res", redirectRes)
 
             if (redirectRes) {
                 try {
