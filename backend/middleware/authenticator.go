@@ -31,7 +31,7 @@ func AuthenticatorMiddleware(next http.Handler) http.Handler {
 		token := tokenParts[1]
 		ctx := r.Context()
 
-		decodedToken, err := lib.Auth.Client.VerifyIDTokenAndCheckRevoked(ctx, token)
+		decodedToken, err := lib.Auth.Client.VerifyIDToken(ctx, token)
 		if err != nil {
 			log.Error().Err(err).Any("token", token).Msg("could not confirm token is correct")
 			render.Render(w, r, util.ErrUnauthorized)
