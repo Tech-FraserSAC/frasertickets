@@ -16,6 +16,8 @@ import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
+    const isMountedRef = useRef(false);
+
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets } = useQuery('frasertix-admin-tickets', async () => {
         const tickets = await getAllTickets();
         updateFilteredTickets(tickets);
@@ -67,10 +69,10 @@ export default function TicketViewingPage() {
             const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
             const studentNumberMatches = ticket.ownerData.student_number.indexOf(studentNumberFilter) != -1;
 
-            const timestampMatchesStartDate = datePickerSelection.startDate ? 
-            datePickerSelection.startDate.getTime() < ticket.timestamp.getTime() : true;
-            const timestampMatchesEndDate = datePickerSelection.endDate ? 
-            datePickerSelection.endDate.getTime() > ticket.timestamp.getTime() : true;
+            const timestampMatchesStartDate = datePickerSelection.startDate ?
+                datePickerSelection.startDate.getTime() < ticket.timestamp.getTime() : true;
+            const timestampMatchesEndDate = datePickerSelection.endDate ?
+                datePickerSelection.endDate.getTime() > ticket.timestamp.getTime() : true;
             let timestampMatches = timestampMatchesStartDate && timestampMatchesEndDate;
 
             return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
@@ -79,8 +81,12 @@ export default function TicketViewingPage() {
 
     // Only refresh the table once done typing
     useEffect(() => {
-        const timeoutId = setTimeout(() => updateFilteredTickets(tickets), 250);
-        return () => clearTimeout(timeoutId);
+        if (isMountedRef.current) {
+            const timeoutId = setTimeout(() => updateFilteredTickets(tickets), 250);
+            return () => clearTimeout(timeoutId);
+        } else {
+            isMountedRef.current = true;
+        }
     }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
 
     const deleteTicketWithId = async (id: string) => {
