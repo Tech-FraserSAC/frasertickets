@@ -2,7 +2,6 @@ import Layout from "@/components/Layout"
 import Event from "@/lib/backend/event/event"
 import getAllEvents from "@/lib/backend/event/getAllEvents"
 import { Button, Card, CardBody, CardFooter, CardHeader, Typography } from "@material-tailwind/react"
-import { Fragment } from "react"
 import { useQuery } from "react-query"
 
 import Image from "next/image"

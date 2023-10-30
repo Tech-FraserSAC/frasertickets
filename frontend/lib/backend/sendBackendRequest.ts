@@ -11,6 +11,10 @@ export default async function sendBackendRequest(path: string, method: Method, a
     // Get token if authentication required
     let bearerToken = ""
     if (authenticate === undefined || authenticate === true) {
+        console.time("firebase auth ready")
+        await auth.authStateReady()
+        console.timeEnd("firebase auth ready")
+        
         const user = auth.currentUser
         if (user === null) {
             throw "User is not signed in"
@@ -23,10 +27,9 @@ export default async function sendBackendRequest(path: string, method: Method, a
         // or had their admin privileges revoked. In this case, the user would
         // still have the same permissions as they did before, until the token
         // expires (max. 5 min).
-        const tokenRes = await user.getIdTokenResult()
-        const token = adminRoute
-            ? await user.getIdToken(true) 
-            : tokenRes.token
+        console.time("firebase token ready")
+        const token = await user.getIdToken(!!adminRoute)
+        console.timeEnd("firebase token ready")
 
         bearerToken = `Bearer ${token}`
     }
