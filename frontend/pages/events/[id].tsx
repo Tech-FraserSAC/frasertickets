@@ -56,7 +56,6 @@ export default function EventSpecificPage() {
 
                             <Carousel className="md:w-1/2 lg:w-full rounded-xl" autoplay={true}>
                                 <Image src={data!.img_url as string} width={1000} height={1000} className="w-full h-full object-cover object-center" alt=""></Image>
-                                <Image src={data!.img_url as string} width={1000} height={1000} className="w-full h-full object-cover object-center" alt=""></Image>
                             </Carousel>
                         </div>
 
