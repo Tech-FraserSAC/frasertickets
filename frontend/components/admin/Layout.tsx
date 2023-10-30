@@ -1,5 +1,4 @@
 import Head from "next/head"
-import router from "next/router"
 
 // import Navbar from "./Navbar"
 // import Footer from "./Footer"
@@ -9,6 +8,7 @@ import { useFirebaseAuth } from "../FirebaseAuthContext";
 import { useEffect } from "react";
 import { ComplexNavbar } from "./Navbar";
 import AdminRestrictedPage from "./AdminRestrictedPage";
+import { useRouter } from "next/router";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -19,12 +19,12 @@ const contentVariants = {
     transition: { duration: 0.4, ...transition }
 }
 
-export default function Layout({ name, children, noAnim, className }: { name: string, children: any, noAnim?: boolean, className?: string, userProtected?: boolean }) {
-    const { user, loaded } = useFirebaseAuth()
-
+export default function Layout({ name, children, noAnim, className }: { name: string, children: any, noAnim?: boolean, className?: string }) {
     const title = `${name} (Admin) | FraserTickets`;
-    const description = "WEBSITE DESCRIPTION";
+    const description = "An admin page for FraserTickets.";
     const imageSrc = "CHANGE ME"
+
+    const router = useRouter()
 
     return (
         <div className="flex flex-col min-h-screen bg-blue-50 overflow-hidden" key={name}>
@@ -46,19 +46,20 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
 
-                <ComplexNavbar />
+            <ComplexNavbar />
 
-            <AdminRestrictedPage>
-                <motion.div
-                    initial={noAnim ? undefined : contentVariants.initial}
-                    animate={noAnim ? undefined : contentVariants.animate}
-                    exit={noAnim ? undefined : contentVariants.exit}
-                    transition={noAnim ? undefined : contentVariants.transition}
-                    className={`flex-grow ${className}`}
-                >
+            <motion.div
+                initial={noAnim ? undefined : contentVariants.initial}
+                animate={noAnim ? undefined : contentVariants.animate}
+                exit={noAnim ? undefined : contentVariants.exit}
+                transition={noAnim ? undefined : contentVariants.transition}
+                className={`flex-grow ${className}`}
+            >
+                <AdminRestrictedPage key={router.pathname}>
                     {children}
-                </motion.div>
-            </AdminRestrictedPage>
+                </AdminRestrictedPage>
+            </motion.div>
+
 
             {/* <Footer /> */}
         </div>
