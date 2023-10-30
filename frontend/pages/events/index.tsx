@@ -32,6 +32,29 @@ const EventCard = ({ event }: { event: Event }) => {
     )
 }
 
+const SkeletonEventCard = () => {
+    return (
+        <Card className="w-96 animate-pulse">
+            <CardHeader color="blue-gray" className="relative h-56 mt-4">
+                <div className="bg-gray-200 h-[400px] w-[400px]" />
+            </CardHeader>
+            <CardBody>
+                <div className="mb-2">
+                    <div className="h-6 bg-gray-200 rounded-full max-w-[400px]" />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[300px]" />
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[300px]" />
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[300px]" />
+                </div>
+            </CardBody>
+            <CardFooter className="pt-0">
+                <div className="h-8 w-20 bg-gray-200 rounded-full" />
+            </CardFooter>
+        </Card>
+    )
+}
+
 export default function EventsIndex() {
     const { isLoading, error, data: events } = useQuery('frasertix-events', () => (
         getAllEvents()
@@ -78,7 +101,12 @@ export default function EventsIndex() {
 
                 </div>
             ) :
-                <span className="text-center">Loading...</span>
+                <div>
+                    <Typography variant="h3" className="mb-2" color="blue-gray">Upcoming</Typography>
+                    <div className="flex flex-wrap gap-4">
+                        {[...Array(1)].map((_, i) => <SkeletonEventCard key={i} />)}
+                    </div>
+                </div>
             }
 
         </Layout>
