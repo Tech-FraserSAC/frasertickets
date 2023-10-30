@@ -41,8 +41,7 @@ export default function Hero() {
                 <Image
                     src={BannerPhoto}
                     placeholder="blur"
-                    objectFit="cover"
-                    objectPosition="center"
+                    className="object-cover object-center"
                     alt="Hero image"
                     layout="fill"
                     quality={100}
@@ -52,19 +51,16 @@ export default function Hero() {
 
             <div className='w-full h-[100vh] absolute bg-black/60 mix-blend-normal' />
 
-            <div className="absolute p-4 xs:p-8 sm:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
-                <div className="text-center">
-                    <div className="mb-4">
-                        <motion.div variants={lineVariants} initial="initial" animate="animate" className="font-bold flex flex-col flex-wrap gap-2 text-6xl sm:text-7xl lg:text-9xl">
-                            {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-300 pb-5" variants={characterVariants} key={char}>{char}</motion.span>)}
-                        </motion.div>
-                    </div>
-                </div>
+            <div className="absolute p-4 md:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
+                <motion.div variants={lineVariants} initial="initial" animate="animate" className="text-center md:mb-4 break-all font-bold flex flex-col flex-wrap gap-2 text-4xl xs:text-5xl sm:text-7xl lg:text-9xl">
+                    {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-300 pb-5" variants={characterVariants} key={char}>{char}</motion.span>)}
+                </motion.div>
 
-                <motion.div variants={subtitleVariants} initial="initial" animate="animate" className="text-white text-3xl font-light text-center mb-6 md:w-3/4 lg:w-1/3">
+
+                <motion.div variants={subtitleVariants} initial="initial" animate="animate" className="text-white text-2xl md:text-3xl font-light text-center mb-6 md:w-3/4 lg:w-1/3">
                     The online event ticketing platform for John Fraser S.S. students, made by the <a href="https://www.johnfrasersac.com" className="text-blue-500 hover:text-blue-700 duration-75">SAC</a>.
                 </motion.div>
-                
+
                 {signedIn ?
                     <Link
                         href="/events"
