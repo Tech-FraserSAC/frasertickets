@@ -38,8 +38,9 @@ func AuthenticatorMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Attach user token to request context
+		// Attach user token and JWT to request context
 		ctx = context.WithValue(ctx, util.ContextKeyUserToken, decodedToken)
+		ctx = context.WithValue(ctx, util.ContextKeyUserTokenJWT, token)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

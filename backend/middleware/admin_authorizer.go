@@ -23,12 +23,17 @@ func AdminAuthorizerMiddleware(next http.Handler) http.Handler {
 			log.Error().Err(err).Msg("could not fetch user token from context")
 		}
 
+		jwtToken, err := util.GetUserJWTTokenFromContext(r.Context())
+		if err != nil {
+			log.Error().Err(err).Msg("could not fetch user token from context")
+		}
+
 		// We no longer check for revocation in normal authentication since it's not really worth it
 		// (everything is read-only for regular users anyways) and as such, isn't worth the time penalty.
 		// However, it does make sense for admins since they have full write access to all models.
-		_, err = lib.Auth.Client.VerifyIDTokenAndCheckRevoked(r.Context(), idToken.UID)
+		_, err = lib.Auth.Client.VerifyIDTokenAndCheckRevoked(r.Context(), jwtToken)
 		if err != nil {
-			log.Error().Err(err).Any("uid", idToken.UID).Msg("could not confirm token is correct")
+			log.Error().Err(err).Any("uid", idToken.UID).Str("token", jwtToken).Msg("could not confirm token is correct")
 			render.Render(w, r, util.ErrUnauthorized)
 			return
 		}
