@@ -33,7 +33,7 @@ func AdminAuthorizerMiddleware(next http.Handler) http.Handler {
 		// However, it does make sense for admins since they have full write access to all models.
 		_, err = lib.Auth.Client.VerifyIDTokenAndCheckRevoked(r.Context(), jwtToken)
 		if err != nil {
-			log.Error().Err(err).Any("uid", idToken.UID).Str("token", jwtToken).Msg("could not confirm token is correct")
+			log.Error().Err(err).Any("uid", idToken.UID).Msg("could not confirm token is correct")
 			render.Render(w, r, util.ErrUnauthorized)
 			return
 		}
