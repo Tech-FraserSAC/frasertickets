@@ -76,24 +76,26 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	}
 	uid := userToken.UID
 
-	// Check if user exists
-	exists, err := models.CheckIfUserExists(r.Context(), uid)
-	if err != nil {
-		log.Error().Err(err).Msg("could not check if user exists")
-		render.Render(w, r, util.ErrServer(err))
-		return
-	} else if !exists {
-		log.Info().Err(err).Str("uid", uid).Msg("user could not be found")
-		render.Render(w, r, util.ErrNotFound)
-		return
-	}
-
 	// Try to get tickets
 	tickets, err := models.GetTickets(r.Context(), bson.M{"owner": uid})
 	if err != nil {
 		log.Error().Err(err).Str("uid", uid).Msg("could not fetch user's tickets")
 		render.Render(w, r, util.ErrServer(err))
 		return
+	}
+
+	// Check if user exists in DB if no tickets exist
+	if len(tickets) == 0 {
+		exists, err := models.CheckIfUserExists(r.Context(), uid)
+		if err != nil {
+			log.Error().Err(err).Msg("could not check if user exists")
+			render.Render(w, r, util.ErrServer(err))
+			return
+		} else if !exists {
+			log.Info().Err(err).Str("uid", uid).Msg("user could not be found")
+			render.Render(w, r, util.ErrNotFound)
+			return
+		}
 	}
 
 	// Convert into list of renderers to turn into JSON
@@ -114,24 +116,26 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
 	uid := chi.URLParam(r, "uid")
 
-	// Check if user exists
-	exists, err := models.CheckIfUserExists(r.Context(), uid)
-	if err != nil {
-		log.Error().Err(err).Msg("could not check if user exists")
-		render.Render(w, r, util.ErrServer(err))
-		return
-	} else if !exists {
-		log.Info().Err(err).Str("uid", uid).Msg("user could not be found")
-		render.Render(w, r, util.ErrNotFound)
-		return
-	}
-
 	// Try to get tickets
 	tickets, err := models.GetTickets(r.Context(), bson.M{"owner": uid})
 	if err != nil {
 		log.Error().Err(err).Str("uid", uid).Msg("could not fetch user's tickets")
 		render.Render(w, r, util.ErrServer(err))
 		return
+	}
+
+	// Check if user even exists if no tickets found
+	if len(tickets) == 0 {
+		exists, err := models.CheckIfUserExists(r.Context(), uid)
+		if err != nil {
+			log.Error().Err(err).Msg("could not check if user exists")
+			render.Render(w, r, util.ErrServer(err))
+			return
+		} else if !exists {
+			log.Info().Err(err).Str("uid", uid).Msg("user could not be found")
+			render.Render(w, r, util.ErrNotFound)
+			return
+		}
 	}
 
 	// Convert into list of renderers to turn into JSON
