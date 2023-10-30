@@ -57,16 +57,16 @@ export default function EventSpecificPage() {
                             </Carousel>
                         </div>
 
-                        <div className="flex flex-col items-center lg:items-start lg:w-3/4">
-                            <Typography variant="h1" className="lg:text-start">{data!.name}</Typography>
-                            <Typography variant="lead" color="blue-gray" className="font-medium lg:text-start">
+                        <div className="flex flex-col items-center lg:items-start text-center lg:text-start lg:w-3/4">
+                            <Typography variant="h1">{data!.name}</Typography>
+                            <Typography variant="lead" color="blue-gray" className="font-medium">
                                 {data!.location} | {data!.address}
                             </Typography>
-                            <Typography variant="lead" color="blue-gray" className="font-medium mb-6 lg:text-start">
+                            <Typography variant="lead" color="blue-gray" className="font-medium mb-6">
                                 {formatFullDate(data!.start_timestamp, data!.end_timestamp)}
                             </Typography>
 
-                            <Typography variant="paragraph" className="text-center lg:text-start">
+                            <Typography variant="paragraph">
                                 {data!.description}
                             </Typography>
                         </div>
