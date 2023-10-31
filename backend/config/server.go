@@ -40,7 +40,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"https://*", "http://*"}, // !! CHANGE THIS LATER
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "sentry-trace", "baggage"},
 	}))
 	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
