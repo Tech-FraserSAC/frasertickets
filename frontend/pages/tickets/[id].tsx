@@ -12,6 +12,10 @@ import formatFullDate from "@/util/formatFullDate"
 import getTicket from "@/lib/backend/ticket/getTicket"
 import QRCode from "react-qr-code"
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext"
+import { useState } from "react"
+import { NotFoundComponent } from "../404"
+import { ForbiddenComponent } from "../403"
+import { ServerErrorComponent } from "../500"
 
 const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
 
@@ -19,25 +23,23 @@ export default function TicketSpecificPage() {
     const { user, loaded } = useFirebaseAuth()
     const router = useRouter()
     const { id } = router.query
+    const [statusCode, setStatusCode] = useState(200);
 
     const { isLoading: rqLoading, error, data } = useQuery('frasertix-ticket', () => (
         getTicket(id as string)
     ), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
-            // 400 means its not an actual code, which is basically equivalent to not found
+            setStatusCode(error?.response?.status)
             if (error?.response?.status === 400 || error?.response?.status === 404) {
-                router.push("/404")
                 return false
             }
 
             if (error?.response?.status === 403) {
-                router.push("/403")
                 return false
             }
 
             if (error?.response?.status === 500) {
-                router.push("/500")
                 return false
             }
 
@@ -58,7 +60,26 @@ export default function TicketSpecificPage() {
         second: "2-digit",
     });
 
-    if (error) console.error(error)
+    if (error) {
+        console.error(error)
+
+        // 400 means its not an actual code, which is basically equivalent to not found
+        if (statusCode === 400 || statusCode === 404) {
+            return (
+                <Layout name="404 Not Found" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <NotFoundComponent home="/tickets" />
+                </Layout>
+            )
+        } else if (statusCode === 403) {
+            <Layout name="403 Forbidden" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                <ForbiddenComponent home="/" />
+            </Layout>
+        } else {
+            <Layout name="500 Server Error" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                <ServerErrorComponent home="/tickets" />
+            </Layout>
+        }
+    }
 
     return (
         <Layout name={pageName} userProtected={true} className="p-4 md:p-8 lg:px-12">
