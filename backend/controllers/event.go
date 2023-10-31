@@ -57,6 +57,7 @@ func (ctrl EventController) Routes() chi.Router {
 }
 
 func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
+	// panic("RAAAAHHHH")
 	events, err := models.GetAllEvents(r.Context())
 	if err != nil {
 		log.Error().Err(err).Msg("could not fetch events")
