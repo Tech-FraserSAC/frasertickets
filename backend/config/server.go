@@ -28,7 +28,7 @@ func CreateNewServer() *Server {
 	s := &Server{}
 	s.Router = chi.NewRouter()
 	s.Port = os.Getenv("PORT")
-	// s.SentryHandler = middlewarecustom.CreateNewSentryMiddleware()
+	s.SentryHandler = middlewarecustom.CreateNewSentryMiddleware()
 
 	return s
 }
@@ -48,7 +48,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
-	// s.Router.Use(s.SentryHandler.Handle)
+	s.Router.Use(s.SentryHandler.Handle)
 
 	s.Router.Use(middlewarecustom.AuthenticatorMiddleware) // Every route should require some sort of auth
 
