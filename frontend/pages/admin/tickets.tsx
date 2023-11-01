@@ -5,7 +5,7 @@ import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEv
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
@@ -63,7 +63,7 @@ export default function TicketViewingPage() {
             })
 
     // TODO: Replace this with logic that requests the server
-    const updateFilteredTickets = (tickets: TicketWithUserAndEventData[] | undefined) => {
+    const updateFilteredTickets = useCallback((tickets: TicketWithUserAndEventData[] | undefined) => {
         setFilteredTickets(!tickets ? null : tickets.filter((ticket) => {
             const eventNameMatches = ticket.eventData.name.toLocaleLowerCase().indexOf(eventNameFilter.toLocaleLowerCase()) != -1;
             const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
@@ -77,7 +77,7 @@ export default function TicketViewingPage() {
 
             return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
         }))
-    }
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
 
     // Only refresh the table once done typing
     useEffect(() => {
@@ -87,7 +87,7 @@ export default function TicketViewingPage() {
         } else {
             isMountedRef.current = true;
         }
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection, updateFilteredTickets, tickets])
 
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?")

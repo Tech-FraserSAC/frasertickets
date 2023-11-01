@@ -76,7 +76,9 @@ export default function TicketScanningPage() {
         return () => {
             videoControls?.stop()
         }
-    }, [previewElem.current]);
+    // This should only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         (async () => {
@@ -98,7 +100,7 @@ export default function TicketScanningPage() {
                 videoControls?.stop()
             }
         })();
-    }, [qrCodeResult])
+    }, [qrCodeResult, videoControls])
 
 
     const innerComponent = (() => {

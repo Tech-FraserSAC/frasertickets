@@ -53,8 +53,15 @@ export default function EventSpecificPage() {
                             </Link>
 
                             <Carousel className="md:w-1/2 lg:w-full rounded-xl" autoplay={true}>
-                                {data!.img_urls.map(img_url => (
-                                    <Image src={img_url as string} width={1000} height={1000} className="w-full h-full object-cover object-center" alt=""></Image>
+                                {data!.img_urls.map((img_url, i) => (
+                                    <Image 
+                                        src={img_url as string} 
+                                        width={1000} 
+                                        height={1000} 
+                                        className="w-full h-full object-cover object-center" 
+                                        alt=""
+                                        key={i}
+                                    />
                                 ))}
                             </Carousel>
                         </div>
