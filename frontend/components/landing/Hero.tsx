@@ -20,12 +20,17 @@ const lineVariants = {
 
 const subtitleVariants = {
     initial: { opacity: 0, y: 50 },
-    animate: { opacity: 1, y: 0, transition: { ...transition, duration: 1.2, delay: 0.5 }, }
+    animate: { opacity: 1, y: 0, transition: { ...transition, duration: 1.2, delay: 1.4 }, }
 };
 
 const characterVariants = {
     initial: { opacity: 0, y: 50 },
-    animate: { opacity: 1, y: 0, transition: { ...transition, duration: 1.2 }, }
+    animate: { opacity: 1, y: 0, transition: { ...transition, duration: 1.2, delay: 0.4 }, }
+};
+
+const btnVariants = {
+    initial: { opacity: 0, y: 50 },
+    animate: { opacity: 1, y: 30, transition: { ...transition, duration: 1.2, delay: 2.0 }, }
 };
 
 const bottomLine = "FraserTickets".split('  ');
@@ -61,21 +66,23 @@ export default function Hero() {
                     The online event ticketing platform for John Fraser S.S. students, made by the <a href="https://www.johnfrasersac.com" className="text-blue-500 hover:text-blue-700 duration-75">SAC</a>.
                 </motion.div>
 
-                {signedIn ?
-                    <Link
-                        href="/events"
-                        className="py-4 px-6 bg-green-500 rounded-lg font-semibold text-white hover:bg-green-700 duration-150 text-lg lg:text-2xl mt-4"
-                    >
-                        Open Portal
-                    </Link>
-                    :
-                    <Link
-                        href="/login"
-                        className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl mt-4"
-                    >
-                        Sign in
-                    </Link>
-                }
+                <motion.div variants={btnVariants} initial="initial" animate="animate">
+                    {signedIn ?
+                        <Link
+                            href="/events"
+                            className="py-4 px-6 bg-green-500 rounded-lg font-semibold text-white hover:bg-green-700 duration-150 text-lg lg:text-2xl mt-4"
+                        >
+                            Open Portal
+                        </Link>
+                        :
+                        <Link
+                            href="/login"
+                            className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl mt-4"
+                        >
+                            Sign in
+                        </Link>
+                    }
+                </motion.div>
             </div>
         </div>
     )
