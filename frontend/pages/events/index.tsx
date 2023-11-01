@@ -9,26 +9,28 @@ import Link from "next/link"
 
 const EventCard = ({ event }: { event: Event }) => {
     return (
-        <Card className="w-96">
-            <CardHeader color="blue-gray" className="relative h-56 mt-4">
-                <Image src={event.img_url} alt="event image" width={400} height={400} className="object-cover object-center" />
-            </CardHeader>
-            <CardBody>
-                <Typography variant="h5" color="blue-gray" className="mb-2">
-                    {event.name}
-                </Typography>
-                <Typography>
-                    {event.description.length > 100 ? event.description.slice(0, 100) + "..." : event.description}
-                </Typography>
-            </CardBody>
-            <CardFooter className="pt-0">
-                <Link href={`/events/${event.id}`}>
-                    <Button>
-                        View More
-                    </Button>
-                </Link>
-            </CardFooter>
-        </Card>
+        <div>
+            <Card className="w-96">
+                <CardHeader color="blue-gray" className="relative h-56 mt-4">
+                    <Image src={event.img_urls[0] /* There must always be at least one photo */} alt="event image" width={600} height={600} className="w-full h-full object-cover object-center" />
+                </CardHeader>
+                <CardBody>
+                    <Typography variant="h5" color="blue-gray" className="mb-2">
+                        {event.name}
+                    </Typography>
+                    <Typography>
+                        {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
+                    </Typography>
+                </CardBody>
+                <CardFooter className="pt-0">
+                    <Link href={`/events/${event.id}`}>
+                        <Button>
+                            View More
+                        </Button>
+                    </Link>
+                </CardFooter>
+            </Card>
+        </div>
     )
 }
 
@@ -74,8 +76,8 @@ export default function EventsIndex() {
                 <div className="flex flex-col gap-4">
                     {currentEvents && currentEvents.length !== 0 &&
                         <div>
-                            <Typography variant="h3" className="mb-2" color="blue-gray">Happening now</Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <Typography variant="h3" className="text-center lg:text-left mb-2" color="blue-gray">Happening now</Typography>
+                            <div className="flex flex-wrap gap-4 justify-center lg:justify-start w-full">
                                 {currentEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
@@ -83,8 +85,8 @@ export default function EventsIndex() {
 
                     {upcomingEvents && upcomingEvents.length !== 0 &&
                         <div>
-                            <Typography variant="h3" className="mb-2" color="blue-gray">Upcoming</Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <Typography variant="h3" className="text-center lg:text-left mb-2" color="blue-gray">Upcoming</Typography>
+                            <div className="flex flex-wrap gap-4 justify-center lg:justify-start w-full">
                                 {upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
@@ -92,8 +94,8 @@ export default function EventsIndex() {
 
                     {previousEvents && previousEvents.length !== 0 &&
                         <div>
-                            <Typography variant="h3" className="mb-2" color="blue-gray">Previous</Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <Typography variant="h3" className="text-center lg:text-left mb-2" color="blue-gray">Previous</Typography>
+                            <div className="flex flex-wrap gap-4 justify-center lg:justify-start w-full">
                                 {previousEvents.map(event => <EventCard key={event.id} event={event} />)}
                             </div>
                         </div>
