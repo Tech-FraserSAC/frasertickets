@@ -6,7 +6,7 @@ import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
@@ -18,7 +18,8 @@ export default function TicketViewingPage() {
     const queryClient = useQueryClient();
     const isMountedRef = useRef(false);
 
-    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets } = useQuery('frasertix-admin-tickets', async () => {
+    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
+        console.log("hii");
         const tickets = await getAllTickets();
         updateFilteredTickets(tickets);
         return tickets;
@@ -35,6 +36,18 @@ export default function TicketViewingPage() {
             }));
         return mappedEvents;
     });
+
+    const createTicketMutation = useMutation(({ studentNumber, eventId }: any) => createNewTicket(studentNumber, eventId), {
+        onSettled: () => {
+            return refetchTickets()
+        }
+    })
+
+    const deleteTicketMutation = useMutation(({ ticketId }: any) => deleteTicket(ticketId), {
+        onSuccess: () => {
+            return refetchTickets()
+        }
+    })
 
     const [eventNameFilter, setEventNameFilter] = useState("");
     const [studentNameFilter, setStudentNameFilter] = useState("");
@@ -96,9 +109,10 @@ export default function TicketViewingPage() {
         }
 
         try {
-            await deleteTicket(id);
+            // await deleteTicket(id);
+            await deleteTicketMutation.mutateAsync({ ticketId: id });
             alert("Ticket has been deleted.");
-            queryClient.invalidateQueries({ queryKey: ['frasertix-admin-tickets'] })
+            // await queryClient.invalidateQueries("frasertix-admin-tickets")
         } catch (err) {
             alert("Something went wrong when deleting the ticket. Please try again.");
             throw err;
@@ -116,12 +130,14 @@ export default function TicketViewingPage() {
             alert("Please provide a valid event and make sure it is selected.");
         } else {
             try {
-                await createNewTicket(studentNumber.toString(), modalEventChosen.id)
+                // await createNewTicket(studentNumber.toString(), modalEventChosen.id)
+                console.log("raah")
+                await createTicketMutation.mutateAsync({ studentNumber: studentNumber.toString(), eventId: modalEventChosen.id });
                 alert("Ticket has been created.")
 
                 modalStudentNumberRef.current!.value = "";
                 setModalOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['frasertix-admin-tickets'] });
+                // await queryClient.invalidateQueries("frasertix-admin-tickets");
             } catch (err: any) {
                 if (err && err.response) {
                     if (err.response.status === 409) {
