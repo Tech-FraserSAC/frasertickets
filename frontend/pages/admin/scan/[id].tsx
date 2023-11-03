@@ -1,107 +1,40 @@
 import Layout from "@/components/admin/Layout";
 import scanTicket from "@/lib/backend/ticket/scanTicket";
-import TicketScan from "@/lib/backend/ticket/ticketScan";
 import { Typography } from "@material-tailwind/react";
-import { BrowserQRCodeReader, BrowserCodeReader, IScannerControls } from '@zxing/browser';
 import { useRouter } from "next/router";
-import { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery } from "react-query";
 
 enum ScanStatus {
     SUCCESS,
     DOES_NOT_EXIST,
     INVALID_FORMAT,
-    UNSCANNED,
-    SCANNER_LOADING,
-    PROCESSING_SCAN
+    LOADING
 }
 
 export default function TicketScanningPage() {
     const router = useRouter()
-    const codeReader = new BrowserQRCodeReader()
-    const previewElem = useRef<HTMLVideoElement | null>(null);
-    const [videoControls, setVideoControls] = useState<IScannerControls>();
-    const [qrCodeResult, setQRCodeResult] = useState<string>();
-    const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.SCANNER_LOADING);
-    const [scanData, setScanData] = useState<TicketScan>();
+    const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.LOADING)
 
-    useEffect(() => {
-        if (scanStatus === ScanStatus.SCANNER_LOADING || scanStatus === ScanStatus.UNSCANNED) {
-            (async () => {
-                try {
-                    const videoInputDevices = await BrowserCodeReader.listVideoInputDevices();
-                    if (videoInputDevices.length === 0) {
-                        console.error("No video input devices found.");
-                        return;
-                    }
-
-                    const selectedDeviceId = videoInputDevices[0].deviceId;
-
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            aspectRatio: 1 / 1,
-                            frameRate: {
-                                ideal: 60,
-                                max: 60
-                            },
-                            facingMode: "environment"
-                        }
-                    })
-
-                    setVideoControls(await codeReader.decodeFromStream(
-                        stream,
-                        previewElem.current!,
-                        (result, err, controls) => {
-                            if (result) {
-                                setScanStatus(ScanStatus.PROCESSING_SCAN);
-                                setQRCodeResult(result.getText());
-                                controls.stop(); // Stop only when a QR code is successfully read
-                            }
-
-                            if (err && err.name !== "NotFoundException") {
-                                // Only show issues that aren't the "not found exception" since its expected
-                                console.error(`Error: ${err}`);
-                            }
-                        }
-                    ))
-
-                    setScanStatus(ScanStatus.UNSCANNED)
-                } catch (e) {
-                    console.error(`Exception: ${e}`);
-                }
-            })();
-        }
-
-        return () => {
-            videoControls?.stop()
-        }
-    // This should only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        (async () => {
-            if (qrCodeResult !== undefined) {
-                // Scan ticket into system
-                try {
-                    const res = await scanTicket(qrCodeResult);
-                    setScanStatus(ScanStatus.SUCCESS);
-                    setScanData(res);
-                } catch (err: any) {
-                    if (err?.response?.status === 400) {
-                        setScanStatus(ScanStatus.INVALID_FORMAT);
-                    } else if (err?.response?.status === 404) {
-                        setScanStatus(ScanStatus.DOES_NOT_EXIST);
-                    }
-                    console.error(err)
-                }
-
-                videoControls?.stop()
+    const { isLoading: rqLoading, error, data: scanData } = useQuery('frasertix-scan-ticket', () => (
+        scanTicket(router.query.id as string)
+    ), {
+        enabled: router.isReady,
+        retry: (failureCount, error: any | undefined) => {
+            if (error?.response?.status === 400) {
+                setScanStatus(ScanStatus.INVALID_FORMAT)
+                return false
+            } else if (error?.response?.status === 404) {
+                setScanStatus(ScanStatus.DOES_NOT_EXIST)
+                return false
             }
-        })();
-    }, [qrCodeResult, videoControls])
 
+            return failureCount < 3
+        },
+        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 6000
+    })
 
     const innerComponent = (() => {
         switch (scanStatus) {
@@ -110,9 +43,15 @@ export default function TicketScanningPage() {
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="text-center text-red-500">Invalid QR Code</Typography>
                         <Typography variant="lead" className="text-center lg:w-1/2 mb-4">This QR code doesn&apos;t match our internal format. Try scanning the QR code again.</Typography>
-                        <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
-                            Reload
-                        </button>
+                        
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
+                                Reload
+                            </button>
+                            <Link className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white" href="/admin/scan">
+                                Scan New Ticket
+                            </Link>
+                        </div>
                     </div>
                 )
             }
@@ -121,9 +60,15 @@ export default function TicketScanningPage() {
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="text-center text-red-500">Ticket Not Found</Typography>
                         <Typography variant="lead" className="text-center lg:w-1/2">The ticket with the given QR code could not be found in our systems. Try scanning the QR code again.</Typography>
-                        <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
-                            Reload
-                        </button>
+
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
+                                Reload
+                            </button>
+                            <Link className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white" href="/admin/scan">
+                                Scan New Ticket
+                            </Link>
+                        </div>
                     </div>
                 )
             }
@@ -205,31 +150,21 @@ export default function TicketScanningPage() {
                             </tbody>
                         </table>
 
-                        <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white mt-4" onClick={router.reload}>
-                            Scan New Ticket
-                        </button>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
+                                Reload
+                            </button>
+                            <Link className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white" href="/admin/scan">
+                                Scan New Ticket
+                            </Link>
+                        </div>
                     </div>
                 )
             }
-            case ScanStatus.PROCESSING_SCAN: {
+            case ScanStatus.LOADING: {
                 return (
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="text-center text-gray-800">Processing Ticket...</Typography>
-                    </div>
-                )
-            }
-            default: {
-                return (
-                    <div className="flex flex-col items-center">
-                        {
-                            scanStatus === ScanStatus.SCANNER_LOADING
-                            && <Typography variant="h2" className="text-center text-blue-700">Loading ticket scanner...</Typography>
-                        }
-                        <video ref={previewElem} muted={true} playsInline={true} autoPlay={true} />
-                        {
-                            scanStatus === ScanStatus.UNSCANNED
-                            && <Typography variant="lead" className="text-center md:w-1/2 mt-2 text-gray-700">Hover your camera over the QR code for at least a second. If this does not work, try adjusting the QR code or your phone.</Typography>
-                        }
                     </div>
                 )
             }

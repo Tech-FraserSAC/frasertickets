@@ -122,7 +122,7 @@ export default function TicketSpecificPage() {
                         </Typography>
 
                         <div style={{ background: 'white', padding: '16px' }}>
-                            <QRCode value={data?.id || ""} />
+                            <QRCode value={`https://tickets.johnfrasersac.com/admin/scan/${data?.id}` || ""} />
                         </div>
                     </div>
                 )
