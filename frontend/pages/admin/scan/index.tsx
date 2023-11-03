@@ -1,3 +1,4 @@
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/admin/Layout";
 import TicketScan from "@/lib/backend/ticket/ticketScan";
 import { Typography } from "@material-tailwind/react";
@@ -15,6 +16,7 @@ enum ScanStatus {
 }
 
 export default function TicketScanningPage() {
+    const { user, loaded } = useFirebaseAuth()
     const router = useRouter()
     const codeReader = new BrowserQRCodeReader()
     const previewElem = useRef<HTMLVideoElement | null>(null);
@@ -23,8 +25,14 @@ export default function TicketScanningPage() {
     const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.SCANNER_LOADING);
 
     useEffect(() => {
-        if (scanStatus === ScanStatus.SCANNER_LOADING || scanStatus === ScanStatus.UNSCANNED) {
+        if ((scanStatus === ScanStatus.SCANNER_LOADING || scanStatus === ScanStatus.UNSCANNED) && loaded && user !== null) {
             (async () => {
+                // Need to check this here so we don't start scanning for QR codes if they're unauthorized
+                const token = await user.getIdTokenResult()
+                if (!token.claims.admin) {
+                    router.push("/403")
+                }
+
                 try {
                     const videoInputDevices = await BrowserCodeReader.listVideoInputDevices();
                     if (videoInputDevices.length === 0) {
@@ -70,9 +78,9 @@ export default function TicketScanningPage() {
         return () => {
             videoControls?.stop()
         }
-    // This should only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // This should only run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loaded, user]);
 
     useEffect(() => {
         (async () => {

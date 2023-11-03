@@ -19,7 +19,6 @@ export default function TicketViewingPage() {
     const isMountedRef = useRef(false);
 
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
-        console.log("hii");
         const tickets = await getAllTickets();
         updateFilteredTickets(tickets);
         return tickets;
