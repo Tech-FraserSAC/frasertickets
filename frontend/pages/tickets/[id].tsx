@@ -20,7 +20,6 @@ import { ServerErrorComponent } from "../500"
 const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
 
 export default function TicketSpecificPage() {
-    const { user, loaded } = useFirebaseAuth()
     const router = useRouter()
     const { id } = router.query
     const [statusCode, setStatusCode] = useState(200);
@@ -30,7 +29,9 @@ export default function TicketSpecificPage() {
     ), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
-            setStatusCode(error?.response?.status)
+            if (statusCode != error?.response?.status) {
+                setStatusCode(error?.response?.status)
+            }
             if (error?.response?.status === 400 || error?.response?.status === 404) {
                 return false
             }
@@ -44,7 +45,8 @@ export default function TicketSpecificPage() {
             }
 
             return failureCount < 3
-        }
+        },
+        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 6000
     })
 
     const isLoading = !(router.isReady) || rqLoading
