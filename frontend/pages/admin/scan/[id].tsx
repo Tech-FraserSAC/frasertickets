@@ -6,12 +6,14 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "react-query";
+import { ForbiddenComponent } from "@/pages/403";
 
 enum ScanStatus {
     SUCCESS,
     DOES_NOT_EXIST,
     INVALID_FORMAT,
-    LOADING
+    LOADING,
+    FORBIDDEN
 }
 
 export default function TicketScanningPage() {
@@ -23,12 +25,14 @@ export default function TicketScanningPage() {
     ), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
-            console.log(error)
             if (error?.response?.status === 400) {
                 setScanStatus(ScanStatus.INVALID_FORMAT)
                 return false
             } else if (error?.response?.status === 404) {
                 setScanStatus(ScanStatus.DOES_NOT_EXIST)
+                return false
+            } else if (error?.response?.status === 403 || error?.response?.status === 401) {
+                setScanStatus(ScanStatus.FORBIDDEN)
                 return false
             }
 
@@ -171,6 +175,9 @@ export default function TicketScanningPage() {
                         <Typography variant="h2" className="text-center text-gray-800">Processing Ticket...</Typography>
                     </div>
                 )
+            }
+            case ScanStatus.FORBIDDEN: {
+                return <ForbiddenComponent />
             }
         }
     })()

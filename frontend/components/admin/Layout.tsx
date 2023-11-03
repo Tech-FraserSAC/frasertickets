@@ -20,11 +20,29 @@ const contentVariants = {
 }
 
 export default function Layout({ name, children, noAnim, className }: { name: string, children: any, noAnim?: boolean, className?: string }) {
+    const { user, loaded } = useFirebaseAuth()
     const title = `${name} (Admin) | FraserTickets`;
     const description = "An admin page for FraserTickets.";
     const imageSrc = "CHANGE ME"
 
     const router = useRouter()
+
+    useEffect(() => {
+        if (user === null && loaded) {
+            alert("You must be signed in to access this route. Redirecting...")
+            router.push("/")
+        }
+
+        if (user !== null && loaded) {
+            (async () => {
+                const token = await user.getIdTokenResult(true)
+                if (token.claims.admin !== true) {
+                    alert("You must be signed in as an admin to access this route. Redirecting...")
+                    router.push("/")
+                }
+            })()
+        }
+    }, [user, loaded])
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#fbc7d4]/25  to-[#9796f0]/25 overflow-hidden" key={name}>
