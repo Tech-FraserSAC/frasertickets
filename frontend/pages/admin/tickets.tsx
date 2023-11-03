@@ -306,15 +306,17 @@ export default function TicketViewingPage() {
                 <Typography variant="paragraph" className="text-center lg:w-3/4">Loading...</Typography>
             )}
             {tickets && (
-                <div className='overflow-x-auto max-w-full'>
-                    <table className="table table-fixed border-collapse mb-6 w-full">
+                <div className='overflow-x-auto w-full'>
+                    <table className="table table-fixed border-collapse mb-6 min-w-fit max-w-full">
                         <thead>
                             <tr className="bg-transparent">
                                 <th>
-                                    <DatePickerModal
-                                        state={datePickerSelection}
-                                        setState={setDatePickerSelection}
-                                    />
+                                    <div className="mb-2 lg:mb-0">
+                                        <DatePickerModal
+                                            state={datePickerSelection}
+                                            setState={setDatePickerSelection}
+                                        />
+                                    </div>
                                 </th>
                                 <th>
                                     <input
