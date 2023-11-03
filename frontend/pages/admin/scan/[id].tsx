@@ -23,6 +23,7 @@ export default function TicketScanningPage() {
     ), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
+            console.log(error)
             if (error?.response?.status === 400) {
                 setScanStatus(ScanStatus.INVALID_FORMAT)
                 return false
@@ -32,6 +33,9 @@ export default function TicketScanningPage() {
             }
 
             return failureCount < 3
+        },
+        onSuccess: () => {
+            setScanStatus(ScanStatus.SUCCESS)
         },
         refetchInterval: (data, query) => query.state.error ? 0 : 60 * 6000
     })
