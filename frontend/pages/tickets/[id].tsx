@@ -71,13 +71,17 @@ export default function TicketSpecificPage() {
                 </Layout>
             )
         } else if (statusCode === 403) {
-            <Layout name="403 Forbidden" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
-                <ForbiddenComponent home="/" />
-            </Layout>
+            return (
+                <Layout name="403 Forbidden" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <ForbiddenComponent home="/" />
+                </Layout>
+            )
         } else {
-            <Layout name="500 Server Error" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
-                <ServerErrorComponent home="/tickets" />
-            </Layout>
+            return (
+                <Layout name="500 Server Error" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <ServerErrorComponent home="/tickets" />
+                </Layout>
+            )
         }
     }
 
