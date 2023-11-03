@@ -202,10 +202,17 @@ func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 
 	// Try to get data from DB
 	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
+	if err != nil {
+		return Ticket{}, err
+	}
+	defer cursor.Close(ctx)
 
 	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
-	cursor.Next(ctx)
+	if nextExists := cursor.Next(ctx); !nextExists {
+		return Ticket{}, mongo.ErrNoDocuments
+	}
+
 	if err := cursor.Decode(&ticket); err != nil {
 		return Ticket{}, err
 	}
