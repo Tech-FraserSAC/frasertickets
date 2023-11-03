@@ -27,8 +27,7 @@ export default function Layout({ name, children, noAnim, className, userProtecte
 
     useEffect(() => {
         if (user === null && loaded && userProtected) {
-            alert("You must be signed in to access this route. Redirecting...")
-            router.push("/")
+            router.push("/401")
         }
     }, [user, loaded])
 

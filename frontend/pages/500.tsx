@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export function ServerErrorComponent({ home } : { home?: string }) {
     return (
-        <div className="flex flex-col flex-grow justify-center" key="page-404">
+        <div className="flex flex-col h-screen flex-grow justify-center" key="page-404">
             <div className="flex flex-col p-8">
                 <h1 className="text-8xl text-center mb-2 font-semibold text-red-500">
                     500

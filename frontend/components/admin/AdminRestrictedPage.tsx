@@ -23,7 +23,7 @@ export default function AdminRestrictedPage(props: PropsWithChildren) {
 
     if (!loaded || authorized == null) {
         return (
-            <div className="p-4">
+            <div className="flex flex-col items-center justify-center h-screen w-screen p-4">
                 <Typography variant="h2" className="text-center">Loading...</Typography>
             </div>
         )

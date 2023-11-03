@@ -46,19 +46,19 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
 
-            <ComplexNavbar />
+            <AdminRestrictedPage key={router.pathname}>
+                <ComplexNavbar />
 
-            <motion.div
-                initial={noAnim ? undefined : contentVariants.initial}
-                animate={noAnim ? undefined : contentVariants.animate}
-                exit={noAnim ? undefined : contentVariants.exit}
-                transition={noAnim ? undefined : contentVariants.transition}
-                className={`flex-grow ${className}`}
-            >
-                <AdminRestrictedPage key={router.pathname}>
+                <motion.div
+                    initial={noAnim ? undefined : contentVariants.initial}
+                    animate={noAnim ? undefined : contentVariants.animate}
+                    exit={noAnim ? undefined : contentVariants.exit}
+                    transition={noAnim ? undefined : contentVariants.transition}
+                    className={`flex-grow ${className}`}
+                >
                     {children}
-                </AdminRestrictedPage>
-            </motion.div>
+                </motion.div>
+            </AdminRestrictedPage>
 
 
             {/* <Footer /> */}
