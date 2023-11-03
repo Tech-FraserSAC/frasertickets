@@ -153,7 +153,7 @@ export function ComplexNavbar() {
     }, []);
 
     return (
-        <Navbar className="md:mx-4 md:mt-2 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
+        <Navbar className="md:mx-4 md:mt-4 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
                 <Link href="/events">
                     <Typography

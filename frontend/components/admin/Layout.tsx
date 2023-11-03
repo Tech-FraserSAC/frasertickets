@@ -27,7 +27,7 @@ export default function Layout({ name, children, noAnim, className }: { name: st
     const router = useRouter()
 
     return (
-        <div className="flex flex-col min-h-screen bg-blue-50 overflow-hidden" key={name}>
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#fbc7d4]/25  to-[#9796f0]/25 overflow-hidden" key={name}>
             <Head>
                 <title>{title}</title>
                 <meta name="description" content={description} />
