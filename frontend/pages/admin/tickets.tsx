@@ -307,7 +307,7 @@ export default function TicketViewingPage() {
             )}
             {tickets && (
                 <div className='overflow-x-auto w-full'>
-                    <table className="table table-fixed border-collapse mb-6 min-w-fit max-w-full">
+                    <table className="table table-fixed border-collapse mb-6 min-w-fit lg:w-full">
                         <thead>
                             <tr className="bg-transparent">
                                 <th>
