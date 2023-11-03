@@ -48,7 +48,9 @@ const TicketCard = ({ ticket, fullName, allowTicketShow = true }: { ticket: Tick
 export default function EventsIndex() {
     const { isLoading, error, data: tickets } = useQuery('frasertix-events', () => (
         getSelfTickets()
-    ))
+    ), {
+        refetchInterval: 60 * 1000
+    })
     const { user, loaded: authLoaded } = useFirebaseAuth()
 
     if (error) console.error(error)
