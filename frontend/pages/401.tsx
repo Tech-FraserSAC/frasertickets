@@ -13,7 +13,7 @@ export function UnauthorizedComponent({ home } : { home?: string }) {
                 </h2>
 
                 <p className="text-xl text-center mb-6 text-gray-700">
-                    Sorry, you don&apos;t have access to the following page. Try checking if you're signed in.
+                    Sorry, you don&apos;t have access to the following page. Try checking if you&apos;re signed in.
                 </p>
 
                 <div className="self-center">
