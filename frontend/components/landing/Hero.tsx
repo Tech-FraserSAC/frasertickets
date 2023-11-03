@@ -46,9 +46,8 @@ export default function Hero() {
                 <Image
                     src={BannerPhoto}
                     placeholder="blur"
-                    className="object-cover object-center"
+                    className="object-cover object-center w-screen h-screen"
                     alt="Hero image"
-                    layout="fill"
                     quality={100}
                     priority={true}
                 />
