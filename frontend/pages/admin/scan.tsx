@@ -161,7 +161,7 @@ export default function TicketScanningPage() {
                                 <tr className="border-collapse border-2 border-gray-500">
                                     <td className="border-collapse border-2 border-gray-500 px-2">Previous Scan Timestamp</td>
                                     <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.ticketData.lastScanTime.toLocaleString("en-US", {
+                                        {scanData?.scanCount === 1 ? "N/A" : scanData?.ticketData.lastScanTime.toLocaleString("en-US", {
                                             day: '2-digit',
                                             month: '2-digit',
                                             year: '2-digit',
