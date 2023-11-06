@@ -59,12 +59,14 @@ func (ctrl EventController) Routes() chi.Router {
 
 // List godoc
 //
-// @Summary List all events
-// @Description Lists all events in the database
-// @Tags event
-// @Produce json
-// @Success 200 {object} []models.Event
-// @Router /events [get]
+//	@Summary		List all events
+//	@Description	Lists all events in the database
+//	@Tags			event
+//	@Produce		json
+//	@Success		200	{object}	[]models.Event
+//	@Failure		422
+//	@Failure		500
+//	@Router			/events [get]
 func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 	events, err := models.GetAllEvents(r.Context())
 	if err != nil {
@@ -88,6 +90,19 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create godoc
+//
+//	@Summary		Create an event
+//	@Description	Creates an event in the database
+//	@Tags			event
+//	@Accept			json
+//	@Produce		json
+//	@Param			account	body		eventControllerCreateRequestBody	true	"Event details"
+//	@Success		200		{object}	models.Event
+//	@Failure		400
+//	@Failure		429
+//	@Failure		500
+//	@Router			/events [post]
 func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
 		eventRaw eventControllerCreateRequestBody
@@ -160,6 +175,19 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// List godoc
+//
+//	@Summary		Get an event
+//	@Description	Get the data for one event from the DB
+//	@Tags			event
+//	@Produce		json
+//	@Param			id	path		string	true	"Event ID"
+//	@Success		200	{object}	[]models.Event
+//	@Failure		400
+//	@Failure		404
+//	@Failure		429
+//	@Failure		500
+//	@Router			/events/{id} [get]
 func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
@@ -194,6 +222,19 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Get event tickets godoc
+//
+//	@Summary		Get tickets for event
+//	@Description	Get every ticket for an event
+//	@Tags			event
+//	@Produce		json
+//	@Param			id	path		string	true	"Event ID"
+//	@Success		200	{object}	[]models.Ticket
+//	@Failure		400
+//	@Failure		404
+//	@Failure		429
+//	@Failure		500
+//	@Router			/events/{id}/tickets [get]
 func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
@@ -240,6 +281,21 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Update event godoc
+//
+//	@Summary		Update event details
+//	@Description	Update the details for an event
+//	@Tags			event
+//	@Produce		json
+//	@Param			id	path		string	true	"Event ID"
+//	@Param			updates	body		models.Event	true	"Updates to make (not all attributes below are required, and id cannot be changed)"
+//	@Success		200
+//	@Failure		304
+//	@Failure		400
+//	@Failure		404
+//	@Failure		429
+//	@Failure		500
+//	@Router			/events [patch]
 func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
@@ -281,6 +337,18 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Delete event godoc
+//
+//	@Summary		Delete event
+//	@Description	Delete event from database
+//	@Tags			event
+//	@Produce		json
+//	@Param			id	path		string	true	"Event ID"
+//	@Success		200
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Router			/events [delete]
 func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")

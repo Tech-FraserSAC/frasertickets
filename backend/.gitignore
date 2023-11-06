@@ -7,3 +7,7 @@
 
 # google cloud
 service-account.json
+
+# swagger data (might have to remove later, unsure)
+swagger.json
+swagger.yaml

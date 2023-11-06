@@ -1,4 +1,30 @@
+basePath: /
 definitions:
+  controllers.eventControllerCreateRequestBody:
+    properties:
+      address:
+        type: string
+      description:
+        type: string
+      end_timestamp:
+        type: string
+      img_url:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      start_timestamp:
+        type: string
+    required:
+    - address
+    - description
+    - end_timestamp
+    - img_url
+    - location
+    - name
+    - start_timestamp
+    type: object
   models.Event:
     properties:
       address:
@@ -19,10 +45,73 @@ definitions:
       start_timestamp:
         type: string
     type: object
+  models.Ticket:
+    properties:
+      eventData:
+        $ref: '#/definitions/models.Event'
+      eventID:
+        type: string
+      id:
+        type: string
+      lastScanTime:
+        type: string
+      ownerData:
+        $ref: '#/definitions/models.User'
+      ownerID:
+        description: owner ID
+        type: string
+      scanCount:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  models.User:
+    properties:
+      admin:
+        type: boolean
+      full_name:
+        type: string
+      id:
+        description: This is also the UUID in Firebase Auth
+        type: string
+      pfp_url:
+        type: string
+      student_number:
+        type: string
+    type: object
+host: localhost:3001
 info:
-  contact: {}
+  contact:
+    email: aritro.saha729@gmail.com
+    name: Aritro Saha
+    url: http://www.aritrosaha.ca
+  description: The backend REST API for FraserTickets.
+  title: FraserTickets Backend
+  version: "1.0"
 paths:
   /events:
+    delete:
+      description: Delete event from database
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Delete event
+      tags:
+      - event
     get:
       description: Lists all events in the database
       produces:
@@ -34,7 +123,129 @@ paths:
             items:
               $ref: '#/definitions/models.Event'
             type: array
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
       summary: List all events
+      tags:
+      - event
+    patch:
+      description: Update the details for an event
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updates to make (not all attributes below are required, and id
+          cannot be changed)
+        in: body
+        name: updates
+        required: true
+        schema:
+          $ref: '#/definitions/models.Event'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "304":
+          description: Not Modified
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: Update event details
+      tags:
+      - event
+    post:
+      consumes:
+      - application/json
+      description: Creates an event in the database
+      parameters:
+      - description: Event details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.eventControllerCreateRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Event'
+        "400":
+          description: Bad Request
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: Create an event
+      tags:
+      - event
+  /events/{id}:
+    get:
+      description: Get the data for one event from the DB
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: Get an event
+      tags:
+      - event
+  /events/{id}/tickets:
+    get:
+      description: Get every ticket for an event
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Ticket'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: Get tickets for event
       tags:
       - event
 swagger: "2.0"

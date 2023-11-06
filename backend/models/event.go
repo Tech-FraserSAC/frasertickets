@@ -72,6 +72,7 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 		"description":     true,
 		"img_url":         true,
 		"location":        true,
+		"address":         true,
 		"start_timestamp": true,
 		"end_timestamp":   true,
 	}
