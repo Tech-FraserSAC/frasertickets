@@ -19,6 +19,7 @@ type UserController struct{}
 
 func (ctrl UserController) Routes() chi.Router {
 	r := chi.NewRouter()
+	r.Use(middleware.AuthenticatorMiddleware) // User must be authenticated before using any of these endpoints
 
 	r.Post("/add", ctrl.Create) // POST /users/add - add new user to database, only run during sign up process
 

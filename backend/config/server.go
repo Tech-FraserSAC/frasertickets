@@ -21,14 +21,16 @@ var (
 )
 
 type Server struct {
-	Router *chi.Mux
-	Port   string
+	Router      *chi.Mux
+	Port        string
+	Environment string
 }
 
 func CreateNewServer() *Server {
 	s := &Server{}
 	s.Router = chi.NewRouter()
 	s.Port = os.Getenv("PORT")
+	s.Environment = os.Getenv("FRASERTICKETS_ENV")
 
 	return s
 }
@@ -49,11 +51,11 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Use(middlewarecustom.AuthenticatorMiddleware) // Every route should require some sort of auth
-
-	s.Router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:3001/swagger/doc.json"),
-	))
+	if s.Environment == "development" {
+		s.Router.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:"+s.Port+"/swagger/doc.json"),
+		))
+	}
 
 	// Route handlers
 	s.Router.Mount("/users", controllers.UserController{}.Routes())

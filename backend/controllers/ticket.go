@@ -36,6 +36,7 @@ type TicketController struct{}
 
 func (ctrl TicketController) Routes() chi.Router {
 	r := chi.NewRouter()
+	r.Use(middleware.AuthenticatorMiddleware) // User must be authenticated before using any of these endpoints
 
 	r.Get("/", ctrl.ListSelf) // GET /tickets - returns the requester's tickets, available to any user
 

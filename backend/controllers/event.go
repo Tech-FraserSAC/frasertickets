@@ -32,6 +32,7 @@ type EventController struct{}
 
 func (ctrl EventController) Routes() chi.Router {
 	r := chi.NewRouter()
+	r.Use(middleware.AuthenticatorMiddleware) // User must be authenticated before using any of these endpoints
 
 	r.Get("/", ctrl.List) // GET /events - returns list of events, available to all
 
