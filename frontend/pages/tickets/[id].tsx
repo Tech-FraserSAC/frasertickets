@@ -46,7 +46,7 @@ export default function TicketSpecificPage() {
 
             return failureCount < 3
         },
-        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 6000
+        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 1000
     })
 
     const isLoading = !(router.isReady) || rqLoading

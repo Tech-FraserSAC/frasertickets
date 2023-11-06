@@ -41,7 +41,7 @@ export default function TicketScanningPage() {
         onSuccess: () => {
             setScanStatus(ScanStatus.SUCCESS)
         },
-        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 6000
+        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 1000
     })
 
     const innerComponent = (() => {
