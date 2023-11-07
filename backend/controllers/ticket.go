@@ -67,6 +67,17 @@ func (ctrl TicketController) Routes() chi.Router {
 	return r
 }
 
+// Get self tickets godoc
+//
+//	@Summary		List the requesting user's tickets
+//	@Description	List the tickets owned by the user sending the request
+//	@Tags			ticket
+//	@Produce		json
+//	@Success		200	{object}	[]models.Ticket
+//	@Failure		404
+//	@Failure		429
+//	@Failure		500
+//	@Router			/tickets [get]
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
 	userToken, err := util.GetUserTokenFromContext(r.Context())
