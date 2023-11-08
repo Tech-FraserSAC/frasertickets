@@ -57,19 +57,19 @@ export default function Hero() {
 
             <div className="absolute p-4 md:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
                 <motion.div variants={lineVariants} initial="initial" animate="animate" className="text-center md:mb-4 break-all font-bold flex flex-col flex-wrap gap-2 text-4xl xs:text-5xl sm:text-7xl lg:text-9xl">
-                    {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-green-300 pb-5" variants={characterVariants} key={char}>{char}</motion.span>)}
+                    {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-[#d42a2a] to-[#a81818] pb-5 font-poppins" variants={characterVariants} key={char}>{char}</motion.span>)}
                 </motion.div>
 
 
                 <motion.div variants={subtitleVariants} initial="initial" animate="animate" className="text-white text-2xl md:text-3xl font-light text-center mb-6 md:w-3/4 lg:w-1/3">
-                    The online event ticketing platform for John Fraser S.S. students, made by the <a href="https://www.johnfrasersac.com" className="text-blue-500 hover:text-blue-700 duration-75">SAC</a>.
+                    The online event ticketing platform for John Fraser S.S. students, made by <a href="https://www.johnfrasersac.com" className="text-blue-500 hover:text-blue-700 duration-75">SAC</a>.
                 </motion.div>
 
                 <motion.div variants={btnVariants} initial="initial" animate="animate">
                     {signedIn ?
                         <Link
                             href="/events"
-                            className="py-4 px-6 bg-green-500 rounded-lg font-semibold text-white hover:bg-green-700 duration-150 text-lg lg:text-2xl mt-4"
+                            className="py-4 px-6 bg-red-500 rounded-lg font-semibold text-white hover:bg-green-700 duration-150 text-lg lg:text-2xl mt-4"
                         >
                             Open Portal
                         </Link>
