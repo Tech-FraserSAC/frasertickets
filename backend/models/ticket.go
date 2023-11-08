@@ -21,6 +21,7 @@ type Ticket struct {
 	Timestamp         time.Time          `json:"timestamp" bson:"timestamp"`
 	ScanCount         int                `json:"scanCount" bson:"scanCount"`
 	LastScanTimestamp time.Time          `json:"lastScanTime" bson:"lastScanTime"`
+	MaxScanCount      int                `json:"maxScanCount" bson:"maxScanCount"`
 }
 
 func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {

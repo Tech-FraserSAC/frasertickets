@@ -21,6 +21,7 @@ import (
 type ticketControllerCreateRequestBody struct {
 	StudentNumber string `json:"studentNumber" validate:"required"`
 	EventID       string `json:"eventID" validate:"required,mongodb"`
+	MaxScanCount  int    `json:"maxScanCount" validate:"required,gte=0,lt=999"`
 }
 
 type ticketControllerSearchRequestBody struct {
@@ -237,6 +238,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	ticket.Event = eventID
 	ticket.EventData = event
 	ticket.Timestamp = time.Now()
+	ticket.MaxScanCount = ticketRaw.MaxScanCount
 
 	// Try to add to DB
 	id, err := models.CreateNewTicket(r.Context(), ticket)
@@ -444,6 +446,26 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 		Timestamp:  time.Now(),
 		TicketData: ticket,
 		UserData:   ticketOwner,
+	}
+
+	// Check if max scan count has been exceeded
+	// Max scan count of 0 means unlimited
+	if scanData.Index > ticket.MaxScanCount && ticket.MaxScanCount != 0 {
+		log.Warn().Msg("could not scan ticket since max scan count exceeded")
+
+		// Reset scan data to show previous scan
+		scanData.Index = ticket.ScanCount
+		scanData.Timestamp = ticket.LastScanTimestamp
+
+		// Return as JSON, fallback if it fails
+		if err := render.Render(w, r, &scanData); err != nil {
+			render.Render(w, r, util.ErrRender(err))
+			return
+		}
+
+		// Still a bad request since scan didn't happen, but old scan data should still be provided
+		w.WriteHeader(400)
+		return
 	}
 
 	// Update ticket info with new scan data
