@@ -69,7 +69,7 @@ export default function Hero() {
                     {signedIn ?
                         <Link
                             href="/events"
-                            className="py-4 px-6 bg-red-500 rounded-lg font-semibold text-white hover:bg-green-700 duration-150 text-lg lg:text-2xl mt-4"
+                            className="py-4 px-6 bg-red-500 rounded-lg font-semibold text-white hover:bg-red-700 duration-150 text-lg lg:text-2xl mt-4"
                         >
                             Open Portal
                         </Link>
