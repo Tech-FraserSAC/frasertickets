@@ -53,10 +53,11 @@ export default function TicketSpecificPage() {
     const pageName = !isLoading ? data?.eventData.name as string : "Ticket"
     const studentNumber = data?.ownerData.student_number;
     const scanCount = data?.scanCount;
+    const maxScanCount = data?.maxScanCount;
     const lastScanTimestampStr = data?.lastScanTime.toLocaleString("en-US", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -102,11 +103,19 @@ export default function TicketSpecificPage() {
 
                         <Typography variant="lead" color="blue-gray" className="font-medium text-center mb-4">
                             {studentNumber !== undefined && <>
-                                Student Number: {studentNumber}</>}
-                            <br />
+                                Student Number: {studentNumber}
+                                <br />
+                            </>}
+
                             {scanCount !== undefined && <>
-                                # of scans: {scanCount}</>}
-                            <br />
+                                # of scans: {scanCount}
+                                <br />
+                            </>}
+
+                            {maxScanCount !== undefined && <>
+                                Max. # of scans: {maxScanCount}
+                                <br />
+                            </>}
                             {
                                 lastScanTimestampStr &&
                                 scanCount !== 0 &&
@@ -118,7 +127,7 @@ export default function TicketSpecificPage() {
 
                         <Typography variant="lead" color="blue-gray" className="font-medium text-center lg:w-1/2 mb-4">
                             This is your ticket for the event. It will be required to check-in.
-                            Please screenshot this page for later use or use the buttons below to add it to your digital wallet.
+                            Please screenshot this page for later use or keep this page open to present when necessary.
                         </Typography>
 
                         <div style={{ background: 'white', padding: '16px' }}>
