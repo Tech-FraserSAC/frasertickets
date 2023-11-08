@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 type ticketControllerCreateRequestBody struct {
 	StudentNumber string `json:"studentNumber" validate:"required"`
 	EventID       string `json:"eventID" validate:"required,mongodb"`
-	MaxScanCount  int    `json:"maxScanCount" validate:"required,gte=0,lt=999"`
+	MaxScanCount  int    `json:"maxScanCount" validate:"gte=0"`
 }
 
 type ticketControllerSearchRequestBody struct {
@@ -197,6 +198,14 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	err = validate.Struct(ticketRaw)
 	if err != nil {
 		log.Error().Err(err).Msg("could not validate body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Confirm that max scan count >= 0 (validator doesn't want to do this for some reason)
+	if ticketRaw.MaxScanCount < 0 {
+		err := fmt.Errorf("max scan count must be greater than or equal to 0")
+		log.Error().Err(err).Msg("invalid max scan count")
 		render.Render(w, r, util.ErrInvalidRequest(err))
 		return
 	}
@@ -442,10 +451,12 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 
 	// Create scan info obj to return
 	scanData := models.TicketScan{
-		Index:      ticket.ScanCount + 1,
-		Timestamp:  time.Now(),
-		TicketData: ticket,
-		UserData:   ticketOwner,
+		Index:           ticket.ScanCount + 1,
+		Timestamp:       time.Now(),
+		TicketData:      ticket,
+		UserData:        ticketOwner,
+		Processed:       true,
+		NoProcessReason: "",
 	}
 
 	// Check if max scan count has been exceeded
@@ -456,6 +467,8 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 		// Reset scan data to show previous scan
 		scanData.Index = ticket.ScanCount
 		scanData.Timestamp = ticket.LastScanTimestamp
+		scanData.Processed = false
+		scanData.NoProcessReason = "max scan count exceeded"
 
 		// Return as JSON, fallback if it fails
 		if err := render.Render(w, r, &scanData); err != nil {
@@ -463,8 +476,6 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Still a bad request since scan didn't happen, but old scan data should still be provided
-		w.WriteHeader(400)
 		return
 	}
 

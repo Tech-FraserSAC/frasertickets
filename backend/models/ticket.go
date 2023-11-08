@@ -29,10 +29,12 @@ func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 type TicketScan struct {
-	Index      int       `json:"index"`
-	Timestamp  time.Time `json:"timestamp"`
-	TicketData Ticket    `json:"ticketData"`
-	UserData   User      `json:"userData"`
+	Index           int       `json:"index"`
+	Timestamp       time.Time `json:"timestamp"`
+	TicketData      Ticket    `json:"ticketData"`
+	UserData        User      `json:"userData"`
+	Processed       bool      `json:"processed"`
+	NoProcessReason string    `json:"noProcessReason"`
 }
 
 func (scan *TicketScan) Render(w http.ResponseWriter, r *http.Request) error {

@@ -9,7 +9,8 @@ type TicketWithUserAndEventData = {
     eventData: Event,
     ownerData: User,
     scanCount: Number,
-    lastScanTime: Date
+    lastScanTime: Date,
+    maxScanCount: Number
 }
 
 export function convertToTicketWithEventData(rawData: { [key: string]: any }): TicketWithUserAndEventData {
@@ -21,7 +22,8 @@ export function convertToTicketWithEventData(rawData: { [key: string]: any }): T
         eventData: convertToEvent(rawData.eventData),
         ownerData: convertToUser(rawData.ownerData),
         scanCount: Number(rawData.scanCount),
-        lastScanTime: new Date(rawData.lastScanTime)
+        lastScanTime: new Date(rawData.lastScanTime),
+        maxScanCount: rawData.maxScanCount
     }
 }
 
