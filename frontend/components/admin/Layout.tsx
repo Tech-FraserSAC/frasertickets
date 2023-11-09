@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { ComplexNavbar } from "./Navbar";
 import AdminRestrictedPage from "./AdminRestrictedPage";
 import { useRouter } from "next/router";
+import Footer from "../Footer";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -61,7 +62,7 @@ export default function Layout({ name, children, noAnim, className }: { name: st
             </AdminRestrictedPage>
 
 
-            {/* <Footer /> */}
+            <Footer />
         </div>
     )
 }

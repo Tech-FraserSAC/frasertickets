@@ -64,8 +64,6 @@ export default function Layout({ name, children, noAnim, className, userProtecte
             >
                 {children}
             </motion.div>
-
-            {/* <Footer /> */}
         </div>
     )
 }
