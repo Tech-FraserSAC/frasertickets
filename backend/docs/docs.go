@@ -21,7 +21,7 @@ const docTemplate = `{
     "paths": {
         "/events": {
             "get": {
-                "description": "Lists all events in the database",
+                "description": "Lists all events in the database. Available to all users.",
                 "produces": [
                     "application/json"
                 ],
@@ -39,16 +39,13 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "422": {
-                        "description": "Unprocessable Entity"
-                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
                 }
             },
             "post": {
-                "description": "Creates an event in the database",
+                "description": "Creates an event in the database. Only available to admins.",
                 "consumes": [
                     "application/json"
                 ],
@@ -80,8 +77,46 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request"
                     },
-                    "429": {
-                        "description": "Too Many Requests"
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/events/{id}": {
+            "get": {
+                "description": "Get the data for one event from the DB. Available to all users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get an event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -89,7 +124,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete event from database",
+                "description": "Delete event from database. Only available to admins.",
                 "produces": [
                     "application/json"
                 ],
@@ -122,7 +157,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Update the details for an event",
+                "description": "Update the details for an event. Only available to admins.",
                 "produces": [
                     "application/json"
                 ],
@@ -161,53 +196,6 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found"
                     },
-                    "429": {
-                        "description": "Too Many Requests"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/events/{id}": {
-            "get": {
-                "description": "Get the data for one event from the DB",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "event"
-                ],
-                "summary": "Get an event",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Event ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Event"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
-                    "429": {
-                        "description": "Too Many Requests"
-                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
@@ -216,7 +204,7 @@ const docTemplate = `{
         },
         "/events/{id}/tickets": {
             "get": {
-                "description": "Get every ticket for an event",
+                "description": "Get every ticket for an event. Only available to admins.",
                 "produces": [
                     "application/json"
                 ],
@@ -249,8 +237,449 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found"
                     },
-                    "429": {
-                        "description": "Too Many Requests"
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets": {
+            "get": {
+                "description": "List the tickets owned by the user sending the request. Available to all users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "List the requesting user's tickets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Ticket"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new ticket. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Create new ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket details",
+                        "name": "event",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ticketControllerCreateRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Ticket"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/all": {
+            "get": {
+                "description": "List all tickets. Only available to admins.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "List all tickets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Ticket"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/scan": {
+            "post": {
+                "description": "Scans in a ticket given the ticket ID. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Scans a ticket",
+                "parameters": [
+                    {
+                        "description": "Search query",
+                        "name": "searchQuery",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ticketControllerScanRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TicketScan"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/search": {
+            "post": {
+                "description": "Search for a ticket by using the owner and associated event. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Search for ticket using owner and event",
+                "parameters": [
+                    {
+                        "description": "Search query",
+                        "name": "searchQuery",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ticketControllerSearchRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Ticket"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/user/{uid}": {
+            "get": {
+                "description": "List the tickets owned by the user sending the request. Only available to admins.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "List a user's tickets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Ticket"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/{id}": {
+            "get": {
+                "description": "Get one ticket. Only available to admins and the ticket owner.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Get one ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Ticket"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/tickets/{id}/delete": {
+            "post": {
+                "description": "Deletes a ticket. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Delete a ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Lists all user data in the database. Only available to admins.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "List all users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a user in the database when they first make their account. Only available to new users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Create a user in DB on account creation",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Get a user's data. Only available to admins and the requesting user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Gets user data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update a user's data. Only available to admins. Removed due to security issues.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user data (REMOVED)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updates to make (anything can be changed by admins, admin/student_number/pfp_url cannot be changed by non-admins)",
+                        "name": "updates",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "304": {
+                        "description": "Not Modified"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -291,6 +720,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "start_timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.ticketControllerCreateRequestBody": {
+            "type": "object",
+            "required": [
+                "eventID",
+                "studentNumber"
+            ],
+            "properties": {
+                "eventID": {
+                    "type": "string"
+                },
+                "studentNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.ticketControllerScanRequestBody": {
+            "type": "object",
+            "required": [
+                "ticketID"
+            ],
+            "properties": {
+                "ticketID": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.ticketControllerSearchRequestBody": {
+            "type": "object",
+            "required": [
+                "eventID",
+                "ownerID"
+            ],
+            "properties": {
+                "eventID": {
+                    "type": "string"
+                },
+                "ownerID": {
                     "type": "string"
                 }
             }
@@ -355,6 +825,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TicketScan": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "ticketData": {
+                    "$ref": "#/definitions/models.Ticket"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "userData": {
+                    "$ref": "#/definitions/models.User"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
@@ -376,13 +863,20 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "APIKeyHeader": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3001",
+	Host:             "frasertickets-backend.aritrosaha.ca",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "FraserTickets Backend",

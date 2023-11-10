@@ -25,6 +25,33 @@ definitions:
     - name
     - start_timestamp
     type: object
+  controllers.ticketControllerCreateRequestBody:
+    properties:
+      eventID:
+        type: string
+      studentNumber:
+        type: string
+    required:
+    - eventID
+    - studentNumber
+    type: object
+  controllers.ticketControllerScanRequestBody:
+    properties:
+      ticketID:
+        type: string
+    required:
+    - ticketID
+    type: object
+  controllers.ticketControllerSearchRequestBody:
+    properties:
+      eventID:
+        type: string
+      ownerID:
+        type: string
+    required:
+    - eventID
+    - ownerID
+    type: object
   models.Event:
     properties:
       address:
@@ -65,6 +92,17 @@ definitions:
       timestamp:
         type: string
     type: object
+  models.TicketScan:
+    properties:
+      index:
+        type: integer
+      ticketData:
+        $ref: '#/definitions/models.Ticket'
+      timestamp:
+        type: string
+      userData:
+        $ref: '#/definitions/models.User'
+    type: object
   models.User:
     properties:
       admin:
@@ -79,7 +117,7 @@ definitions:
       student_number:
         type: string
     type: object
-host: localhost:3001
+host: frasertickets-backend.aritrosaha.ca
 info:
   contact:
     email: aritro.saha729@gmail.com
@@ -90,8 +128,50 @@ info:
   version: "1.0"
 paths:
   /events:
+    get:
+      description: Lists all events in the database. Available to all users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: List all events
+      tags:
+      - event
+    post:
+      consumes:
+      - application/json
+      description: Creates an event in the database. Only available to admins.
+      parameters:
+      - description: Event details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.eventControllerCreateRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Event'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Create an event
+      tags:
+      - event
+  /events/{id}:
     delete:
-      description: Delete event from database
+      description: Delete event from database. Only available to admins.
       parameters:
       - description: Event ID
         in: path
@@ -113,7 +193,13 @@ paths:
       tags:
       - event
     get:
-      description: Lists all events in the database
+      description: Get the data for one event from the DB. Available to all users.
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -123,15 +209,17 @@ paths:
             items:
               $ref: '#/definitions/models.Event'
             type: array
-        "422":
-          description: Unprocessable Entity
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-      summary: List all events
+      summary: Get an event
       tags:
       - event
     patch:
-      description: Update the details for an event
+      description: Update the details for an event. Only available to admins.
       parameters:
       - description: Event ID
         in: path
@@ -156,72 +244,14 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
-        "429":
-          description: Too Many Requests
         "500":
           description: Internal Server Error
       summary: Update event details
       tags:
       - event
-    post:
-      consumes:
-      - application/json
-      description: Creates an event in the database
-      parameters:
-      - description: Event details
-        in: body
-        name: account
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.eventControllerCreateRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Event'
-        "400":
-          description: Bad Request
-        "429":
-          description: Too Many Requests
-        "500":
-          description: Internal Server Error
-      summary: Create an event
-      tags:
-      - event
-  /events/{id}:
-    get:
-      description: Get the data for one event from the DB
-      parameters:
-      - description: Event ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.Event'
-            type: array
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "429":
-          description: Too Many Requests
-        "500":
-          description: Internal Server Error
-      summary: Get an event
-      tags:
-      - event
   /events/{id}/tickets:
     get:
-      description: Get every ticket for an event
+      description: Get every ticket for an event. Only available to admins.
       parameters:
       - description: Event ID
         in: path
@@ -241,11 +271,313 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
-        "429":
-          description: Too Many Requests
         "500":
           description: Internal Server Error
       summary: Get tickets for event
       tags:
       - event
+  /tickets:
+    get:
+      description: List the tickets owned by the user sending the request. Available
+        to all users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Ticket'
+            type: array
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: List the requesting user's tickets
+      tags:
+      - ticket
+    post:
+      consumes:
+      - application/json
+      description: Create a new ticket. Only available to admins.
+      parameters:
+      - description: Ticket details
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ticketControllerCreateRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ticket'
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+      summary: Create new ticket
+      tags:
+      - ticket
+  /tickets/{id}:
+    get:
+      description: Get one ticket. Only available to admins and the ticket owner.
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ticket'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get one ticket
+      tags:
+      - ticket
+  /tickets/{id}/delete:
+    post:
+      consumes:
+      - application/json
+      description: Deletes a ticket. Only available to admins.
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Delete a ticket
+      tags:
+      - ticket
+  /tickets/all:
+    get:
+      description: List all tickets. Only available to admins.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Ticket'
+            type: array
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      summary: List all tickets
+      tags:
+      - ticket
+  /tickets/scan:
+    post:
+      consumes:
+      - application/json
+      description: Scans in a ticket given the ticket ID. Only available to admins.
+      parameters:
+      - description: Search query
+        in: body
+        name: searchQuery
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ticketControllerScanRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TicketScan'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Scans a ticket
+      tags:
+      - ticket
+  /tickets/search:
+    post:
+      consumes:
+      - application/json
+      description: Search for a ticket by using the owner and associated event. Only
+        available to admins.
+      parameters:
+      - description: Search query
+        in: body
+        name: searchQuery
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ticketControllerSearchRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ticket'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Search for ticket using owner and event
+      tags:
+      - ticket
+  /tickets/user/{uid}:
+    get:
+      description: List the tickets owned by the user sending the request. Only available
+        to admins.
+      parameters:
+      - description: User ID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Ticket'
+            type: array
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: List a user's tickets
+      tags:
+      - ticket
+  /users:
+    get:
+      description: Lists all user data in the database. Only available to admins.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: List all users
+      tags:
+      - user
+    post:
+      description: Creates a user in the database when they first make their account.
+        Only available to new users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      summary: Create a user in DB on account creation
+      tags:
+      - user
+  /users/{id}:
+    get:
+      description: Get a user's data. Only available to admins and the requesting
+        user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Gets user data
+      tags:
+      - user
+    patch:
+      description: Update a user's data. Only available to admins. Removed due to
+        security issues.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updates to make (anything can be changed by admins, admin/student_number/pfp_url
+          cannot be changed by non-admins)
+        in: body
+        name: updates
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "304":
+          description: Not Modified
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update user data (REMOVED)
+      tags:
+      - user
+securityDefinitions:
+  APIKeyHeader:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

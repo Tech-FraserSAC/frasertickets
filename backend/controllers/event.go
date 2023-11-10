@@ -64,7 +64,6 @@ func (ctrl EventController) Routes() chi.Router {
 //	@Tags			event
 //	@Produce		json
 //	@Success		200	{object}	[]models.Event
-//	@Failure		422
 //	@Failure		500
 //	@Router			/events [get]
 func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
@@ -291,7 +290,7 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
-//	@Router			/events [patch]
+//	@Router			/events/{id} [patch]
 func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
@@ -344,7 +343,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
-//	@Router			/events [delete]
+//	@Router			/events/{id} [delete]
 func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
