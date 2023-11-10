@@ -12,6 +12,9 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
 	"github.com/go-chi/render"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+
+	_ "github.com/aritrosaha10/frasertickets/docs"
 )
 
 var (
@@ -19,8 +22,9 @@ var (
 )
 
 type Server struct {
-	Router        *chi.Mux
-	Port          string
+	Router      *chi.Mux
+	Port        string
+	Environment string
 	SentryHandler *sentryhttp.Handler
 }
 
@@ -28,6 +32,7 @@ func CreateNewServer() *Server {
 	s := &Server{}
 	s.Router = chi.NewRouter()
 	s.Port = os.Getenv("PORT")
+	s.Environment = os.Getenv("FRASERTICKETS_ENV")
 	s.SentryHandler = middlewarecustom.CreateNewSentryMiddleware()
 
 	return s
@@ -50,7 +55,11 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Recoverer)
 	s.Router.Use(s.SentryHandler.Handle)
 
-	s.Router.Use(middlewarecustom.AuthenticatorMiddleware) // Every route should require some sort of auth
+	if s.Environment == "development" {
+		s.Router.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:"+s.Port+"/swagger/doc.json"),
+		))
+	}
 
 	// Route handlers
 	s.Router.Mount("/users", controllers.UserController{}.Routes())

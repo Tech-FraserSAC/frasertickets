@@ -19,6 +19,7 @@ type UserController struct{}
 
 func (ctrl UserController) Routes() chi.Router {
 	r := chi.NewRouter()
+	r.Use(middleware.AuthenticatorMiddleware) // User must be authenticated before using any of these endpoints
 
 	r.Post("/add", ctrl.Create) // POST /users/add - add new user to database, only run during sign up process
 
@@ -60,6 +61,15 @@ func (ctrl UserController) Routes() chi.Router {
 	return r
 }
 
+// List returns all users.
+//
+//	@Summary		List all users
+//	@Description	Lists all user data in the database. Only available to admins.
+//	@Tags			user
+//	@Produce		json
+//	@Success		200	{object}	[]models.User
+//	@Failure		500
+//	@Router			/users [get]
 func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 	users, err := models.GetAllUsers(r.Context())
 	if err != nil {
@@ -81,6 +91,17 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create creates a database entry for a user on account creation.
+//
+//	@Summary		Create a user in DB on account creation
+//	@Description	Creates a user in the database when they first make their account. Only available to new users.
+//	@Tags			user
+//	@Produce		json
+//	@Success		200	{object}	models.User
+//	@Failure		401
+//	@Failure		403
+//	@Failure		500
+//	@Router			/users [post]
 func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 	// Get UID and user record
 	ctx := r.Context()
@@ -137,6 +158,18 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Get fetches a user's data.
+//
+//	@Summary		Gets user data
+//	@Description	Get a user's data. Only available to admins and the requesting user.
+//	@Tags			user
+//	@Produce		json
+//	@Param			id	path		string	true	"User ID"
+//	@Success		200	{object}	models.User
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/users/{id} [get]
 func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested user
 	id := chi.URLParam(r, "id")
@@ -163,6 +196,21 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Update updates a user's data.
+//
+//	@Summary		Update user data (REMOVED)
+//	@Description	Update a user's data. Only available to admins. Removed due to security issues.
+//	@Tags			user
+//	@Produce		json
+//	@Param			id	path		string	true	"User ID"
+//	@Param			updates	body		models.User	true	"Updates to make (anything can be changed by admins, admin/student_number/pfp_url cannot be changed by non-admins)"
+//	@Success		200
+//	@Failure		304
+//	@Failure		400
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/users/{id} [patch]
 func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	// Update keys that should not be touched by a non-admin user
 	PRIVILEGED_UPDATE_KEYS := map[string]bool{
