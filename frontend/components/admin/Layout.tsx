@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { ComplexNavbar } from "./Navbar";
 import AdminRestrictedPage from "./AdminRestrictedPage";
 import { useRouter } from "next/router";
+import Footer from "../Footer";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -27,7 +28,7 @@ export default function Layout({ name, children, noAnim, className }: { name: st
     const router = useRouter()
 
     return (
-        <div className="flex flex-col min-h-screen bg-blue-50 overflow-hidden" key={name}>
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#fbc7d4]/25  to-[#9796f0]/25 overflow-hidden" key={name}>
             <Head>
                 <title>{title}</title>
                 <meta name="description" content={description} />
@@ -46,22 +47,22 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
 
-            <ComplexNavbar />
+            <AdminRestrictedPage key={router.pathname}>
+                <ComplexNavbar />
 
-            <motion.div
-                initial={noAnim ? undefined : contentVariants.initial}
-                animate={noAnim ? undefined : contentVariants.animate}
-                exit={noAnim ? undefined : contentVariants.exit}
-                transition={noAnim ? undefined : contentVariants.transition}
-                className={`flex-grow ${className}`}
-            >
-                <AdminRestrictedPage key={router.pathname}>
+                <motion.div
+                    initial={noAnim ? undefined : contentVariants.initial}
+                    animate={noAnim ? undefined : contentVariants.animate}
+                    exit={noAnim ? undefined : contentVariants.exit}
+                    transition={noAnim ? undefined : contentVariants.transition}
+                    className={`flex-grow ${className}`}
+                >
                     {children}
-                </AdminRestrictedPage>
-            </motion.div>
+                </motion.div>
+            </AdminRestrictedPage>
 
 
-            {/* <Footer /> */}
+            <Footer />
         </div>
     )
 }

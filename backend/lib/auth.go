@@ -25,7 +25,7 @@ type IdentityPlatformAuth struct {
 func CreateNewAuth() *IdentityPlatformAuth {
 	auth := &IdentityPlatformAuth{}
 
-	if os.Getenv("FRASERTICKETS_ENV") == "development" {
+	if _, present := os.LookupEnv("FIREBASE_PROJECT_ID"); present {
 		// Import and format credentials from env to JSON
 		firebaseCreds := map[string]string{
 			"type":                        "service_account",
@@ -53,6 +53,7 @@ func CreateNewAuth() *IdentityPlatformAuth {
 	if auth.credentials != nil {
 		fbApp, err = firebase.NewApp(context.Background(), nil, auth.credentials)
 	} else {
+		// Try initializing using ADC
 		fbApp, err = firebase.NewApp(context.Background(), nil)
 	}
 

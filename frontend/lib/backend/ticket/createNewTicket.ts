@@ -2,7 +2,7 @@ import sendBackendRequest from "../sendBackendRequest";
 import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
 
 // Admin-only route!
-export default async function createNewTicket(ownerID: string, eventID: string) {
+export default async function createNewTicket(ownerID: string, eventID: string, maxScanCount: number) {
     const res = await sendBackendRequest(
         "/tickets", 
         'post', 
@@ -10,7 +10,8 @@ export default async function createNewTicket(ownerID: string, eventID: string) 
         true,
         {
             "studentNumber": ownerID,
-            "eventID": eventID
+            "eventID": eventID,
+            "maxScanCount": maxScanCount ?? 0 // default to infinite scans
         }
     )
 

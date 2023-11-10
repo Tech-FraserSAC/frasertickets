@@ -19,13 +19,13 @@ import (
 )
 
 type eventControllerCreateRequestBody struct {
-	Name           string `json:"name"            validate:"required"`
-	Description    string `json:"description"     validate:"required"`
-	ImageURL       string `json:"img_url"         validate:"required"`
-	Location       string `json:"location"        validate:"required"`
-	Address        string `json:"address"         validate:"required"`
-	StartTimestamp string `json:"start_timestamp" validate:"required"`
-	EndTimestamp   string `json:"end_timestamp"   validate:"required"`
+	Name           string   `json:"name"            validate:"required"`
+	Description    string   `json:"description"     validate:"required"`
+	ImageURLs      []string `json:"img_urls"         validate:"required"`
+	Location       string   `json:"location"        validate:"required"`
+	Address        string   `json:"address"         validate:"required"`
+	StartTimestamp string   `json:"start_timestamp" validate:"required"`
+	EndTimestamp   string   `json:"end_timestamp"   validate:"required"`
 }
 
 type EventController struct{}
@@ -126,12 +126,20 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Make sure there is at least one image
+	if len(event.ImageURLs) == 0 {
+		err := fmt.Errorf("user did not provide any image urls")
+		log.Warn().Err(err).Msg("could not parse body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
 	// Transfer all data from raw to actual event
 	// TODO: Find a better way to do this (not sure how other than reflection,
 	// which seems overkill)
 	event.Name = eventRaw.Name
 	event.Description = eventRaw.Description
-	event.ImageURL = eventRaw.ImageURL
+	event.ImageURLs = eventRaw.ImageURLs
 	event.Location = eventRaw.Location
 	event.Address = eventRaw.Description
 

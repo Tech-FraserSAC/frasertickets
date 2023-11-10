@@ -5,7 +5,9 @@ type TicketScan = {
     scanCount: number,
     timestamp: Date,
     ticketData: TicketWithUserAndEventData,
-    userData: User
+    userData: User,
+    processed: boolean,
+    noProcessReason?: string
 }
 
 export function convertToTicketScan(rawData: { [key: string]: any }): TicketScan {
@@ -13,7 +15,9 @@ export function convertToTicketScan(rawData: { [key: string]: any }): TicketScan
         scanCount: rawData.index,
         timestamp: new Date(rawData.timestamp),
         ticketData: convertToTicketWithEventData(rawData.ticketData),
-        userData: convertToUser(rawData.userData)
+        userData: convertToUser(rawData.userData),
+        processed: rawData.processed,
+        noProcessReason: rawData.processed ? undefined : rawData.noProcessReason
     }
 }
 

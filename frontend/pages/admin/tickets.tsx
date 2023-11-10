@@ -5,8 +5,8 @@ import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEv
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
@@ -18,7 +18,7 @@ export default function TicketViewingPage() {
     const queryClient = useQueryClient();
     const isMountedRef = useRef(false);
 
-    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets } = useQuery('frasertix-admin-tickets', async () => {
+    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
         const tickets = await getAllTickets();
         updateFilteredTickets(tickets);
         return tickets;
@@ -36,6 +36,18 @@ export default function TicketViewingPage() {
         return mappedEvents;
     });
 
+    const createTicketMutation = useMutation(({ studentNumber, eventId, maxScanCount }: { studentNumber: string, eventId: string, maxScanCount: number }) => createNewTicket(studentNumber, eventId, maxScanCount), {
+        onSettled: () => {
+            return refetchTickets()
+        }
+    })
+
+    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+        onSuccess: () => {
+            return refetchTickets()
+        }
+    })
+
     const [eventNameFilter, setEventNameFilter] = useState("");
     const [studentNameFilter, setStudentNameFilter] = useState("");
     const [studentNumberFilter, setStudentNumberFilter] = useState("");
@@ -43,6 +55,7 @@ export default function TicketViewingPage() {
 
     const [modalOpen, setModalOpen] = useState(false);
     const modalStudentNumberRef = useRef<HTMLInputElement>(null);
+    const modalMaxScanCountRef = useRef<HTMLInputElement>(null);
     const [modalEventChosen, setModalEventChosen] = useState<any>((eventNames && eventNames.length !== 0) ? eventNames[0] : null);
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
@@ -63,7 +76,7 @@ export default function TicketViewingPage() {
             })
 
     // TODO: Replace this with logic that requests the server
-    const updateFilteredTickets = (tickets: TicketWithUserAndEventData[] | undefined) => {
+    const updateFilteredTickets = useCallback((tickets: TicketWithUserAndEventData[] | undefined) => {
         setFilteredTickets(!tickets ? null : tickets.filter((ticket) => {
             const eventNameMatches = ticket.eventData.name.toLocaleLowerCase().indexOf(eventNameFilter.toLocaleLowerCase()) != -1;
             const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
@@ -77,7 +90,7 @@ export default function TicketViewingPage() {
 
             return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
         }))
-    }
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
 
     // Only refresh the table once done typing
     useEffect(() => {
@@ -87,7 +100,7 @@ export default function TicketViewingPage() {
         } else {
             isMountedRef.current = true;
         }
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
+    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection, updateFilteredTickets, tickets])
 
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?")
@@ -96,9 +109,10 @@ export default function TicketViewingPage() {
         }
 
         try {
-            await deleteTicket(id);
+            // await deleteTicket(id);
+            await deleteTicketMutation.mutateAsync({ ticketId: id });
             alert("Ticket has been deleted.");
-            queryClient.invalidateQueries({ queryKey: ['frasertix-admin-tickets'] })
+            // await queryClient.invalidateQueries("frasertix-admin-tickets")
         } catch (err) {
             alert("Something went wrong when deleting the ticket. Please try again.");
             throw err;
@@ -109,19 +123,24 @@ export default function TicketViewingPage() {
         setModalSubmitting(true)
 
         const studentNumber = Number(modalStudentNumberRef.current?.value);
+        const maxScanCount = Number(modalMaxScanCountRef.current?.value ?? 0);
+
         if (Number.isNaN(studentNumber) || studentNumber < 100000 || studentNumber > 9999999) {
             alert("Please provide a valid student number.")
+        } else if (Number.isNaN(maxScanCount) || maxScanCount < 0 || Math.floor(maxScanCount) !== maxScanCount) {
+            alert("Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.")
         } else if (!modalEventChosen || modalEventQuery !== "") {
             // If the query isn't empty, this means they were searching for something but didn't select anything
             alert("Please provide a valid event and make sure it is selected.");
         } else {
             try {
-                await createNewTicket(studentNumber.toString(), modalEventChosen.id)
+                // await createNewTicket(studentNumber.toString(), modalEventChosen.id)
+                await createTicketMutation.mutateAsync({ studentNumber: studentNumber.toString(), eventId: modalEventChosen.id, maxScanCount: maxScanCount });
                 alert("Ticket has been created.")
 
                 modalStudentNumberRef.current!.value = "";
                 setModalOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['frasertix-admin-tickets'] });
+                // await queryClient.invalidateQueries("frasertix-admin-tickets");
             } catch (err: any) {
                 if (err && err.response) {
                     if (err.response.status === 409) {
@@ -249,17 +268,29 @@ export default function TicketViewingPage() {
                                                         </Transition>
                                                     </div>
                                                 </Combobox>
+
+                                                <span className='mt-3 text-md text-gray-900 text-left'>Max Scan Count (blank or 0 &#8594; infinite)</span>
+
+                                                <input
+                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                    name="maxScanCount"
+                                                    id="maxScanCount"
+                                                    type="number"
+                                                    required
+                                                    min={0}
+                                                    ref={modalMaxScanCountRef}
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                     <div className="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                         <button
                                             type="button"
-                                            className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold shadow-md text-white hover:bg-green-500 sm:ml-3 sm:w-auto duration-75"
+                                            className="inline-flex w-full justify-center rounded-md bg-green-600 disabled:bg-green-700 px-3 py-2 text-sm font-semibold shadow-md text-white hover:bg-green-500 sm:ml-3 sm:w-auto duration-75"
                                             disabled={modalSubmitting}
                                             onClick={createNewTicketUI}
                                         >
-                                            Create
+                                            {modalSubmitting ? "Submitting..." : "Create"}
                                         </button>
                                         <button
                                             type="button"
@@ -291,15 +322,17 @@ export default function TicketViewingPage() {
                 <Typography variant="paragraph" className="text-center lg:w-3/4">Loading...</Typography>
             )}
             {tickets && (
-                <div className='overflow-x-auto max-w-full'>
-                    <table className="table table-fixed border-collapse mb-6 w-full">
+                <div className='overflow-x-auto w-full'>
+                    <table className="table table-fixed border-collapse mb-6 min-w-fit lg:w-full">
                         <thead>
                             <tr className="bg-transparent">
                                 <th>
-                                    <DatePickerModal
-                                        state={datePickerSelection}
-                                        setState={setDatePickerSelection}
-                                    />
+                                    <div className="mb-2 lg:mb-0">
+                                        <DatePickerModal
+                                            state={datePickerSelection}
+                                            setState={setDatePickerSelection}
+                                        />
+                                    </div>
                                 </th>
                                 <th>
                                     <input
@@ -336,6 +369,7 @@ export default function TicketViewingPage() {
                                 <th className='px-4 border border-gray-500'>Student #</th>
                                 <th className='px-4 border border-gray-500'>Scans</th>
                                 <th className='px-4 border border-gray-500'>Last Scan Time</th>
+                                <th className='px-4 border border-gray-500'>Max Scan Count</th>
                                 <th className='px-4 border border-gray-500'>Actions</th>
                             </tr>
                         </thead>
@@ -385,6 +419,7 @@ export default function TicketViewingPage() {
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.scanCount.toString()}</td>
                                         <td className='border border-gray-500 px-4 py-1'>{lastScanTimestampStr}</td>
+                                        <td className='border border-gray-500 px-4 py-1'>{ticket.maxScanCount === 0 ? <>&infin;</> : ticket.maxScanCount.toString()}</td>
                                         <td className='border border-gray-500 px-4 py-2'>
                                             <div className="flex flex-row flex-wrap gap-2 items-center justify-center">
                                                 <Link

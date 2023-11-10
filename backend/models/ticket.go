@@ -21,6 +21,7 @@ type Ticket struct {
 	Timestamp         time.Time          `json:"timestamp" bson:"timestamp"`
 	ScanCount         int                `json:"scanCount" bson:"scanCount"`
 	LastScanTimestamp time.Time          `json:"lastScanTime" bson:"lastScanTime"`
+	MaxScanCount      int                `json:"maxScanCount" bson:"maxScanCount"`
 }
 
 func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
@@ -28,10 +29,12 @@ func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 type TicketScan struct {
-	Index      int       `json:"index"`
-	Timestamp  time.Time `json:"timestamp"`
-	TicketData Ticket    `json:"ticketData"`
-	UserData   User      `json:"userData"`
+	Index           int       `json:"index"`
+	Timestamp       time.Time `json:"timestamp"`
+	TicketData      Ticket    `json:"ticketData"`
+	UserData        User      `json:"userData"`
+	Processed       bool      `json:"processed"`
+	NoProcessReason string    `json:"noProcessReason"`
 }
 
 func (scan *TicketScan) Render(w http.ResponseWriter, r *http.Request) error {
@@ -202,10 +205,17 @@ func GetTicket(ctx context.Context, id primitive.ObjectID) (Ticket, error) {
 
 	// Try to get data from DB
 	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
+	if err != nil {
+		return Ticket{}, err
+	}
+	defer cursor.Close(ctx)
 
 	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
-	cursor.Next(ctx)
+	if nextExists := cursor.Next(ctx); !nextExists {
+		return Ticket{}, mongo.ErrNoDocuments
+	}
+
 	if err := cursor.Decode(&ticket); err != nil {
 		return Ticket{}, err
 	}

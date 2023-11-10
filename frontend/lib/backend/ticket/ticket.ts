@@ -4,7 +4,8 @@ type Ticket = {
     eventId: string,
     timestamp: Date,
     scanCount: Number,
-    lastScanTime: Date
+    lastScanTime: Date,
+    maxScanCount: Number
 }
 
 export function convertToTicket(rawData: { [key: string]: any }): Ticket {
@@ -14,7 +15,8 @@ export function convertToTicket(rawData: { [key: string]: any }): Ticket {
         eventId: rawData.eventID,
         timestamp: new Date(rawData.timestamp),
         scanCount: Number(rawData.scanCount),
-        lastScanTime: new Date(rawData.lastScanTime)
+        lastScanTime: new Date(rawData.lastScanTime),
+        maxScanCount: rawData.maxScanCount
     }
 }
 

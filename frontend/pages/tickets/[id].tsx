@@ -12,53 +12,81 @@ import formatFullDate from "@/util/formatFullDate"
 import getTicket from "@/lib/backend/ticket/getTicket"
 import QRCode from "react-qr-code"
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext"
+import { useState } from "react"
+import { NotFoundComponent } from "../404"
+import { ForbiddenComponent } from "../403"
+import { ServerErrorComponent } from "../500"
 
 const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
 
 export default function TicketSpecificPage() {
-    const { user, loaded } = useFirebaseAuth()
     const router = useRouter()
     const { id } = router.query
+    const [statusCode, setStatusCode] = useState(200);
 
     const { isLoading: rqLoading, error, data } = useQuery('frasertix-ticket', () => (
         getTicket(id as string)
     ), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
-            // 400 means its not an actual code, which is basically equivalent to not found
+            if (statusCode != error?.response?.status) {
+                setStatusCode(error?.response?.status)
+            }
             if (error?.response?.status === 400 || error?.response?.status === 404) {
-                router.push("/404")
                 return false
             }
 
             if (error?.response?.status === 403) {
-                router.push("/403")
                 return false
             }
 
             if (error?.response?.status === 500) {
-                router.push("/500")
                 return false
             }
 
             return failureCount < 3
-        }
+        },
+        refetchInterval: (data, query) => query.state.error ? 0 : 60 * 1000
     })
 
     const isLoading = !(router.isReady) || rqLoading
     const pageName = !isLoading ? data?.eventData.name as string : "Ticket"
     const studentNumber = data?.ownerData.student_number;
     const scanCount = data?.scanCount;
+    const maxScanCount = data?.maxScanCount;
     const lastScanTimestampStr = data?.lastScanTime.toLocaleString("en-US", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
     });
 
-    if (error) console.error(error)
+    if (error) {
+        console.error(error)
+
+        // 400 means its not an actual code, which is basically equivalent to not found
+        if (statusCode === 400 || statusCode === 404) {
+            return (
+                <Layout name="404 Not Found" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <NotFoundComponent home="/tickets" />
+                </Layout>
+            )
+        } else if (statusCode === 403) {
+            return (
+                <Layout name="403 Forbidden" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <ForbiddenComponent home="/" />
+                </Layout>
+            )
+        } else {
+            return (
+                <Layout name="500 Server Error" userProtected={true} className="flex flex-col p-4 md:p-8 lg:px-12">
+                    <ServerErrorComponent home="/tickets" />
+                </Layout>
+            )
+        }
+    }
 
     return (
         <Layout name={pageName} userProtected={true} className="p-4 md:p-8 lg:px-12">
@@ -75,11 +103,19 @@ export default function TicketSpecificPage() {
 
                         <Typography variant="lead" color="blue-gray" className="font-medium text-center mb-4">
                             {studentNumber !== undefined && <>
-                                Student Number: {studentNumber}</>}
-                            <br />
+                                Student Number: {studentNumber}
+                                <br />
+                            </>}
+
                             {scanCount !== undefined && <>
-                                # of scans: {scanCount}</>}
-                            <br />
+                                # of scans: {scanCount}
+                                <br />
+                            </>}
+
+                            {maxScanCount !== undefined && <>
+                                Max. # of scans: {maxScanCount}
+                                <br />
+                            </>}
                             {
                                 lastScanTimestampStr &&
                                 scanCount !== 0 &&
@@ -91,11 +127,11 @@ export default function TicketSpecificPage() {
 
                         <Typography variant="lead" color="blue-gray" className="font-medium text-center lg:w-1/2 mb-4">
                             This is your ticket for the event. It will be required to check-in.
-                            Please screenshot this page for later use or use the buttons below to add it to your digital wallet.
+                            Please screenshot this page for later use or keep this page open to present when necessary.
                         </Typography>
 
                         <div style={{ background: 'white', padding: '16px' }}>
-                            <QRCode value={data?.id || ""} />
+                            <QRCode value={`https://tickets.johnfrasersac.com/admin/scan/${data?.id}` || ""} />
                         </div>
                     </div>
                 )

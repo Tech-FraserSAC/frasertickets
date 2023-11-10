@@ -14,7 +14,7 @@ type Event struct {
 	ID             primitive.ObjectID `json:"id"              bson:"_id,omitempty"`
 	Name           string             `json:"name"            bson:"name"`
 	Description    string             `json:"description"     bson:"description"`
-	ImageURL       string             `json:"img_url"         bson:"img_url"`
+	ImageURLs      []string           `json:"img_urls"        bson:"img_urls"`
 	Location       string             `json:"location"        bson:"location"` // Ex. name of venue
 	Address        string             `json:"address"         bson:"address"`
 	StartTimestamp time.Time          `json:"start_timestamp" bson:"start_timestamp"`

@@ -20,6 +20,7 @@ require (
 	github.com/go-andiamo/chioas v1.9.0 // indirect
 	github.com/go-andiamo/splitter v1.2.5 // indirect
 	github.com/go-andiamo/urit v1.2.1 // indirect
+	github.com/getsentry/sentry-go v0.25.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-chi/httprate v0.7.4 // indirect
