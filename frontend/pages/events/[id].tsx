@@ -61,6 +61,7 @@ export default function EventSpecificPage() {
                                         className="w-full h-full object-cover object-center" 
                                         alt=""
                                         key={i}
+                                        loading="eager"
                                     />
                                 ))}
                             </Carousel>
