@@ -60,7 +60,7 @@ func (ctrl EventController) Routes() chi.Router {
 // List godoc
 //
 //	@Summary		List all events
-//	@Description	Lists all events in the database
+//	@Description	Lists all events in the database. Available to all users.
 //	@Tags			event
 //	@Produce		json
 //	@Success		200	{object}	[]models.Event
@@ -93,14 +93,13 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 // Create godoc
 //
 //	@Summary		Create an event
-//	@Description	Creates an event in the database
+//	@Description	Creates an event in the database. Only available to admins.
 //	@Tags			event
 //	@Accept			json
 //	@Produce		json
 //	@Param			account	body		eventControllerCreateRequestBody	true	"Event details"
 //	@Success		200		{object}	models.Event
 //	@Failure		400
-//	@Failure		429
 //	@Failure		500
 //	@Router			/events [post]
 func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
@@ -178,14 +177,13 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 // List godoc
 //
 //	@Summary		Get an event
-//	@Description	Get the data for one event from the DB
+//	@Description	Get the data for one event from the DB. Available to all users.
 //	@Tags			event
 //	@Produce		json
 //	@Param			id	path		string	true	"Event ID"
 //	@Success		200	{object}	[]models.Event
 //	@Failure		400
 //	@Failure		404
-//	@Failure		429
 //	@Failure		500
 //	@Router			/events/{id} [get]
 func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
@@ -225,14 +223,13 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 // Get event tickets godoc
 //
 //	@Summary		Get tickets for event
-//	@Description	Get every ticket for an event
+//	@Description	Get every ticket for an event. Only available to admins.
 //	@Tags			event
 //	@Produce		json
 //	@Param			id	path		string	true	"Event ID"
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		400
 //	@Failure		404
-//	@Failure		429
 //	@Failure		500
 //	@Router			/events/{id}/tickets [get]
 func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
@@ -284,7 +281,7 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 // Update event godoc
 //
 //	@Summary		Update event details
-//	@Description	Update the details for an event
+//	@Description	Update the details for an event. Only available to admins.
 //	@Tags			event
 //	@Produce		json
 //	@Param			id	path		string	true	"Event ID"
@@ -293,7 +290,6 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 //	@Failure		304
 //	@Failure		400
 //	@Failure		404
-//	@Failure		429
 //	@Failure		500
 //	@Router			/events [patch]
 func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
@@ -340,7 +336,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 // Delete event godoc
 //
 //	@Summary		Delete event
-//	@Description	Delete event from database
+//	@Description	Delete event from database. Only available to admins.
 //	@Tags			event
 //	@Produce		json
 //	@Param			id	path		string	true	"Event ID"

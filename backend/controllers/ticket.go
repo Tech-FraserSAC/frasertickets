@@ -67,15 +67,14 @@ func (ctrl TicketController) Routes() chi.Router {
 	return r
 }
 
-// Get self tickets godoc
+// ListSelf fetches all the requester's tickets using their token in Context.
 //
 //	@Summary		List the requesting user's tickets
-//	@Description	List the tickets owned by the user sending the request
+//	@Description	List the tickets owned by the user sending the request. Available to all users.
 //	@Tags			ticket
 //	@Produce		json
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		404
-//	@Failure		429
 //	@Failure		500
 //	@Router			/tickets [get]
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
@@ -124,6 +123,18 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListUser fetches all of a given user's tickets.
+//
+//	@Summary		List a user's tickets
+//	@Description	List the tickets owned by the user sending the request. Only available to admins.
+//	@Tags			ticket
+//	@Produce		json
+//	@Param			uid	path		string	true	"User ID"
+//	@Success		200	{object}	[]models.Ticket
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/user/{uid} [get]
 func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
 	uid := chi.URLParam(r, "uid")
@@ -164,6 +175,16 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListAll fetches all tickets that exist.
+//
+//	@Summary		List all tickets
+//	@Description	List all tickets. Only available to admins.
+//	@Tags			ticket
+//	@Produce		json
+//	@Success		200	{object}	[]models.Ticket
+//	@Failure		403
+//	@Failure		500
+//	@Router			/tickets/all [get]
 func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 	// Try to get tickets
 	tickets, err := models.GetTickets(r.Context(), bson.M{})
@@ -187,6 +208,21 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create creates a new ticket.
+//
+//		@Summary		Create new ticket
+//		@Description	Create a new ticket. Only available to admins.
+//		@Tags			ticket
+//	 @Accept json
+//		@Produce		json
+//		@Param			event	body		ticketControllerCreateRequestBody	true	"Ticket details"
+//		@Success		200	{object}	models.Ticket
+//		@Failure		400
+//		@Failure		403
+//		@Failure		404
+//		@Failure		409
+//		@Failure		500
+//		@Router			/tickets [post]
 func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
 		ticketRaw ticketControllerCreateRequestBody
@@ -290,6 +326,18 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Get fetches a single ticket.
+//
+//	@Summary		Get one ticket
+//	@Description	Get one ticket. Only available to admins and the ticket owner.
+//	@Tags			ticket
+//	@Produce		json
+//	@Param			id	path		string	true	"Ticket ID"
+//	@Success		200	{object}	models.Ticket
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/{id} [get]
 func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
 	id := chi.URLParam(r, "id")
@@ -344,6 +392,19 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Search gets a ticket based on its owner and an event.
+//
+//	@Summary		Search for ticket using owner and event
+//	@Description	Search for a ticket by using the owner and associated event. Only available to admins.
+//	@Tags			ticket
+//	@Accept			json
+//	@Produce		json
+//	@Param			searchQuery	body		ticketControllerSearchRequestBody	true	"Search query"
+//	@Success		200	{object}	models.Ticket
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/search [post]
 func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerSearchRequestBody
 
@@ -396,6 +457,19 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Scan records a scanning event for a ticket.
+//
+//	@Summary		Scans a ticket
+//	@Description	Scans in a ticket given the ticket ID. Only available to admins.
+//	@Tags			ticket
+//	@Accept			json
+//	@Produce		json
+//	@Param			searchQuery	body		ticketControllerScanRequestBody	true	"Search query"
+//	@Success		200	{object}	models.TicketScan
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/scan [post]
 func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerScanRequestBody
 
@@ -479,6 +553,18 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Delete deletes a ticket.
+//
+//	@Summary		Delete a ticket
+//	@Description	Deletes a ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept			json
+//	@Param			id	path		string	true	"Ticket ID"
+//	@Success		200
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/{id}/delete [post]
 func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
 	id := chi.URLParam(r, "id")
