@@ -17,7 +17,7 @@ const contentVariants = {
     initial: { y: 200, opacity: 0 },
     animate: { y: 0, opacity: 1 },
     exit: { y: -200, opacity: 0 },
-    transition: { duration: 0.4, ...transition }
+    transition: { duration: 0.6, ...transition }
 }
 
 export default function Layout({ name, children, noAnim, className }: { name: string, children: any, noAnim?: boolean, className?: string }) {
@@ -47,19 +47,21 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <meta property="twitter:image:src" content={imageSrc} />
             </Head>
 
-            <AdminRestrictedPage key={router.pathname}>
-                <ComplexNavbar />
+            <ComplexNavbar />
 
-                <motion.div
-                    initial={noAnim ? undefined : contentVariants.initial}
-                    animate={noAnim ? undefined : contentVariants.animate}
-                    exit={noAnim ? undefined : contentVariants.exit}
-                    transition={noAnim ? undefined : contentVariants.transition}
-                    className={`flex-grow ${className}`}
-                >
+
+            <motion.div
+                initial={noAnim ? undefined : contentVariants.initial}
+                animate={noAnim ? undefined : contentVariants.animate}
+                exit={noAnim ? undefined : contentVariants.exit}
+                transition={noAnim ? undefined : contentVariants.transition}
+                className={`flex flex-col flex-grow ${className}`}
+            >
+                <AdminRestrictedPage key={router.pathname}>
                     {children}
-                </motion.div>
-            </AdminRestrictedPage>
+                </AdminRestrictedPage>
+            </motion.div>
+
 
 
             <Footer />
