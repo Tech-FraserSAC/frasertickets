@@ -3,6 +3,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -52,7 +53,7 @@ func LoggerMiddleware() func(next http.Handler) http.Handler {
 						"bytes_in":   r.Header.Get("Content-Length"),
 						"bytes_out":  ww.BytesWritten(),
 					}).
-					Msg("incoming_request")
+					Msg(fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, ww.Status()))
 			}()
 
 			next.ServeHTTP(ww, r)
