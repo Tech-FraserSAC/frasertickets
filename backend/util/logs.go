@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
+	"google.golang.org/api/option"
 )
 
 func ConfigureZeroLog() {
@@ -33,7 +34,16 @@ func ConfigureZeroLog() {
 			log.Fatal().Msg("no gcp log id provided")
 		}
 
-		gcpWriter, err := zlg.NewCloudLoggingWriter(context.Background(), gcpProjID, gcpLogID, zlg.CloudLoggingOptions{})
+		// Dynamically get service account from env, otherwise default to ADC
+		cloudLoggingOptions := zlg.CloudLoggingOptions{}
+		serviceAccount, err := PrepareGCPCredentialsFromEnv()
+		if err != nil && err.Error() != "could not find FIREBASE_PROJECT_ID in env" {
+			log.Fatal().Err(err).Msg("could not marshal firebase creds from env")
+		} else {
+			cloudLoggingOptions.ClientOptions = []option.ClientOption{serviceAccount}
+		}
+
+		gcpWriter, err := zlg.NewCloudLoggingWriter(context.Background(), gcpProjID, gcpLogID, cloudLoggingOptions)
 		if err != nil {
 			log.Panic().Err(err).Msg("could not create CloudLoggingWriter")
 		}
