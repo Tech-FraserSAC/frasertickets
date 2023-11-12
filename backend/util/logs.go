@@ -30,7 +30,7 @@ func ConfigureZeroLog() {
 			log.Fatal().Msg("no gcp project id provided")
 		}
 		gcpLogID := os.Getenv("GCP_LOG_ID")
-		if env == "" {
+		if gcpLogID == "" {
 			log.Fatal().Msg("no gcp log id provided")
 		}
 
