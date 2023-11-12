@@ -89,6 +89,19 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "user").
+		Str("requester_uid", requesterUID).
+		Str("action", "listUsers").
+		Msg("fetched all users")
 }
 
 // Create creates a database entry for a user on account creation.
@@ -156,6 +169,19 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "user").
+		Str("requester_uid", requesterUID).
+		Str("action", "createUser").
+		Msg("created new user")
 }
 
 // Get fetches a user's data.
@@ -194,6 +220,20 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "user").
+		Str("requester_uid", requesterUID).
+		Str("given_uid", id).
+		Str("action", "getUser").
+		Msg("fetched a user's data")
 }
 
 // Update updates a user's data.
@@ -273,4 +313,19 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "user").
+		Str("requester_uid", requesterUID).
+		Str("given_uid", id).
+		Any("requested_updates", requestedUpdates).
+		Str("action", "updateUser").
+		Msg("updated a user's data")
 }

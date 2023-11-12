@@ -123,6 +123,14 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", uid).
+		Str("action", "listSelfTickets").
+		Msg("listed requester's tickets")
 }
 
 // ListUser fetches all of a given user's tickets.
@@ -175,6 +183,20 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("given_uid", uid).
+		Str("action", "listUserTickets").
+		Msg("listed a given user's tickets")
 }
 
 // ListAll fetches all tickets that exist.
@@ -208,6 +230,19 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("action", "listAllTickets").
+		Msg("listed all tickets")
 }
 
 // Create creates a new ticket.
@@ -335,6 +370,20 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Any("ticket_data", ticket).
+		Str("action", "createTicket").
+		Msg("created a new ticket")
 }
 
 // Get fetches a single ticket.
@@ -401,6 +450,20 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("ticket_id", ticket.ID.Hex()).
+		Str("action", "getTicket").
+		Msg("fetched ticket")
 }
 
 // Search gets a ticket based on its owner and an event.
@@ -466,6 +529,20 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Any("search_query", searchQuery).
+		Str("action", "searchTicket").
+		Msg("searched for ticket")
 }
 
 // Scan records a scanning event for a ticket.
@@ -562,6 +639,21 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Write audit info log
+		token, err := util.GetUserTokenFromContext(r.Context())
+		requesterUID := ""
+		if err == nil {
+			requesterUID = token.UID
+		}
+		log.Info().
+			Str("type", "audit").
+			Str("controller", "ticket").
+			Str("requester_uid", requesterUID).
+			Str("ticket_id", searchQuery.TicketID).
+			Any("scan_data", scanData).
+			Str("action", "scanTicket").
+			Msg("attempted ticket scan, but max scans reached")
+
 		return
 	}
 
@@ -584,6 +676,21 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("ticket_id", searchQuery.TicketID).
+		Any("scan_data", scanData).
+		Str("action", "scanTicket").
+		Msg("scanned ticket")
 }
 
 // Delete deletes a ticket.
@@ -610,6 +717,10 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch ticket data so that we can log it later, since we won't be able
+	// to access the ticket later. Errors should be handled in the delete ticket
+	ticket, _ := models.GetTicket(r.Context(), objID)
+
 	// Try to delete document
 	err = models.DeleteTicket(r.Context(), objID)
 	if err == models.ErrNoDocumentModified || err == mongo.ErrNoDocuments {
@@ -623,6 +734,21 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("ticket_id", objID.Hex()).
+		Any("ticket", ticket).
+		Str("action", "deleteTicket").
+		Msg("deleted ticket")
 }
 
 // event ID: 64bdebd2be3ba505e0c17137

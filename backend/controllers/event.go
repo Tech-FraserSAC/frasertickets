@@ -87,6 +87,19 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "listAllEvents").
+		Msg("event list fetched")
 }
 
 // Create godoc
@@ -179,6 +192,20 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "createEvent").
+		Any("eventData", event).
+		Msg("event created")
 }
 
 // List godoc
@@ -225,6 +252,20 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "getEvent").
+		Str("eventId", id).
+		Msg("fetched singular event")
 }
 
 // Get event tickets godoc
@@ -283,6 +324,20 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrRender(err))
 		return
 	}
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "getEventTickets").
+		Str("eventId", id).
+		Msg("fetched tickets for event")
 }
 
 // Update event godoc
@@ -338,6 +393,21 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "updateEvent").
+		Str("eventId", id).
+		Any("requestedUpdates", requestedUpdates).
+		Msg("updated event details")
 }
 
 // Delete event godoc
@@ -376,4 +446,18 @@ func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "deleteEvent").
+		Str("eventId", id).
+		Msg("deleted event")
 }
