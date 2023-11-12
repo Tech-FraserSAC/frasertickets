@@ -101,6 +101,7 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 		Str("controller", "user").
 		Str("requester_uid", requesterUID).
 		Str("action", "listUsers").
+		Bool("privileged", true).
 		Msg("fetched all users")
 }
 
@@ -181,6 +182,7 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		Str("controller", "user").
 		Str("requester_uid", requesterUID).
 		Str("action", "createUser").
+		Bool("privileged", true).
 		Msg("created new user")
 }
 
@@ -233,6 +235,7 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", requesterUID).
 		Str("given_uid", id).
 		Str("action", "getUser").
+		Bool("privileged", id != requesterUID).
 		Msg("fetched a user's data")
 }
 
@@ -327,5 +330,6 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 		Str("given_uid", id).
 		Any("requested_updates", requestedUpdates).
 		Str("action", "updateUser").
+		Bool("privileged", true).
 		Msg("updated a user's data")
 }

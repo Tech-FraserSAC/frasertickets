@@ -130,6 +130,7 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 		Str("controller", "ticket").
 		Str("requester_uid", uid).
 		Str("action", "listSelfTickets").
+		Bool("privileged", false).
 		Msg("listed requester's tickets")
 }
 
@@ -196,6 +197,7 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", requesterUID).
 		Str("given_uid", uid).
 		Str("action", "listUserTickets").
+		Bool("privileged", true).
 		Msg("listed a given user's tickets")
 }
 
@@ -242,6 +244,7 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 		Str("controller", "ticket").
 		Str("requester_uid", requesterUID).
 		Str("action", "listAllTickets").
+		Bool("privileged", true).
 		Msg("listed all tickets")
 }
 
@@ -383,6 +386,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", requesterUID).
 		Any("ticket_data", ticket).
 		Str("action", "createTicket").
+		Bool("privileged", true).
 		Msg("created a new ticket")
 }
 
@@ -463,6 +467,7 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", requesterUID).
 		Str("ticket_id", ticket.ID.Hex()).
 		Str("action", "getTicket").
+		Bool("privileged", requesterUID != ticket.Owner).
 		Msg("fetched ticket")
 }
 
@@ -542,6 +547,7 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", requesterUID).
 		Any("search_query", searchQuery).
 		Str("action", "searchTicket").
+		Bool("privileged", true).
 		Msg("searched for ticket")
 }
 
@@ -652,6 +658,7 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 			Str("ticket_id", searchQuery.TicketID).
 			Any("scan_data", scanData).
 			Str("action", "scanTicket").
+			Bool("privileged", true).
 			Msg("attempted ticket scan, but max scans reached")
 
 		return
@@ -690,6 +697,7 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 		Str("ticket_id", searchQuery.TicketID).
 		Any("scan_data", scanData).
 		Str("action", "scanTicket").
+		Bool("privileged", true).
 		Msg("scanned ticket")
 }
 
@@ -748,6 +756,7 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 		Str("ticket_id", objID.Hex()).
 		Any("ticket", ticket).
 		Str("action", "deleteTicket").
+		Bool("privileged", true).
 		Msg("deleted ticket")
 }
 

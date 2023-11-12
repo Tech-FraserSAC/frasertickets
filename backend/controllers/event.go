@@ -99,7 +99,8 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 		Str("controller", "event").
 		Str("requester_uid", uid).
 		Str("action", "listAllEvents").
-		Msg("event list fetched")
+		Bool("privileged", false).
+		Msg("fetched all events")
 }
 
 // Create godoc
@@ -205,6 +206,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", uid).
 		Str("action", "createEvent").
 		Any("eventData", event).
+		Bool("privileged", true).
 		Msg("event created")
 }
 
@@ -265,7 +267,8 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", uid).
 		Str("action", "getEvent").
 		Str("eventId", id).
-		Msg("fetched singular event")
+		Bool("privileged", false).
+		Msg("fetched event")
 }
 
 // Get event tickets godoc
@@ -337,6 +340,7 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", uid).
 		Str("action", "getEventTickets").
 		Str("eventId", id).
+		Bool("privileged", true).
 		Msg("fetched tickets for event")
 }
 
@@ -407,6 +411,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 		Str("action", "updateEvent").
 		Str("eventId", id).
 		Any("requestedUpdates", requestedUpdates).
+		Bool("privileged", true).
 		Msg("updated event details")
 }
 
@@ -459,5 +464,6 @@ func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 		Str("requester_uid", uid).
 		Str("action", "deleteEvent").
 		Str("eventId", id).
+		Bool("privileged", true).
 		Msg("deleted event")
 }
