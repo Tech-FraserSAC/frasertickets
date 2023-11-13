@@ -6,9 +6,9 @@ import type { AppProps } from 'next/app'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { GoogleAnalytics } from "nextjs-google-analytics";
 
-import { Montserrat } from 'next/font/google'
+import { Montserrat, Poppins } from 'next/font/google'
 
-const poppins = Montserrat({
+const poppins = Poppins({
   weight: '400',
   subsets: ['latin'],
   variable: '--font-poppins'

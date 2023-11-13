@@ -57,7 +57,7 @@ export default function Hero() {
 
             <div className="absolute p-4 md:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
                 <motion.div variants={lineVariants} initial="initial" animate="animate" className="text-center md:mb-4 break-all font-bold flex flex-col flex-wrap gap-2 text-3xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl">
-                    {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-[#5379ed] to-[#2450d6] pb-5 font-poppins tracking-wide" variants={characterVariants} key={char}>{char}</motion.span>)}
+                    {bottomLine.map(char => <motion.span className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-[#5379ed] to-[#2450d6] pb-5 font-poppins" variants={characterVariants} key={char}>{char}</motion.span>)}
                 </motion.div>
 
 
