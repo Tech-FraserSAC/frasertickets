@@ -4,6 +4,7 @@ import { ThemeProvider } from '@material-tailwind/react'
 import { AnimatePresence } from 'framer-motion'
 import type { AppProps } from 'next/app'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import { GoogleAnalytics } from "nextjs-google-analytics";
 
 import { Poppins } from 'next/font/google'
 
@@ -22,6 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <QueryClientProvider client={queryClient}>
           <FirebaseAuthProvider>
             <AnimatePresence mode="wait">
+              <GoogleAnalytics trackPageViews />
               <Component {...pageProps} />
             </AnimatePresence>
           </FirebaseAuthProvider>
