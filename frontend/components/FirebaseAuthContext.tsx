@@ -15,6 +15,13 @@ const FirebaseAuthProvider: React.FC<Props> = ({ children }: Props) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, newUser => {
+            // Only allow people to join with student accounts
+            if (newUser !== null && !newUser?.email?.includes("@pdsb.net")) {
+                alert("Sorry, please sign in with your student account (@pdsb.net). You have automatically been logged out.")
+                newUser?.delete()
+                return
+            }
+
             setUser(newUser)
             setLoaded(true)
         })

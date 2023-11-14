@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import router from "next/router";
 import axios from "axios";
 
-import { 
-    GoogleAuthProvider, 
-    browserLocalPersistence, 
-    getRedirectResult, 
-    setPersistence, 
-    signInWithRedirect, 
-    signOut 
+import {
+    GoogleAuthProvider,
+    browserLocalPersistence,
+    getRedirectResult,
+    setPersistence,
+    signInWithRedirect,
+    signOut
 } from "firebase/auth";
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import auth from "@/lib/firebase/auth";
@@ -46,6 +46,13 @@ export default function Login() {
 
             if (redirectRes) {
                 try {
+                    // Only allow people to join with student accounts
+                    if (!redirectRes.user.email?.includes("@pdsb.net")) {
+                        // No code here because this should be managed by FirebaseAuthContext
+                        // However, it shouldn't make an entry in the database
+                        return
+                    }
+
                     // Try registering them if they're weren't already
                     await addUser()
 
@@ -94,13 +101,15 @@ export default function Login() {
 
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-md">
-                <Typography variant="h3" color="blue-gray" className="text-center mb-4">Log into FraserTickets</Typography>
+            <div className="flex flex-col items-center justify-center p-8 pb-6 bg-white rounded-lg shadow-md">
+                <Typography variant="h3" color="blue-gray" className="text-center mb-2">Log into FraserTickets</Typography>
 
                 <GoogleButton
                     onClick={logIn}
                     disabled={!redirectStatus.checked}
                 />
+
+                <Typography variant="small" color="gray" className="text-center mt-2">Please log in using your pdsb.net email.</Typography>
             </div>
         </Layout>
     )
