@@ -133,6 +133,17 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if they are using a school account or not
+	if !strings.Contains(userRecord.Email, "@pdsb.net") {
+		log.Warn().Str("uid", userToken.UID).Str("email", userRecord.Email).Msg("user attempting to sign in with personal account")
+		render.Render(w, r, util.ErrUnauthorized)
+
+		// Also delete the user for good measure
+		lib.Auth.Client.DeleteUser(ctx, userToken.UID)
+
+		return
+	}
+
 	// Check if they already have a user record in db
 	userExists, err := models.CheckIfUserExists(ctx, userRecord.UID)
 	if err != nil {
