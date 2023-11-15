@@ -37,8 +37,13 @@ const bottomLine = "FraserTickets".split('  ');
 
 export default function Hero() {
     const { user, loaded } = useFirebaseAuth();
+    const [onBrowser, setOnBrowser] = useState(false);
 
     const signedIn = loaded && user !== null;
+
+    useEffect(() => {
+        setOnBrowser(true)
+    }, [])
 
     return (
         <div className="flex flex-col h-[100vh] relative w-full">
@@ -77,7 +82,7 @@ export default function Hero() {
                         <Link
                             href="/login"
                             className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl mt-4"
-                            download={navigator.userAgent.includes("Instagram")} // This is supposed to redirect to normal browser if using Instagram browser
+                            download={onBrowser ? navigator.userAgent.includes("Instagram") : false} // This is supposed to redirect to normal browser if using Instagram browser
                         >
                             Sign in
                         </Link>
