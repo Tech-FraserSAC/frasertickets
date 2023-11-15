@@ -129,7 +129,7 @@ export default function TicketViewingPage() {
             alert("Please provide a valid student number.")
         } else if (Number.isNaN(maxScanCount) || maxScanCount < 0 || Math.floor(maxScanCount) !== maxScanCount) {
             alert("Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.")
-        } else if (!modalEventChosen || modalEventQuery !== "") {
+        } else if (modalEventChosen === null || modalEventQuery !== "") {
             // If the query isn't empty, this means they were searching for something but didn't select anything
             alert("Please provide a valid event and make sure it is selected.");
         } else {

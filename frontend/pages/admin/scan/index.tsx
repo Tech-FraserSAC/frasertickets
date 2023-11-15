@@ -1,8 +1,9 @@
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/admin/Layout";
 import TicketScan from "@/lib/backend/ticket/ticketScan";
-import { Typography } from "@material-tailwind/react";
+import { Button, Typography } from "@material-tailwind/react";
 import { BrowserQRCodeReader, BrowserCodeReader, IScannerControls } from '@zxing/browser';
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 
@@ -12,7 +13,8 @@ enum ScanStatus {
     INVALID_FORMAT,
     UNSCANNED,
     SCANNER_LOADING,
-    PROCESSING_SCAN
+    PROCESSING_SCAN,
+    ERROR
 }
 
 export default function TicketScanningPage() {
@@ -37,6 +39,7 @@ export default function TicketScanningPage() {
                     const videoInputDevices = await BrowserCodeReader.listVideoInputDevices();
                     if (videoInputDevices.length === 0) {
                         console.error("No video input devices found.");
+                        setScanStatus(ScanStatus.ERROR);
                         return;
                     }
 
@@ -71,6 +74,7 @@ export default function TicketScanningPage() {
                     setScanStatus(ScanStatus.UNSCANNED)
                 } catch (e) {
                     console.error(`Exception: ${e}`);
+                    setScanStatus(ScanStatus.ERROR);
                 }
             })();
         }
@@ -103,6 +107,19 @@ export default function TicketScanningPage() {
                     </div>
                 )
             }
+            case ScanStatus.ERROR: {
+                return (
+                    <div className="flex flex-col items-center mb-4">
+                        <Typography color="red" variant="h2" className="text-center mb-2">Something went wrong :&#40;</Typography>
+                        <Typography color="blue-gray" variant="lead" className="text-center md:w-2/3">
+                            Sorry, it looks like something went wrong while starting up the ticket scanner. 
+                            You can either scan a ticket using any QR code scanner &#40;like your camera app&#41;
+                            or search for their ticket instead. If you would like to resolve the issue, please check 
+                            whether this website can access your camera. 
+                        </Typography>
+                    </div>
+                )
+            }
             default: {
                 return (
                     <div className="flex flex-col items-center">
@@ -127,6 +144,13 @@ export default function TicketScanningPage() {
             <Typography variant="h1" className="text-center mb-4">Ticket Scanner</Typography>
 
             {innerComponent}
+
+            <div className="flex flex-col items-center self-center">
+                <Typography variant="h3" className="text-center mt-4 mb-2">No Device / Not Working?</Typography>
+                <Link href="/admin/scan/search">
+                    <Button size="md" color="blue" ripple>Search for Ticket</Button>
+                </Link>
+            </div>
         </Layout>
     );
 }
