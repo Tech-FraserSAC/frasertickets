@@ -10,7 +10,7 @@
         },
         "version": "1.0"
     },
-    "host": "frasertickets-backend.aritrosaha.ca",
+    "host": "localhost:3001",
     "basePath": "/",
     "paths": {
         "/events": {
@@ -505,10 +505,8 @@
                         "description": "Internal Server Error"
                     }
                 }
-            }
-        },
-        "/tickets/{id}/delete": {
-            "post": {
+            },
+            "delete": {
                 "description": "Deletes a ticket. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -689,7 +687,7 @@
                 "address",
                 "description",
                 "end_timestamp",
-                "img_url",
+                "img_urls",
                 "location",
                 "name",
                 "start_timestamp"
@@ -704,8 +702,11 @@
                 "end_timestamp": {
                     "type": "string"
                 },
-                "img_url": {
-                    "type": "string"
+                "img_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "location": {
                     "type": "string"
@@ -728,6 +729,10 @@
                 "eventID": {
                     "type": "string"
                 },
+                "maxScanCount": {
+                    "type": "integer",
+                    "minimum": 0
+                },
                 "studentNumber": {
                     "type": "string"
                 }
@@ -748,13 +753,13 @@
             "type": "object",
             "required": [
                 "eventID",
-                "ownerID"
+                "studentNumber"
             ],
             "properties": {
                 "eventID": {
                     "type": "string"
                 },
-                "ownerID": {
+                "studentNumber": {
                     "type": "string"
                 }
             }
@@ -774,8 +779,11 @@
                 "id": {
                     "type": "string"
                 },
-                "img_url": {
-                    "type": "string"
+                "img_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "location": {
                     "description": "Ex. name of venue",
@@ -804,6 +812,9 @@
                 "lastScanTime": {
                     "type": "string"
                 },
+                "maxScanCount": {
+                    "type": "integer"
+                },
                 "ownerData": {
                     "$ref": "#/definitions/models.User"
                 },
@@ -824,6 +835,12 @@
             "properties": {
                 "index": {
                     "type": "integer"
+                },
+                "noProcessReason": {
+                    "type": "string"
+                },
+                "processed": {
+                    "type": "boolean"
                 },
                 "ticketData": {
                     "$ref": "#/definitions/models.Ticket"

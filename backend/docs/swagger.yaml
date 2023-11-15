@@ -8,8 +8,10 @@ definitions:
         type: string
       end_timestamp:
         type: string
-      img_url:
-        type: string
+      img_urls:
+        items:
+          type: string
+        type: array
       location:
         type: string
       name:
@@ -20,7 +22,7 @@ definitions:
     - address
     - description
     - end_timestamp
-    - img_url
+    - img_urls
     - location
     - name
     - start_timestamp
@@ -29,6 +31,9 @@ definitions:
     properties:
       eventID:
         type: string
+      maxScanCount:
+        minimum: 0
+        type: integer
       studentNumber:
         type: string
     required:
@@ -46,11 +51,11 @@ definitions:
     properties:
       eventID:
         type: string
-      ownerID:
+      studentNumber:
         type: string
     required:
     - eventID
-    - ownerID
+    - studentNumber
     type: object
   models.Event:
     properties:
@@ -62,8 +67,10 @@ definitions:
         type: string
       id:
         type: string
-      img_url:
-        type: string
+      img_urls:
+        items:
+          type: string
+        type: array
       location:
         description: Ex. name of venue
         type: string
@@ -82,6 +89,8 @@ definitions:
         type: string
       lastScanTime:
         type: string
+      maxScanCount:
+        type: integer
       ownerData:
         $ref: '#/definitions/models.User'
       ownerID:
@@ -96,6 +105,10 @@ definitions:
     properties:
       index:
         type: integer
+      noProcessReason:
+        type: string
+      processed:
+        type: boolean
       ticketData:
         $ref: '#/definitions/models.Ticket'
       timestamp:
@@ -117,7 +130,7 @@ definitions:
       student_number:
         type: string
     type: object
-host: frasertickets-backend.aritrosaha.ca
+host: localhost:3001
 info:
   contact:
     email: aritro.saha729@gmail.com
@@ -328,6 +341,28 @@ paths:
       tags:
       - ticket
   /tickets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a ticket. Only available to admins.
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Delete a ticket
+      tags:
+      - ticket
     get:
       description: Get one ticket. Only available to admins and the ticket owner.
       parameters:
@@ -350,29 +385,6 @@ paths:
         "500":
           description: Internal Server Error
       summary: Get one ticket
-      tags:
-      - ticket
-  /tickets/{id}/delete:
-    post:
-      consumes:
-      - application/json
-      description: Deletes a ticket. Only available to admins.
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-        "403":
-          description: Forbidden
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      summary: Delete a ticket
       tags:
       - ticket
   /tickets/all:

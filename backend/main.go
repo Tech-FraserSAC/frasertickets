@@ -10,7 +10,7 @@ import "github.com/aritrosaha10/frasertickets/app"
 //	@contact.url	http://www.aritrosaha.ca
 //	@contact.email	aritro.saha729@gmail.com
 
-// @host		frasertickets-backend.aritrosaha.ca
+// @host		localhost:3001
 // @BasePath	/
 // @securityDefinitions.apikey APIKeyHeader
 // @in header

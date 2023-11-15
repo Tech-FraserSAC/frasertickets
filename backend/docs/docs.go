@@ -511,10 +511,8 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 }
-            }
-        },
-        "/tickets/{id}/delete": {
-            "post": {
+            },
+            "delete": {
                 "description": "Deletes a ticket. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -695,7 +693,7 @@ const docTemplate = `{
                 "address",
                 "description",
                 "end_timestamp",
-                "img_url",
+                "img_urls",
                 "location",
                 "name",
                 "start_timestamp"
@@ -710,8 +708,11 @@ const docTemplate = `{
                 "end_timestamp": {
                     "type": "string"
                 },
-                "img_url": {
-                    "type": "string"
+                "img_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "location": {
                     "type": "string"
@@ -734,6 +735,10 @@ const docTemplate = `{
                 "eventID": {
                     "type": "string"
                 },
+                "maxScanCount": {
+                    "type": "integer",
+                    "minimum": 0
+                },
                 "studentNumber": {
                     "type": "string"
                 }
@@ -754,13 +759,13 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "eventID",
-                "ownerID"
+                "studentNumber"
             ],
             "properties": {
                 "eventID": {
                     "type": "string"
                 },
-                "ownerID": {
+                "studentNumber": {
                     "type": "string"
                 }
             }
@@ -780,8 +785,11 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "img_url": {
-                    "type": "string"
+                "img_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "location": {
                     "description": "Ex. name of venue",
@@ -810,6 +818,9 @@ const docTemplate = `{
                 "lastScanTime": {
                     "type": "string"
                 },
+                "maxScanCount": {
+                    "type": "integer"
+                },
                 "ownerData": {
                     "$ref": "#/definitions/models.User"
                 },
@@ -830,6 +841,12 @@ const docTemplate = `{
             "properties": {
                 "index": {
                     "type": "integer"
+                },
+                "noProcessReason": {
+                    "type": "string"
+                },
+                "processed": {
+                    "type": "boolean"
                 },
                 "ticketData": {
                     "$ref": "#/definitions/models.Ticket"
@@ -876,7 +893,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "frasertickets-backend.aritrosaha.ca",
+	Host:             "localhost:3001",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "FraserTickets Backend",
