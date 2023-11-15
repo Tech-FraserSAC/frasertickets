@@ -77,6 +77,7 @@ export default function Hero() {
                         <Link
                             href="/login"
                             className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl mt-4"
+                            download={navigator.userAgent.includes("Instagram")} // This is supposed to redirect to normal browser if using Instagram browser
                         >
                             Sign in
                         </Link>
