@@ -1,6 +1,7 @@
 import addUser from '@/lib/backend/user/addUser'
 import auth from '@/lib/firebase/auth'
 import { User as firebaseUser, onAuthStateChanged, signOut } from 'firebase/auth'
+import router from 'next/router'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 type User = firebaseUser | null
@@ -34,6 +35,17 @@ const FirebaseAuthProvider: React.FC<Props> = ({ children }: Props) => {
 
             setUser(newUser)
             setLoaded(true)
+
+            // Check whether their account exists / hasn't been deleted
+            // If it has been, make them sign in again
+            if (newUser !== null) {
+                newUser?.getIdTokenResult(true).then(() => {}).catch(() => {
+                    alert("Sorry, something went wrong. Please try signing in again.")
+                    router.push("/").then(() => {
+                        signOut(auth).then(() => {}).catch(() => {})
+                    })
+                })
+            }
         })
         return unsubscribe
     }, [])
