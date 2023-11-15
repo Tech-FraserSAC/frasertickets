@@ -39,6 +39,11 @@ export default function Login() {
         })
     }
 
+    const [inBrowser, setInBrowser] = useState(false)
+    useEffect(() => {
+        setInBrowser(true)
+    }, [])
+
     // Check whether a new login occured, if so, try to create a user object in DB
     useEffect(() => {
         (async () => {
@@ -102,7 +107,7 @@ export default function Login() {
 
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center justify-center p-8 pb-6 bg-white rounded-lg shadow-md">
+            <div className="flex flex-col items-center justify-center p-8 pb-6 bg-white rounded-lg shadow-md max-w-md">
                 <Typography variant="h3" color="blue-gray" className="text-center mb-2">Log into FraserTickets</Typography>
 
                 <GoogleButton
@@ -110,6 +115,15 @@ export default function Login() {
                     disabled={!redirectStatus.checked}
                 />
 
+                {
+                    (inBrowser && navigator.userAgent.includes("Instagram")) ?
+                        <Typography variant="small" color="gray" className="text-center mt-2 font-bold">
+                            Using Instagram&apos;s browser? Please open this website in your normal browser.
+                            You can do this by clicking the three dots at the top and selecting &quot;Open in Browser&quot;.
+                        </Typography>
+                        :
+                        <></>
+                }
                 <Typography variant="small" color="gray" className="text-center mt-2">Please log in using your pdsb.net email.</Typography>
             </div>
         </Layout>
