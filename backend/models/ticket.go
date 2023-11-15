@@ -126,11 +126,18 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 func SearchForTicket(
 	ctx context.Context,
 	eventID primitive.ObjectID,
-	userID string,
+	studentNumber string,
 ) (Ticket, error) {
+	// Try to find a user through student number
+	userData, err := GetUserByKey(ctx, "student_number", studentNumber)
+	// Handle errors
+	if err != nil {
+		return Ticket{}, err
+	}
+
 	pipeline := mongo.Pipeline{
 		{
-			{Key: "$match", Value: bson.M{"event": eventID, "owner": userID}},
+			{Key: "$match", Value: bson.M{"event": eventID, "owner": userData.ID}},
 		},
 		{
 			{Key: "$lookup", Value: bson.D{

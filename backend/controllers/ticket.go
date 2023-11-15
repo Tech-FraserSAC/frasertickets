@@ -26,8 +26,8 @@ type ticketControllerCreateRequestBody struct {
 }
 
 type ticketControllerSearchRequestBody struct {
-	OwnerID string `json:"ownerID" validate:"required"`
-	EventID string `json:"eventID" validate:"required,mongodb"`
+	StudentNumber string `json:"studentNumber" validate:"required"`
+	EventID       string `json:"eventID" validate:"required,mongodb"`
 }
 
 type ticketControllerScanRequestBody struct {
@@ -515,7 +515,7 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Try to fetch from DB
-	ticket, err := models.SearchForTicket(r.Context(), eventID, searchQuery.OwnerID)
+	ticket, err := models.SearchForTicket(r.Context(), eventID, searchQuery.StudentNumber)
 
 	// Handle errors
 	if err != nil {
@@ -712,7 +712,7 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
-//	@Router			/tickets/{id}/delete [post]
+//	@Router			/tickets/{id} [delete]
 func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
 	id := chi.URLParam(r, "id")
