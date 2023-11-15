@@ -113,6 +113,7 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 	if err != nil {
 		return []Ticket{}, err
 	}
+	defer cursor.Close(ctx)
 
 	// Attempt to convert BSON data into Ticket structs
 	var tickets []Ticket
@@ -126,18 +127,11 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 func SearchForTicket(
 	ctx context.Context,
 	eventID primitive.ObjectID,
-	studentNumber string,
+	userID string,
 ) (Ticket, error) {
-	// Try to find a user through student number
-	userData, err := GetUserByKey(ctx, "student_number", studentNumber)
-	// Handle errors
-	if err != nil {
-		return Ticket{}, err
-	}
-
 	pipeline := mongo.Pipeline{
 		{
-			{Key: "$match", Value: bson.M{"event": eventID, "owner": userData.ID}},
+			{Key: "$match", Value: bson.M{"event": eventID, "owner": userID}},
 		},
 		{
 			{Key: "$lookup", Value: bson.D{
@@ -167,10 +161,17 @@ func SearchForTicket(
 
 	// Try to get data from DB
 	cursor, err := lib.Datastore.Db.Collection(ticketsColName).Aggregate(ctx, pipeline)
+	if err != nil {
+		return Ticket{}, err
+	}
+	defer cursor.Close(ctx)
 
 	// Attempt to convert BSON data into Ticket structs
 	var ticket Ticket
-	cursor.Next(ctx)
+	if nextExists := cursor.Next(ctx); !nextExists {
+		return Ticket{}, mongo.ErrNoDocuments
+	}
+
 	if err := cursor.Decode(&ticket); err != nil {
 		return Ticket{}, err
 	}

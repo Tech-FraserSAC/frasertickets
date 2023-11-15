@@ -514,8 +514,22 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Try to find a user through student number
+	userData, err := models.GetUserByKey(r.Context(), "student_number", searchQuery.StudentNumber)
+	// Handle errors
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("no user exists with given student number")))
+			return
+		}
+
+		log.Error().Err(err).Msg("could not find user with given student number")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
 	// Try to fetch from DB
-	ticket, err := models.SearchForTicket(r.Context(), eventID, searchQuery.StudentNumber)
+	ticket, err := models.SearchForTicket(r.Context(), eventID, userData.ID)
 
 	// Handle errors
 	if err != nil {
