@@ -48,15 +48,15 @@ export default function Login() {
                 try {
                     // Only allow people to join with student accounts
                     if (!redirectRes.user.email?.includes("@pdsb.net")) {
-                        // No code here because this should be managed by FirebaseAuthContext
-                        // However, it shouldn't make an entry in the database
-                        return
+                        // Try registering them in DB if they are new
+                        if (redirectRes.user.metadata.creationTime === redirectRes.user.metadata.lastSignInTime) {
+                            await addUser()
+                            // Give them a quick alert letting them know what's up with semi-formal tickets
+                            alert("Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.")
+                        }
+
+                        router.push("/events")
                     }
-
-                    // Try registering them if they're weren't already
-                    await addUser()
-
-                    router.push("/events")
                 } catch (e) {
                     alert("Sorry, something went wrong when signing you in.")
                     console.error(e)
