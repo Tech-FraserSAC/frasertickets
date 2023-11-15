@@ -23,8 +23,10 @@ export default function App({ Component, pageProps }: AppProps) {
         <QueryClientProvider client={queryClient}>
           <FirebaseAuthProvider>
             <AnimatePresence mode="wait">
-              <GoogleAnalytics trackPageViews />
-              <Component {...pageProps} />
+              <>
+                <GoogleAnalytics trackPageViews />
+                <Component {...pageProps} />
+              </>
             </AnimatePresence>
           </FirebaseAuthProvider>
         </QueryClientProvider>
