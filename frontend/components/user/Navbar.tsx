@@ -15,6 +15,7 @@ import {
     Bars2Icon,
     CalendarDaysIcon,
     ArrowRightOnRectangleIcon,
+    CogIcon,
     TicketIcon
 } from "@heroicons/react/24/outline";
 import { createElement, useEffect, useState } from "react";
@@ -41,11 +42,28 @@ const profileMenuItems = [
     },
 ];
 
+const adminProfileMenuItems = [
+    {
+        label: "Open Admin Portal",
+        icon: CogIcon,
+        action: () => router.push("/admin")
+    },
+];
+
 function ProfileMenu() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const { user } = useFirebaseAuth()
+    const [isAdmin, setIsAdmin] = useState(false)
 
     const closeMenu = () => setIsMenuOpen(false)
+
+    useEffect(() => {
+        (async () => {
+            user?.getIdTokenResult().then(res => {
+                setIsAdmin(!!res.claims['admin'])
+            })
+        })()
+    })
 
     return (
         <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
@@ -71,6 +89,33 @@ function ProfileMenu() {
                 </Button>
             </MenuHandler>
             <MenuList className="p-1">
+                {isAdmin && adminProfileMenuItems.map(({ label, icon, action }, key) => {
+                    const isLastItem = key === profileMenuItems.length - 1;
+                    return (
+                        <MenuItem
+                            key={label}
+                            onClick={() => {
+                                action()
+                                closeMenu()
+                            }}
+                            className="flex items-center gap-2 rounded"
+                        >
+                            {createElement(icon, {
+                                className: "h-4 w-4",
+                                strokeWidth: 2,
+                            })}
+                            <Typography
+                                as="span"
+                                variant="small"
+                                className="font-normal"
+                                color="inherit"
+                            >
+                                {label}
+                            </Typography>
+                        </MenuItem>
+                    );
+                })}
+
                 {profileMenuItems.map(({ label, icon, action }, key) => {
                     const isLastItem = key === profileMenuItems.length - 1;
                     return (
