@@ -113,7 +113,7 @@ export default function TicketSpecificPage() {
                             </>}
 
                             {maxScanCount !== undefined && <>
-                                Max. # of scans: {maxScanCount}
+                                Max. # of scans: {maxScanCount === 0 ? <>&infin;</> : maxScanCount}
                                 <br />
                             </>}
                             {
