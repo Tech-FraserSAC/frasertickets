@@ -407,8 +407,8 @@ export default function TicketViewingPage() {
                                             </Link>
                                         </td>
                                         <td className='px-4 py-1 border border-gray-500'>
-                                            {ticket.ownerData.pfp_url ? (
-                                                <div className="flex flex-row gap-1 items-center justify-center w-full">
+                                            {(ticket.ownerData.pfp_url && ticket.ownerData.full_name.includes("John Fraser SS")) ? (
+                                                <div className="flex flex-col xl:flex-row gap-1 items-center justify-center w-full">
                                                     <Image 
                                                         src={ticket.ownerData.pfp_url} 
                                                         alt="pfp" 
@@ -421,7 +421,7 @@ export default function TicketViewingPage() {
                                                     <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
                                                 </div>
                                             ) : (
-                                                <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</td>
+                                                <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
                                             )}
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
