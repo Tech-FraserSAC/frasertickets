@@ -79,6 +79,12 @@ func CheckIfUserExists(ctx context.Context, uid string) (bool, error) {
 	return count == 1, err
 }
 
+func CheckIfUserWithStudentNumberExists(ctx context.Context, studentNumber string) (bool, error) {
+	// Directly return results from DB
+	count, err := lib.Datastore.Db.Collection(usersColName).CountDocuments(ctx, bson.M{"student_number": studentNumber})
+	return count == 1, err
+}
+
 func CreateNewUser(ctx context.Context, user User) (string, error) {
 	// Try to add document
 	res, err := lib.Datastore.Db.Collection(usersColName).InsertOne(ctx, user)
