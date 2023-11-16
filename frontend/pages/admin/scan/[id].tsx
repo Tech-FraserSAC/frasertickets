@@ -152,7 +152,15 @@ export default function TicketScanningPage() {
                                     <td className="border-collapse border-2 border-gray-500 text-right p-2">
                                         {scanData?.userData.pfp_url ? (
                                             <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image src={scanData?.userData.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
+                                                <Image 
+                                                    src={scanData?.userData.pfp_url} 
+                                                    alt="pfp" 
+                                                    height={25} 
+                                                    width={25} 
+                                                    className="rounded-full" 
+                                                    quality={100}
+                                                    unoptimized
+                                                />
                                                 <span>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</span>
                                             </div>
                                         ) : (
@@ -243,7 +251,15 @@ export default function TicketScanningPage() {
                                     <td className="border-collapse border-2 border-gray-500 text-right p-2">
                                         {scanData?.userData.pfp_url ? (
                                             <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image src={scanData?.userData.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
+                                                <Image 
+                                                    src={scanData?.userData.pfp_url} 
+                                                    alt="pfp" 
+                                                    height={25} 
+                                                    width={25} 
+                                                    className="rounded-full" 
+                                                    quality={100}
+                                                    unoptimized
+                                                />
                                                 <span>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</span>
                                             </div>
                                         ) : (

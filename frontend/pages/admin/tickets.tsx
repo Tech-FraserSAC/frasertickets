@@ -409,7 +409,15 @@ export default function TicketViewingPage() {
                                         <td className='px-4 py-1 border border-gray-500'>
                                             {ticket.ownerData.pfp_url ? (
                                                 <div className="flex flex-row gap-1 items-center justify-center w-full">
-                                                    <Image src={ticket.ownerData.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
+                                                    <Image 
+                                                        src={ticket.ownerData.pfp_url} 
+                                                        alt="pfp" 
+                                                        height={25} 
+                                                        width={25} 
+                                                        className="rounded-full" 
+                                                        quality={100}
+                                                        unoptimized
+                                                    />
                                                     <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
                                                 </div>
                                             ) : (

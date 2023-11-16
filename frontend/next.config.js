@@ -6,11 +6,9 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
+        port: '',
+        pathname: '/frasertickets-event-images/**'
       },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      }
     ]
   },
   async rewrites() {

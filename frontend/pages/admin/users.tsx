@@ -37,7 +37,15 @@ export default function UserTablePage() {
                                         <td className='px-4 py-1 border border-gray-500'>
                                             {user.pfp_url ? (
                                                 <div className="flex flex-row gap-1 items-center justify-center w-full">
-                                                    <Image src={user.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
+                                                    <Image 
+                                                        src={user.pfp_url} 
+                                                        alt="pfp" 
+                                                        height={25} 
+                                                        width={25} 
+                                                        className="rounded-full" 
+                                                        quality={100}
+                                                        unoptimized
+                                                    />
                                                     <span>{user.full_name.replace(" John Fraser SS", "").replace(user.student_number, "")}</span>
                                                 </div>
                                             ) : (

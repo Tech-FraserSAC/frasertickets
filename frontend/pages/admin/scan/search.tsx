@@ -94,7 +94,15 @@ export default function TicketSearchAndScanPage() {
                         <td className="border-collapse border-2 border-gray-500 text-right p-2">
                             {ticketSearchMutation.data?.ownerData.pfp_url ? (
                                 <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                    <Image src={ticketSearchMutation.data?.ownerData.pfp_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
+                                    <Image 
+                                        src={ticketSearchMutation.data?.ownerData.pfp_url} 
+                                        alt="pfp" 
+                                        height={25} 
+                                        width={25} 
+                                        className="rounded-full" 
+                                        quality={100}
+                                        unoptimized
+                                    />
                                     <span>{ticketSearchMutation.data?.ownerData.full_name.replace(" John Fraser SS", "").replace(ticketSearchMutation.data?.ownerData.student_number, "")}</span>
                                 </div>
                             ) : (
