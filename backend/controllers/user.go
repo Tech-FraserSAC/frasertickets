@@ -182,6 +182,22 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Look through queued tickets and create any that may belong to them
+	queuedTickets, err := models.GetQueuedTicketsForStudentNumber(r.Context(), studentNumber)
+	if err != nil {
+		log.Error().Err(err).Str("uid", id).Msg("could not get queued tickets")
+	} else {
+		// TODO: Consider using goroutines? Not bothering right now since too complex to just register 1-2 tickets
+		for i, queuedTicket := range queuedTickets {
+			// No point in updating name multiple times
+			ticket, err := models.ConvertQueuedTicketToTicket(r.Context(), queuedTicket, i == 0)
+			log.Info().Any("ticket", ticket).Str("uid", id).Msg("converted queued ticket to ticket")
+			if err != nil {
+				log.Error().Err(err).Any("queuedTicket", queuedTicket).Str("uid", id).Msg("could not convert queued ticket to ticket")
+			}
+		}
+	}
+
 	// Write audit info log
 	token, err := util.GetUserTokenFromContext(r.Context())
 	requesterUID := ""

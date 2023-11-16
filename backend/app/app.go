@@ -42,11 +42,18 @@ func Run() {
 		log.Fatal().Err(err).Msg("could not set up ticket indices")
 	}
 	log.Debug().Msg("created ticket indices")
+
 	err = models.CreateUserIndices(context.Background())
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not set up user indices")
 	}
 	log.Debug().Msg("created user indices")
+
+	err = models.CreateQueuedTicketIndices(context.Background())
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not set up queued ticket indices")
+	}
+	log.Debug().Msg("created queued ticket indices")
 
 	// Set up server
 	s := config.CreateNewServer()

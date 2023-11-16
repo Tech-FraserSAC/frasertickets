@@ -25,7 +25,7 @@ func (queuedTicket *QueuedTicket) Render(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func CreateQueuedTicketIndicies(ctx context.Context) error {
+func CreateQueuedTicketIndices(ctx context.Context) error {
 	// Create appropriate indices
 	queuedTicketStudentNumberModel := mongo.IndexModel{
 		Keys: bson.D{
@@ -63,7 +63,7 @@ func GetQueuedTicket(ctx context.Context, queuedTicketID primitive.ObjectID) (Qu
 }
 
 func GetQueuedTicketsForStudentNumber(ctx context.Context, studentNumber string) ([]QueuedTicket, error) {
-	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Find(ctx, bson.M{"_id": studentNumber})
+	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Find(ctx, bson.M{"student_number": studentNumber})
 	if err != nil {
 		return []QueuedTicket{}, err
 	}
