@@ -13,11 +13,12 @@ import (
 )
 
 type QueuedTicket struct {
-	ID            primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
-	StudentNumber string             `json:"student_number" bson:"student_number"`
-	EventID       primitive.ObjectID `json:"event_id"       bson:"event_id"`
-	Timestamp     time.Time          `json:"timestamp"      bson:"timestamp"`
-	MaxScanCount  int                `json:"max_scan_count" bson:"max_scan_count"`
+	ID             primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
+	StudentNumber  string             `json:"student_number" bson:"student_number"`
+	EventID        primitive.ObjectID `json:"event_id"       bson:"event_id"`
+	Timestamp      time.Time          `json:"timestamp"      bson:"timestamp"`
+	MaxScanCount   int                `json:"max_scan_count" bson:"max_scan_count"`
+	FullNameUpdate string             `json:"full_name_update" bson:"full_name_update"`
 }
 
 func (queuedTicket *QueuedTicket) Render(w http.ResponseWriter, r *http.Request) error {
@@ -83,7 +84,7 @@ func CreateQueuedTicket(ctx context.Context, queuedTicket QueuedTicket) (primiti
 	// Check if ticket already exists
 	exists, err := CheckIfQueuedTicketExists(ctx, bson.M{
 		"student_number": queuedTicket.StudentNumber,
-		"event_id":       queuedTicket.EventID.Hex(),
+		"event_id":       queuedTicket.EventID,
 	})
 	if err != nil {
 		return primitive.NilObjectID, err
@@ -111,7 +112,7 @@ func CreateQueuedTicket(ctx context.Context, queuedTicket QueuedTicket) (primiti
 	return res.InsertedID.(primitive.ObjectID), err
 }
 
-func ConvertQueuedTicketToTicket(ctx context.Context, queuedTicket QueuedTicket) (Ticket, error) {
+func ConvertQueuedTicketToTicket(ctx context.Context, queuedTicket QueuedTicket, applyFullNameUpdate bool) (Ticket, error) {
 	user, err := GetUserByKey(ctx, "student_number", queuedTicket.StudentNumber)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -138,11 +139,37 @@ func ConvertQueuedTicketToTicket(ctx context.Context, queuedTicket QueuedTicket)
 	}
 
 	ticket.ID = ticketId
+
+	// Try updating full name if requested
+	if applyFullNameUpdate && queuedTicket.FullNameUpdate != "" {
+		UpdateExistingUserByKeys(ctx, user.ID, map[string]interface{}{
+			"full_name": queuedTicket.FullNameUpdate,
+		})
+	}
+
+	// Delete queued ticket since it has already been converted
+	// No point in doing much with the error from this,
+	// if it doesn't succeed, should still return new ticket
+	DeleteQueuedTicket(ctx, queuedTicket.ID)
+
 	return ticket, nil
 }
 
 func CheckIfQueuedTicketExists(ctx context.Context, filter bson.M) (bool, error) {
 	// Directly return DB results
 	count, err := lib.Datastore.Db.Collection(queuedTicketsColName).CountDocuments(ctx, filter)
-	return count == 1, err
+	return count > 0, err
+}
+
+func DeleteQueuedTicket(ctx context.Context, id primitive.ObjectID) error {
+	// Delete queued ticket
+	res, err := lib.Datastore.Db.Collection(queuedTicketsColName).DeleteOne(ctx, bson.M{"_id": id})
+
+	// Handle no document found
+	if err == nil {
+		if res.DeletedCount == 0 {
+			err = ErrNoDocumentModified
+		}
+	}
+	return err
 }

@@ -135,8 +135,7 @@ func UpdateExistingUserByKeys(
 	UPDATABLE_KEYS := map[string]bool{
 		"admin":          true,
 		"student_number": true,
-		"first_name":     true,
-		"last_name":      true,
+		"full_name":      true,
 		"pfp_url":        true,
 	}
 
