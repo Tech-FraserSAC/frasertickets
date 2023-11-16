@@ -48,6 +48,22 @@ func CreateQueuedTicketIndices(ctx context.Context) error {
 	return err
 }
 
+func GetAllQueuedTickets(ctx context.Context) ([]QueuedTicket, error) {
+	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Find(ctx, bson.M{})
+	if err != nil {
+		return []QueuedTicket{}, err
+	}
+	defer cursor.Close(ctx)
+
+	// Attempt to decode BSON into structs
+	var queuedTickets []QueuedTicket
+	if err := cursor.All(ctx, &queuedTickets); err != nil {
+		return []QueuedTicket{}, err
+	}
+
+	return queuedTickets, nil
+}
+
 func GetQueuedTicket(ctx context.Context, queuedTicketID primitive.ObjectID) (QueuedTicket, error) {
 	res := lib.Datastore.Db.Collection(queuedTicketsColName).FindOne(ctx, bson.M{"_id": queuedTicketID})
 	if res.Err() != nil {
