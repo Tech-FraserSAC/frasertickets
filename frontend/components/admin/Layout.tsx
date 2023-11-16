@@ -3,7 +3,7 @@ import Head from "next/head"
 // import Navbar from "./Navbar"
 // import Footer from "./Footer"
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useFirebaseAuth } from "../FirebaseAuthContext";
 import { useEffect } from "react";
 import { ComplexNavbar } from "./Navbar";
@@ -50,7 +50,7 @@ export default function Layout({ name, children, noAnim, className }: { name: st
             <ComplexNavbar />
 
 
-            <motion.div
+            <m.div
                 initial={noAnim ? undefined : contentVariants.initial}
                 animate={noAnim ? undefined : contentVariants.animate}
                 exit={noAnim ? undefined : contentVariants.exit}
@@ -60,7 +60,7 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <AdminRestrictedPage key={router.pathname}>
                     {children}
                 </AdminRestrictedPage>
-            </motion.div>
+            </m.div>
 
 
 

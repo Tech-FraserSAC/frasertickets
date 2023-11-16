@@ -64,6 +64,7 @@ function ProfileMenu() {
                         alt="profile picture"
                         className="border border-gray-900 p-0.5 rounded-full object-cover object-center"
                         unoptimized
+                        referrerPolicy="no-referrer"
                     />
 
                     <ChevronDownIcon

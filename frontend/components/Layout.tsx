@@ -4,7 +4,7 @@ import router from "next/router"
 // import Navbar from "./Navbar"
 // import Footer from "./Footer"
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useFirebaseAuth } from "./FirebaseAuthContext";
 import { useEffect } from "react";
 import { ComplexNavbar } from "./user/Navbar";
@@ -55,7 +55,7 @@ export default function Layout({ name, children, noAnim, className, userProtecte
 
             {/* <Navbar /> */}
 
-            <motion.div
+            <m.div
                 initial={noAnim ? undefined : contentVariants.initial}
                 animate={noAnim ? undefined : contentVariants.animate}
                 exit={noAnim ? undefined : contentVariants.exit}
@@ -63,7 +63,7 @@ export default function Layout({ name, children, noAnim, className, userProtecte
                 className={`flex-grow ${className}`}
             >
                 {children}
-            </motion.div>
+            </m.div>
         </div>
     )
 }
