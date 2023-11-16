@@ -11,3 +11,6 @@ service-account.json
 # swagger data (might have to remove later, unsure)
 swagger.json
 swagger.yaml
+
+# Any CSVs we might have to load, definitely don't want them going into repo
+.csv
