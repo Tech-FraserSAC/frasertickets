@@ -12,7 +12,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: %s [student #]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "usage: %s [--superadmin=true/false] [student #]\n", os.Args[0])
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -22,6 +22,7 @@ func main() {
 	godotenv.Load(".env.development")
 
 	flag.Usage = usage
+	superadminPtr := flag.Bool("superadmin", false, "whether the admin should also be a superadmin or not")
 	flag.Parse()
 
 	args := flag.Args()
@@ -49,7 +50,7 @@ func main() {
 
 	// Update Firebase claims
 	fmt.Printf("setting firebase auth claims of %s\n", userSummary)
-	claims := map[string]interface{}{"admin": true}
+	claims := map[string]interface{}{"admin": true, "superadmin": *superadminPtr}
 	err = lib.Auth.Client.SetCustomUserClaims(context.Background(), user.ID, claims)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "err while setting firebase user claims: %v\n", err)

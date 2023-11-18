@@ -16,6 +16,7 @@ import (
 type User struct {
 	ID            string `json:"id"             bson:"_id,omitempty"` // This is also the UUID in Firebase Auth
 	Admin         bool   `json:"admin"          bson:"admin"`
+	SuperAdmin    bool   `json:"superadmin"     bson:"superadmin"`
 	StudentNumber string `json:"student_number" bson:"student_number"`
 	FullName      string `json:"full_name"      bson:"full_name"`
 	ProfilePicURL string `json:"pfp_url"        bson:"pfp_url"`
@@ -134,6 +135,7 @@ func UpdateExistingUserByKeys(
 	// to limited extent
 	UPDATABLE_KEYS := map[string]bool{
 		"admin":          true,
+		"superadmin":     true,
 		"student_number": true,
 		"full_name":      true,
 		"pfp_url":        true,

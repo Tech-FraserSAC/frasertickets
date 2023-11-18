@@ -49,7 +49,7 @@ func main() {
 
 	// Update Firebase claims
 	fmt.Printf("setting firebase auth claims of %s\n", userSummary)
-	claims := map[string]interface{}{"admin": false}
+	claims := map[string]interface{}{"admin": false, "superadmin": false}
 	err = lib.Auth.Client.SetCustomUserClaims(context.Background(), user.ID, claims)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "err while setting firebase user claims: %v\n", err)
