@@ -11,6 +11,7 @@ import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEv
 import getSelfTickets from "@/lib/backend/ticket/getSelfTickets"
 import formatDateRange from "@/util/formatFullDate"
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext"
+import cleanDisplayName from "@/util/cleanDisplayName"
 
 const TicketCard = ({ ticket, fullName, allowTicketShow = true }: { ticket: TicketWithUserAndEventData, fullName: string, allowTicketShow?: boolean }) => {
     return (
@@ -80,7 +81,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Happening now</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {currentTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? user?.displayName! : ""} />)}
+                                {currentTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? cleanDisplayName(user?.displayName)! : ""} />)}
                             </div>
                         </div>
                     }
@@ -89,7 +90,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Upcoming</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {upcomingTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? user?.displayName! : ""} />)}
+                                {upcomingTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? cleanDisplayName(user?.displayName)! : ""} />)}
                             </div>
                         </div>
                     }
@@ -98,7 +99,7 @@ export default function EventsIndex() {
                         <div>
                             <Typography variant="h3" className="mb-2" color="blue-gray">Previous</Typography>
                             <div className="flex flex-wrap gap-4">
-                                {previousTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? user?.displayName! : ""} allowTicketShow={false} />)}
+                                {previousTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} fullName={authLoaded ? cleanDisplayName(user?.displayName!) : ""} allowTicketShow={false} />)}
                             </div>
                         </div>
                     }

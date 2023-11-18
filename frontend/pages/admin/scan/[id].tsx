@@ -7,6 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "react-query";
 import { ForbiddenComponent } from "@/pages/403";
+import cleanDisplayName from "@/util/cleanDisplayName";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 enum ScanStatus {
     SUCCESS,
@@ -161,10 +163,10 @@ export default function TicketScanningPage() {
                                                     quality={100}
                                                     unoptimized
                                                 />
-                                                <span>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</span>
+                                                <span>{cleanDisplayNameWithStudentNumber(scanData?.userData.full_name, scanData?.userData.student_number)}</span>
                                             </div>
                                         ) : (
-                                            <td className='border border-gray-500 px-4 py-1'>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</td>
+                                            <td className='border border-gray-500 px-4 py-1'>{cleanDisplayNameWithStudentNumber(scanData?.userData.full_name, scanData?.userData.student_number)}</td>
                                         )}
                                     </td>
                                 </tr>
@@ -260,10 +262,10 @@ export default function TicketScanningPage() {
                                                     quality={100}
                                                     unoptimized
                                                 />
-                                                <span>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</span>
+                                                <span>{cleanDisplayNameWithStudentNumber(scanData?.userData.full_name, scanData?.userData.student_number)}</span>
                                             </div>
                                         ) : (
-                                            <td className='border border-gray-500 px-4 py-1'>{scanData?.userData.full_name.replace(" John Fraser SS", "").replace(scanData?.userData.student_number, "")}</td>
+                                            <td className='border border-gray-500 px-4 py-1'>{cleanDisplayNameWithStudentNumber(scanData?.userData.full_name, scanData?.userData.student_number)}</td>
                                         )}
                                     </td>
                                 </tr>

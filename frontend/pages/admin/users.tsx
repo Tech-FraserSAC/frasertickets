@@ -2,6 +2,9 @@ import Layout from "@/components/admin/Layout";
 import getAllTickets from "@/lib/backend/ticket/getAllTickets";
 import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
 import getAllUsers from "@/lib/backend/user/getAllUsers";
+import checkIfTeacher from "@/util/checkIfTeacher";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import cleanDisplayName from "@/util/cleanDisplayName";
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,10 +49,15 @@ export default function UserTablePage() {
                                                         quality={100}
                                                         unoptimized
                                                     />
-                                                    <span>{user.full_name.replace(" John Fraser SS", "").replace(user.student_number, "")}</span>
+                                                    <span>{cleanDisplayNameWithStudentNumber(user.full_name, user.student_number)}</span>
+                                                    {
+                                                        checkIfTeacher(user.full_name) && (
+                                                            <span className="text-sm text-green-500">(teacher)</span>
+                                                        )
+                                                    }
                                                 </div>
                                             ) : (
-                                                <td className='border border-gray-500 px-4 py-1'>{user.full_name.replace(" John Fraser SS", "").replace(user.student_number, "")}</td>
+                                                <td className='border border-gray-500 px-4 py-1'>{cleanDisplayNameWithStudentNumber(user.full_name, user.student_number)}</td>
                                             )}
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{user.student_number}</td>

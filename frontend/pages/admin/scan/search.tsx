@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import Image from "next/image";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 interface CondensedEvent {
     name: string;
@@ -103,10 +104,10 @@ export default function TicketSearchAndScanPage() {
                                         quality={100}
                                         unoptimized
                                     />
-                                    <span>{ticketSearchMutation.data?.ownerData.full_name.replace(" John Fraser SS", "").replace(ticketSearchMutation.data?.ownerData.student_number, "")}</span>
+                                    <span>{cleanDisplayNameWithStudentNumber(ticketSearchMutation.data?.ownerData.full_name, ticketSearchMutation.data?.ownerData.student_number)}</span>
                                 </div>
                             ) : (
-                                <td className='border border-gray-500 px-4 py-1'>{ticketSearchMutation.data?.ownerData.full_name.replace(" John Fraser SS", "").replace(ticketSearchMutation.data?.ownerData.student_number, "")}</td>
+                                <td className='border border-gray-500 px-4 py-1'>{cleanDisplayNameWithStudentNumber(ticketSearchMutation.data?.ownerData.full_name, ticketSearchMutation.data?.ownerData.student_number)}</td>
                             )}
                         </td>
                     </tr>

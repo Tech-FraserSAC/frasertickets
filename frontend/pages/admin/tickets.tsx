@@ -14,10 +14,15 @@ import createNewTicket from "@/lib/backend/ticket/createNewTicket";
 import DatePickerModal from "@/components/DatePicker";
 import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import cleanDisplayName, { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import checkIfTeacher from "@/util/checkIfTeacher";
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
     const isMountedRef = useRef(false);
+
+    const { user, loaded } = useFirebaseAuth()
 
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
         const tickets = await getAllTickets();
@@ -148,6 +153,12 @@ export default function TicketViewingPage() {
                         alert("The user already has a ticket. Please check this and try again.");
                     } else if (err.response.status === 400) {
                         alert("There are no accounts associated with the given student number. Please ask them to register and try again.");
+                    } else if (err.response.status === 403 && studentNumber === cleanDisplayName(user?.displayName)) {
+                        // While 403 can be returned for a user who isn't allowed to post,
+                        // it would have likely been caused if the student number is the same as the one of the
+                        // given student. We don't check this beforehand because it's a lot easier / faster to find
+                        // the user's student number on the backend than it is on the frontend.
+                        alert("You are not allowed to make a ticket for yourself.");
                     }
                 } else {
                     alert("Something went wrong. Please try again.");
@@ -419,10 +430,15 @@ export default function TicketViewingPage() {
                                                         quality={100}
                                                         unoptimized
                                                     />
-                                                    <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
+                                                    <span>{cleanDisplayNameWithStudentNumber(ticket.ownerData.full_name, ticket.ownerData.student_number)}</span>
+                                                    {
+                                                        checkIfTeacher(ticket.ownerData.full_name) && (
+                                                            <span className="text-sm text-green-500">(teacher)</span>
+                                                        )
+                                                    }
                                                 </div>
                                             ) : (
-                                                <span>{ticket.ownerData.full_name.replace(" John Fraser SS", "").replace(ticket.ownerData.student_number, "")}</span>
+                                                <span>{cleanDisplayNameWithStudentNumber(ticket.ownerData.full_name, ticket.ownerData.student_number)}</span>
                                             )}
                                         </td>
                                         <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
