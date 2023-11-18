@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import dynamic from 'next/dynamic'
 import { Montserrat, Poppins } from 'next/font/google'
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const domMax = () => import("@/lib/anim/domMax").then(res => res.default)
 
@@ -23,16 +24,18 @@ export default function App({ Component, pageProps }: AppProps) {
     <main className={poppins.variable}>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <FirebaseAuthProvider>
-            <LazyMotion features={domMax} strict>
-              <AnimatePresence mode="wait">
-                <>
-                  <GoogleAnalytics trackPageViews />
-                  <Component {...pageProps} />
-                </>
-              </AnimatePresence>
-            </LazyMotion>
-          </FirebaseAuthProvider>
+          <GoogleOAuthProvider clientId="68422885738-urhljm34ldlebrcjmk4cpmuejpfpdqp4.apps.googleusercontent.com">
+            <FirebaseAuthProvider>
+              <LazyMotion features={domMax} strict>
+                <AnimatePresence mode="wait">
+                  <>
+                    <GoogleAnalytics trackPageViews />
+                    <Component {...pageProps} />
+                  </>
+                </AnimatePresence>
+              </LazyMotion>
+            </FirebaseAuthProvider>
+          </GoogleOAuthProvider>
         </QueryClientProvider>
       </ThemeProvider>
     </main>

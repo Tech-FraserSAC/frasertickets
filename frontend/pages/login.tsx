@@ -7,6 +7,7 @@ import {
     browserLocalPersistence,
     getRedirectResult,
     setPersistence,
+    signInWithCredential,
     signInWithRedirect,
     signOut
 } from "firebase/auth";
@@ -18,6 +19,7 @@ import addUser from "@/lib/backend/user/addUser";
 
 import { Typography } from "@material-tailwind/react";
 import GoogleButton from "react-google-button";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
     const [redirectStatus, setRedirectStatus] = useState({
@@ -105,14 +107,55 @@ export default function Login() {
     }, [user, redirectStatus])
     */
 
+
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
             <div className="flex flex-col items-center justify-center p-8 pb-6 bg-white rounded-lg shadow-md max-w-md">
                 <Typography variant="h3" color="blue-gray" className="text-center mb-2">Log into FraserTickets</Typography>
 
-                <GoogleButton
+                {/* <GoogleButton
                     onClick={logIn}
                     disabled={!redirectStatus.checked}
+                /> */}
+
+                <GoogleLogin
+                    onSuccess={credentialResponse => {
+                        console.log(credentialResponse);
+                        (async () => {
+                            try {
+                                const res = await signInWithCredential(auth, GoogleAuthProvider.credential(credentialResponse.credential))
+                                // Only allow people to join with student accounts
+                                if (res.user.email?.includes("@pdsb.net")) {
+                                    await addUser()
+
+                                    // Try registering them in DB if they are new
+                                    if (res.user.metadata.creationTime === res.user.metadata.lastSignInTime) {
+                                        // Give them a quick alert letting them know what's up with semi-formal tickets
+                                        alert("Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.")
+                                    }
+
+                                    router.push("/events")
+                                }
+                            }
+                            catch (e) {
+                                alert("Sorry, something went wrong when signing you in.")
+                                console.error(e)
+
+                                // Sign them out so they can sign in again
+                                await signOut(auth)
+                            }
+
+                        })()
+                    }}
+                    onError={() => {
+                        console.log('Login Failed');
+                    }}
+                    size="large"
+                    shape="pill"
+                    // ux_mode="redirect"
+                    use_fedcm_for_prompt
+                    hosted_domain="pdsb.net"
+                    theme="filled_blue"
                 />
 
                 {
