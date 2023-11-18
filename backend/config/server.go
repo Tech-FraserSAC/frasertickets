@@ -50,7 +50,7 @@ func (s *Server) MountHandlers() {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "sentry-trace", "baggage"},
 	}))
-	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
+	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Second))
 	s.Router.Use(render.SetContentType(render.ContentTypeJSON))
 	s.Router.Use(middleware.Recoverer)
 	s.Router.Use(s.SentryHandler.Handle)
