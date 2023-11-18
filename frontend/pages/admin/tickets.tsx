@@ -13,6 +13,7 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import createNewTicket from "@/lib/backend/ticket/createNewTicket";
 import DatePickerModal from "@/components/DatePicker";
 import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
+import { studentOrTeacherNumberRegex } from "@/util/regexps";
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
@@ -122,11 +123,11 @@ export default function TicketViewingPage() {
     const createNewTicketUI = async () => {
         setModalSubmitting(true)
 
-        const studentNumber = Number(modalStudentNumberRef.current?.value);
+        const studentNumber = modalStudentNumberRef.current?.value ?? "";
         const maxScanCount = Number(modalMaxScanCountRef.current?.value ?? 0);
 
-        if (Number.isNaN(studentNumber) || studentNumber < 100000 || studentNumber > 9999999) {
-            alert("Please provide a valid student number.")
+        if (!studentOrTeacherNumberRegex.test(studentNumber)) {
+            alert("Please provide a valid student / teacher number. If you're typing in a teacher number, make sure to include the p00.")
         } else if (Number.isNaN(maxScanCount) || maxScanCount < 0 || Math.floor(maxScanCount) !== maxScanCount) {
             alert("Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.")
         } else if (modalEventChosen === null || modalEventQuery !== "") {
@@ -201,7 +202,7 @@ export default function TicketViewingPage() {
                                                     id="studentNumber"
                                                     required
                                                     minLength={6}
-                                                    maxLength={7}
+                                                    maxLength={8}
                                                     ref={modalStudentNumberRef}
                                                 />
 
