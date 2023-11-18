@@ -153,12 +153,14 @@ export default function TicketViewingPage() {
                         alert("The user already has a ticket. Please check this and try again.");
                     } else if (err.response.status === 400) {
                         alert("There are no accounts associated with the given student number. Please ask them to register and try again.");
-                    } else if (err.response.status === 403 && studentNumber === cleanDisplayName(user?.displayName)) {
+                    } else if (err.response.status === 403 && studentNumber === user?.email?.replace("@pdsb.net", "")) {
                         // While 403 can be returned for a user who isn't allowed to post,
                         // it would have likely been caused if the student number is the same as the one of the
                         // given student. We don't check this beforehand because it's a lot easier / faster to find
                         // the user's student number on the backend than it is on the frontend.
                         alert("You are not allowed to make a ticket for yourself.");
+                    } else {
+                        alert("Something went wrong. Please try again.");
                     }
                 } else {
                     alert("Something went wrong. Please try again.");

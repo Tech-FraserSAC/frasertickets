@@ -328,6 +328,16 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check whether user is making ticket for themselves
+	token, err := util.GetUserTokenFromContext(r.Context())
+	if token.UID == user.ID {
+		if isSuperAdmin, ok := token.Claims["superadmin"]; !ok || !(isSuperAdmin.(bool)) {
+			log.Warn().Err(err).Str("uid", token.UID).Msg("admin tried making a ticket for themselves")
+			render.Render(w, r, util.ErrForbidden)
+			return
+		}
+	}
+
 	// Transfer all data from raw to actual ticket
 	ticket.Owner = user.ID
 	ticket.Event = eventID
@@ -375,7 +385,6 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write audit info log
-	token, err := util.GetUserTokenFromContext(r.Context())
 	requesterUID := ""
 	if err == nil {
 		requesterUID = token.UID
