@@ -24,7 +24,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <main className={poppins.variable}>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <GoogleOAuthProvider clientId="68422885738-urhljm34ldlebrcjmk4cpmuejpfpdqp4.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GCLOUD_CLIENT_ID ?? ""}>
             <FirebaseAuthProvider>
               <LazyMotion features={domMax} strict>
                 <AnimatePresence mode="wait">
