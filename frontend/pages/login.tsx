@@ -52,6 +52,7 @@ export default function Login() {
     }, [])
 
     const loginUri = `${inBrowser ? window.location.origin : ""}/auth/redirect`
+    console.log(loginUri)
 
     // Check whether a new login occured, if so, try to create a user object in DB
     useEffect(() => {
