@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
 
         // Create a new response object
         const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
-        const response = NextResponse.redirect(`${baseUrl}/login`);
+        const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
         // Set the cookie in the response header
         response.cookies.set('credential', credential, {
@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
         console.error(e);
 
         const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
-        const response = NextResponse.redirect(`${baseUrl}/login`);
+        const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
         return response;
     }
