@@ -48,23 +48,32 @@ export const config = {
 */
 
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
-    const formData = await request.formData();
-    const credential = formData.get("credential")?.toString() ?? "";
+    try {
+        const formData = await request.formData();
+        const credential = formData.get("credential")?.toString() ?? "";
 
-    // Create a new response object
-    const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
-    const response = NextResponse.redirect(`${baseUrl}/login`);
+        // Create a new response object
+        const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+        const response = NextResponse.redirect(`${baseUrl}/login`);
 
-    // Set the cookie in the response header
-    response.cookies.set('credential', credential, {
-        httpOnly: false,
-        maxAge: 60, // 1 minutes
-        path: '/login',
-        sameSite: 'strict',
-    });
+        // Set the cookie in the response header
+        response.cookies.set('credential', credential, {
+            httpOnly: false,
+            maxAge: 60, // 1 minutes
+            path: '/login',
+            sameSite: 'strict',
+        });
 
-    // Return the response
-    return response;
+        // Return the response
+        return response;
+    } catch (e) {
+        console.error(e);
+
+        const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+        const response = NextResponse.redirect(`${baseUrl}/login`);
+
+        return response;
+    }
 }
 
 export const config = {
