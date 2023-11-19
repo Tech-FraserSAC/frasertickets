@@ -1,6 +1,8 @@
 import { NextFetchEvent, NextResponse, URLPattern } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { serialize } from "cookie"
 
+/*
 // Gets the path segments from an entire path
 const PATTERNS = [
     [
@@ -43,3 +45,28 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
 export const config = {
     matcher: '/__/auth/:path*',
 };
+*/
+
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
+    const formData = await request.formData();
+    const credential = formData.get("credential")?.toString() ?? "";
+
+    // Create a new response object
+    const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+    const response = NextResponse.redirect(`${baseUrl}/login`);
+
+    // Set the cookie in the response header
+    response.cookies.set('credential', credential, {
+        httpOnly: false,
+        maxAge: 60, // 1 minutes
+        path: '/login',
+        sameSite: 'strict',
+    });
+
+    // Return the response
+    return response;
+}
+
+export const config = {
+    matcher: '/auth/redirect'
+}

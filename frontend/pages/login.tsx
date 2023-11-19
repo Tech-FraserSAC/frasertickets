@@ -20,13 +20,18 @@ import addUser from "@/lib/backend/user/addUser";
 import { Typography } from "@material-tailwind/react";
 import GoogleButton from "react-google-button";
 import { GoogleLogin } from "@react-oauth/google";
+import { GetServerSideProps } from "next";
+import parseClientCookies from "@/util/parseCookies";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Login() {
-    const [redirectStatus, setRedirectStatus] = useState({
-        checked: false,
-        redirected: false,
-        actedUpon: false
-    })
+    // const [redirectStatus, setRedirectStatus] = useState({
+    //     checked: false,
+    //     redirected: false,
+    //     actedUpon: false
+    // })
+
+    const [signInReady, setSignInReady] = useState(false)
 
     const authProvider = new GoogleAuthProvider()
     authProvider.setCustomParameters({
@@ -46,8 +51,48 @@ export default function Login() {
         setInBrowser(true)
     }, [])
 
+    const loginUri = `${inBrowser ? window.location.origin : ""}/auth/redirect`
+    console.log(loginUri)
+
     // Check whether a new login occured, if so, try to create a user object in DB
     useEffect(() => {
+        const cookies = parseClientCookies();
+
+        if ("credential" in cookies) {
+            (async () => {
+                try {
+                    const res = await signInWithCredential(auth, GoogleAuthProvider.credential(cookies.credential))
+
+                    // Only allow people to join with student accounts
+                    if (res.user.email?.includes("@pdsb.net")) {
+                        await addUser()
+
+                        // Try registering them in DB if they are new
+                        if (res.user.metadata.creationTime === res.user.metadata.lastSignInTime) {
+                            // Give them a quick alert letting them know what's up with semi-formal tickets
+                            alert("Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.")
+                        }
+
+                        await router.push("/events")
+                    }
+                }
+                catch (e) {
+                    alert("Sorry, something went wrong when signing you in.")
+                    console.error(e)
+
+                    // Sign them out so they can sign in again
+                    await signOut(auth)
+                }
+
+                // Delete the cookie so we don't accidently use it later
+                document.cookie = "credential=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/login;";
+                setSignInReady(true)
+            })()
+        } else {
+            setSignInReady(true)
+        }
+
+        /*
         (async () => {
             const redirectRes = await getRedirectResult(auth)
 
@@ -88,6 +133,7 @@ export default function Login() {
                 actedUpon: false
             })
         })()
+        */
     }, [])
 
     /*
@@ -118,45 +164,24 @@ export default function Login() {
                     disabled={!redirectStatus.checked}
                 /> */}
 
-                <GoogleLogin
-                    onSuccess={credentialResponse => {
-                        console.log(credentialResponse);
-                        (async () => {
-                            try {
-                                const res = await signInWithCredential(auth, GoogleAuthProvider.credential(credentialResponse.credential))
-                                // Only allow people to join with student accounts
-                                if (res.user.email?.includes("@pdsb.net")) {
-                                    await addUser()
-
-                                    // Try registering them in DB if they are new
-                                    if (res.user.metadata.creationTime === res.user.metadata.lastSignInTime) {
-                                        // Give them a quick alert letting them know what's up with semi-formal tickets
-                                        alert("Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.")
-                                    }
-
-                                    router.push("/events")
-                                }
-                            }
-                            catch (e) {
-                                alert("Sorry, something went wrong when signing you in.")
-                                console.error(e)
-
-                                // Sign them out so they can sign in again
-                                await signOut(auth)
-                            }
-
-                        })()
-                    }}
-                    onError={() => {
-                        console.log('Login Failed');
-                    }}
-                    size="large"
-                    shape="pill"
-                    // ux_mode="redirect"
-                    use_fedcm_for_prompt
-                    hosted_domain="pdsb.net"
-                    theme="filled_blue"
-                />
+                {signInReady ? (
+                    <GoogleLogin
+                        onSuccess={() => { }}
+                        size="large"
+                        shape="pill"
+                        ux_mode="redirect"
+                        use_fedcm_for_prompt
+                        hosted_domain="pdsb.net"
+                        theme="filled_blue"
+                        login_uri={loginUri}
+                    />
+                ) : (
+                    <div className="flex flex-row gap-2 items-center">
+                        <LoadingSpinner />
+                        <Typography variant="paragraph" className="text-center">Loading...</Typography>
+                    </div>
+                )
+                }
 
                 {
                     (inBrowser && navigator.userAgent.includes("Instagram")) ?
