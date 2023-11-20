@@ -65,7 +65,7 @@ export default function TicketScanningPage() {
                     <div className="flex flex-col items-center">
                         <Typography variant="h2" className="text-center text-red-500">Invalid QR Code</Typography>
                         <Typography variant="lead" className="text-center lg:w-1/2 mb-4">This QR code doesn&apos;t match our internal format. Try scanning the QR code again.</Typography>
-                        
+
                         <div className="flex flex-wrap gap-2 mt-2">
                             <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
                                 Reload
@@ -120,15 +120,15 @@ export default function TicketScanningPage() {
                                 <tr className="border-collapse border-2 border-gray-500">
                                     <td className="border-collapse border-2 border-gray-500 px-2">Previous Scan Timestamp</td>
                                     <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {/** We pass in the previous as current for when max is reached **/ 
-                                        scanData?.timestamp.toLocaleString("en-US", {
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: '2-digit',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            second: '2-digit'
-                                        })}
+                                        {/** We pass in the previous as current for when max is reached **/
+                                            scanData?.timestamp.toLocaleString("en-US", {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit'
+                                            })}
                                     </td>
                                 </tr>
 
@@ -154,12 +154,12 @@ export default function TicketScanningPage() {
                                     <td className="border-collapse border-2 border-gray-500 text-right p-2">
                                         {scanData?.userData.pfp_url ? (
                                             <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image 
-                                                    src={scanData?.userData.pfp_url} 
-                                                    alt="pfp" 
-                                                    height={25} 
-                                                    width={25} 
-                                                    className="rounded-full" 
+                                                <Image
+                                                    src={scanData?.userData.pfp_url}
+                                                    alt="pfp"
+                                                    height={25}
+                                                    width={25}
+                                                    className="rounded-full"
                                                     quality={100}
                                                     unoptimized
                                                 />
@@ -177,6 +177,9 @@ export default function TicketScanningPage() {
                             <Link className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white" href="/admin/scan">
                                 Scan New Ticket
                             </Link>
+                            <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
+                                Reload
+                            </button>
                         </div>
                     </div>
                 )
@@ -253,12 +256,12 @@ export default function TicketScanningPage() {
                                     <td className="border-collapse border-2 border-gray-500 text-right p-2">
                                         {scanData?.userData.pfp_url ? (
                                             <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image 
-                                                    src={scanData?.userData.pfp_url} 
-                                                    alt="pfp" 
-                                                    height={25} 
-                                                    width={25} 
-                                                    className="rounded-full" 
+                                                <Image
+                                                    src={scanData?.userData.pfp_url}
+                                                    alt="pfp"
+                                                    height={25}
+                                                    width={25}
+                                                    className="rounded-full"
                                                     quality={100}
                                                     unoptimized
                                                 />
@@ -276,6 +279,9 @@ export default function TicketScanningPage() {
                             <Link className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white" href="/admin/scan">
                                 Scan New Ticket
                             </Link>
+                            <button className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white" onClick={router.reload}>
+                                Re-scan Ticket
+                            </button>
                         </div>
                     </div>
                 )
