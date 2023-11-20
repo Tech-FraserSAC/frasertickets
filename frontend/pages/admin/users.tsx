@@ -14,7 +14,7 @@ import { useQuery } from "react-query";
 import { AgGridReact } from 'ag-grid-react'; // the AG Grid React Component
 
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
-import 'ag-grid-community/styles/ag-theme-material.css'; // Optional theme CSS
+import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
 import { ColDef } from "ag-grid-community";
 
 const ProfilePictureCellRenderer = (props: any) => {
@@ -68,8 +68,8 @@ export default function UserTablePage() {
             field: "student_number",
             headerName: "Student #",
             comparator: (a, b, nodeA, nodeB, isDesc) => {
-                const numA = Number(a)
-                const numB = Number(b)
+                const numA = Number(a.replace(/\D/g,''))
+                const numB = Number(b.replace(/\D/g,''))
                 if (Number.isNaN(numA) || Number.isNaN(numB)) {
                     return 0;
                 }
@@ -94,8 +94,8 @@ export default function UserTablePage() {
     return (
         <Layout name="Users" className="p-4 md:p-8 lg:px-12">
             <Typography variant="h1" className="text-center mb-4">Users</Typography>
-            <div className="overflow-x-scroll">
-                <div className="ag-theme-material" style={{ width: "100%", height: "68vh" }}>
+            <div className="overflow-x-auto w-full">
+                <div className="ag-theme-alpine" style={{ width: "100%", height: "68vh" }}>
                     <AgGridReact
                         rowData={users}
                         columnDefs={columnDefs}
