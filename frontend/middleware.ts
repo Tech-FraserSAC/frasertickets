@@ -2,7 +2,6 @@ import { NextFetchEvent, NextResponse, URLPattern } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { serialize } from "cookie"
 
-/*
 // Gets the path segments from an entire path
 const PATTERNS = [
     [
@@ -15,7 +14,7 @@ const PATTERNS = [
 // Runs path extractors on url 
 const params = (url: string) => {
     const input = url.split('?')[0]
-    let result: {[key: string]: any} = {}
+    let result: { [key: string]: any } = {}
 
     for (const [pattern, handler] of PATTERNS) {
         // @ts-ignore
@@ -29,53 +28,47 @@ const params = (url: string) => {
     return result
 }
 
-// Serves the middleware properly
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
-    const { path } = params(request.url);
-    const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+    if (request.nextUrl.pathname.startsWith("/auth")) {
+        try {
+            const formData = await request.formData();
+            const credential = formData.get("credential")?.toString() ?? "";
 
-    const data = await (await fetch(new URL(`auth_helpers/${path}`, baseUrl))).text();
-    const response = new NextResponse(data);
-    response.headers.set("Content-Type", (path.includes(".js") ? "text/javascript;" : "text/html;") + " charset=utf-8")
+            // Create a new response object
+            const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+            const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
-    return response;
-}
+            // Set the cookie in the response header
+            response.cookies.set('credential', credential, {
+                httpOnly: false,
+                maxAge: 60, // 1 minute
+                path: '/login',
+                sameSite: 'strict',
+            });
 
-// See "Matching Paths" below to learn more
-export const config = {
-    matcher: '/__/auth/:path*',
-};
-*/
+            // Return the response
+            return response;
+        } catch (e) {
+            console.error(e);
 
-export async function middleware(request: NextRequest, event: NextFetchEvent) {
-    try {
-        const formData = await request.formData();
-        const credential = formData.get("credential")?.toString() ?? "";
+            const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
+            const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
-        // Create a new response object
+            return response;
+        }
+    } else if (request.nextUrl.pathname.startsWith("/__/auth")) {
+        // Serve firebase auth helpers as static HTML/JS/CSS instead of just regular files
+        const { path } = params(request.url);
         const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
-        const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
-        // Set the cookie in the response header
-        response.cookies.set('credential', credential, {
-            httpOnly: false,
-            maxAge: 60, // 1 minutes
-            path: '/login',
-            sameSite: 'strict',
-        });
-
-        // Return the response
-        return response;
-    } catch (e) {
-        console.error(e);
-
-        const baseUrl = request.url.substring(0, request.url.indexOf(new URL(request.url).pathname));
-        const response = NextResponse.redirect(`${baseUrl}/login`, 302);
+        const data = await (await fetch(new URL(`auth_helpers/${path}`, baseUrl))).text();
+        const response = new NextResponse(data);
+        response.headers.set("Content-Type", (path.includes(".js") ? "text/javascript;" : "text/html;") + " charset=utf-8")
 
         return response;
     }
 }
 
 export const config = {
-    matcher: '/auth/redirect'
+    matcher: ['/auth/redirect', '/__/auth/:path*']
 }

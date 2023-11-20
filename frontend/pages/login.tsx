@@ -58,9 +58,15 @@ export default function Login() {
         const cookies = parseClientCookies();
 
         if ("credential" in cookies) {
+            const credential = cookies.credential
+            // Delete the cookie so we don't accidently use it later
+            // Immediately cleared so user can refresh and instantly try again
+            // if something goes wrong
+            document.cookie = "credential=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/login;";
+
             (async () => {
                 try {
-                    const res = await signInWithCredential(auth, GoogleAuthProvider.credential(cookies.credential))
+                    const res = await signInWithCredential(auth, GoogleAuthProvider.credential(credential))
 
                     // Only allow people to join with student accounts
                     if (res.user.email?.includes("@pdsb.net")) {
@@ -83,8 +89,6 @@ export default function Login() {
                     await signOut(auth)
                 }
 
-                // Delete the cookie so we don't accidently use it later
-                document.cookie = "credential=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/login;";
                 setSignInReady(true)
             })()
         } else {
