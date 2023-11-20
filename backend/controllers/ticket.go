@@ -34,6 +34,10 @@ type ticketControllerScanRequestBody struct {
 	TicketID string `json:"ticketID" validate:"required,mongodb"`
 }
 
+type ticketControllerUpdateRequestBody struct {
+	MaxScanCount int `json:"maxScanCount"`
+}
+
 type TicketController struct{}
 
 func (ctrl TicketController) Routes() chi.Router {
@@ -62,6 +66,7 @@ func (ctrl TicketController) Routes() chi.Router {
 		// Admin-only routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuthorizerMiddleware)
+			r.Patch("/", ctrl.Update)  // PATCH /events/{id} - update ticket, only available to admins
 			r.Delete("/", ctrl.Delete) // DELETE /events/{id} - delete ticket, only available to admins
 		})
 	})
@@ -722,6 +727,104 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 		Str("action", "scanTicket").
 		Bool("privileged", true).
 		Msg("scanned ticket")
+}
+
+// Update updates a ticket.
+//
+//	@Summary		Update a ticket
+//	@Description	Updates a ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept			json
+//	@Param			id	path		string	true	"Ticket ID"
+//	@Success		200
+//	@Failure		400
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/tickets/{id} [patch]
+func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
+	var updateReq ticketControllerUpdateRequestBody
+
+	// Get ID of requested ticket
+	id := chi.URLParam(r, "id")
+
+	// Parse JSON body
+	bodyDecoder := json.NewDecoder(r.Body)
+	bodyDecoder.DisallowUnknownFields()
+	err := bodyDecoder.Decode(&updateReq)
+	if err != nil {
+		log.Error().Err(err).Msg("could not parse body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Validate JSON body
+	validate := validator.New()
+	err = validate.Struct(updateReq)
+	if err != nil {
+		log.Error().Err(err).Msg("could not validate body")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Try to convert the given ID into an Object ID
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error().Err(err).Msg("could not convert url param to object id")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Try to fetch from DB
+	_, err = models.GetTicket(r.Context(), objID)
+
+	// Handle errors
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			render.Render(w, r, util.ErrNotFound)
+			return
+		}
+
+		log.Error().Err(err).Msg("could not find ticket")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	fmt.Println(updateReq)
+
+	updateBody := make(map[string]interface{})
+	if updateReq.MaxScanCount != 0 {
+		if updateReq.MaxScanCount == -1 {
+			updateBody["maxScanCount"] = 0
+		} else {
+			updateBody["maxScanCount"] = updateReq.MaxScanCount
+		}
+	}
+
+	err = models.UpdateExistingTicketByKeys(r.Context(), objID, updateBody)
+	if err != nil {
+		log.Error().Err(err).Msg("could not update ticket")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "ticket").
+		Str("requester_uid", requesterUID).
+		Str("ticket_id", objID.Hex()).
+		Any("updates", updateBody).
+		Str("action", "updateTicket").
+		Bool("privileged", true).
+		Msg("updated ticket")
 }
 
 // Delete deletes a ticket.

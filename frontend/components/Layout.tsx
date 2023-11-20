@@ -37,6 +37,8 @@ export default function Layout({ name, children, noAnim, className, userProtecte
                 <title>{title}</title>
                 <meta name="description" content={description} />
 
+                {userProtected && <meta name="referrer" content="no-referrer" />}
+
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={description} />
                 <meta property="og:type" content="website" />

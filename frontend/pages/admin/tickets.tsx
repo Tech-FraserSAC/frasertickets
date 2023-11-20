@@ -1,34 +1,56 @@
 import Layout from "@/components/admin/Layout";
 import deleteTicket from "@/lib/backend/ticket/deleteTicket";
 import getAllTickets from "@/lib/backend/ticket/getAllTickets";
-import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
 import { Typography } from "@material-tailwind/react";
-import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import createNewTicket from "@/lib/backend/ticket/createNewTicket";
-import DatePickerModal from "@/components/DatePicker";
-import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import cleanDisplayName, { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
-import checkIfTeacher from "@/util/checkIfTeacher";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import updateTicket from "@/lib/backend/ticket/updateTicket";
+import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
+import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
+
+const EventCellRenderer = (props: any) => {
+    return (
+        <div className="w-full h-full flex items-center">
+            <Link
+                href={`/events/${props.data.eventId}`}
+                className="text-blue-500 hover:text-blue-700 duration-75 hover:underline"
+            >
+                {props.data.eventData.name}
+            </Link>
+        </div>
+    )
+}
+
+const ViewButtonCellRenderer = (props: any) => {
+    return (
+        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
+            <Link
+                href={`/tickets/${props.data.id}`}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 font-semibold text-xs text-white rounded-lg"
+                rel="noopener noreferrer" target="_blank"
+            >
+                View
+            </Link>
+        </div>
+    )
+}
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
-    const isMountedRef = useRef(false);
 
-    const { user, loaded } = useFirebaseAuth()
+    const { user } = useFirebaseAuth()
 
-    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
-        const tickets = await getAllTickets();
-        updateFilteredTickets(tickets);
-        return tickets;
-    });
+    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', getAllTickets);
 
     // Just the names and IDs to put in the modal
     const { isLoading: eventsAreLoading, error: eventFetchError, data: eventNames } = useQuery('frasertix-admin-tickets-events', async () => {
@@ -48,16 +70,31 @@ export default function TicketViewingPage() {
         }
     })
 
-    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+    const updateMaxScanCountTicketMutation = useMutation(({ ticketId, newMaxScanCountRaw }: { ticketId: string, newMaxScanCountRaw: string }) => {
+        let num = Number(newMaxScanCountRaw)
+        if (Number.isNaN(num) || !Number.isInteger(num) || !Number.isFinite(num) || num < 0) {
+            alert("Please provide a number larger than 0, or 0 for infinite scans.")
+            throw "New max scan count is invalid"
+        }
+
+        if (num === 0) {
+            // Need to pass -1 to backend since no value gets parsed as 0 in backend
+            num = -1;
+        }
+        return updateTicket(ticketId, {
+            maxScanCount: num
+        })
+    }, {
         onSuccess: () => {
             return refetchTickets()
         }
     })
 
-    const [eventNameFilter, setEventNameFilter] = useState("");
-    const [studentNameFilter, setStudentNameFilter] = useState("");
-    const [studentNumberFilter, setStudentNumberFilter] = useState("");
-    const [filteredTickets, setFilteredTickets] = useState<TicketWithUserAndEventData[] | null>(null);
+    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+        onSuccess: () => {
+            return refetchTickets()
+        }
+    })
 
     const [modalOpen, setModalOpen] = useState(false);
     const modalStudentNumberRef = useRef<HTMLInputElement>(null);
@@ -66,47 +103,12 @@ export default function TicketViewingPage() {
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
 
-    const [datePickerSelection, setDatePickerSelection] = useState<Range>(
-        {
-            startDate: undefined,
-            endDate: undefined,
-            key: 'selection'
-        }
-    );
-
     const filteredEventNames =
         modalEventQuery === ""
             ? eventNames
             : eventNames?.filter((event) => {
                 return event.name.toLocaleLowerCase().includes(modalEventQuery.toLocaleLowerCase())
             })
-
-    // TODO: Replace this with logic that requests the server
-    const updateFilteredTickets = useCallback((tickets: TicketWithUserAndEventData[] | undefined) => {
-        setFilteredTickets(!tickets ? null : tickets.filter((ticket) => {
-            const eventNameMatches = ticket.eventData.name.toLocaleLowerCase().indexOf(eventNameFilter.toLocaleLowerCase()) != -1;
-            const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
-            const studentNumberMatches = ticket.ownerData.student_number.indexOf(studentNumberFilter) != -1;
-
-            const timestampMatchesStartDate = datePickerSelection.startDate ?
-                datePickerSelection.startDate.getTime() < ticket.timestamp.getTime() : true;
-            const timestampMatchesEndDate = datePickerSelection.endDate ?
-                datePickerSelection.endDate.getTime() > ticket.timestamp.getTime() : true;
-            let timestampMatches = timestampMatchesStartDate && timestampMatchesEndDate;
-
-            return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
-        }))
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
-
-    // Only refresh the table once done typing
-    useEffect(() => {
-        if (isMountedRef.current) {
-            const timeoutId = setTimeout(() => updateFilteredTickets(tickets), 250);
-            return () => clearTimeout(timeoutId);
-        } else {
-            isMountedRef.current = true;
-        }
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection, updateFilteredTickets, tickets])
 
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?")
@@ -170,6 +172,132 @@ export default function TicketViewingPage() {
         }
 
         setModalSubmitting(false);
+    }
+
+    const DeleteButtonCellRenderer = (props: any) => (
+        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
+            <button
+                className="px-4 py-2 bg-red-500 hover:bg-red-700 duration-75 font-semibold text-xs text-white rounded-lg"
+                onClick={() => deleteTicketWithId(props.data.id)}
+            >
+                Delete
+            </button>
+        </div>
+    )
+
+    const colsDefs: ColDef[] = [
+        {
+            field: "timestamp",
+            headerName: "Created Time",
+            valueFormatter: (params: any) => (
+                params.data.timestamp.toLocaleString("en-US", {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                })
+            ),
+            sort: "desc",
+        },
+        {
+            field: "eventData.name",
+            headerName: "Event",
+            cellRenderer: EventCellRenderer,
+        },
+        {
+            field: "ownerData.full_name",
+            headerName: "Student Name",
+            valueFormatter: (params: any) => cleanDisplayNameWithStudentNumber(
+                params.data.ownerData.full_name,
+                params.data.ownerData.student_number
+            )
+        },
+        {
+            field: "ownerData.student_number",
+            headerName: "Student #",
+            comparator: (a, b, nodeA, nodeB, isDesc) => {
+                const numA = Number(a.replace(/\D/g, ''))
+                const numB = Number(b.replace(/\D/g, ''))
+                if (Number.isNaN(numA) || Number.isNaN(numB)) {
+                    return 0;
+                }
+
+                return numA - numB
+            },
+        },
+        {
+            field: "scanCount",
+            headerName: "Scans",
+        },
+        {
+            field: "lastScanTime",
+            headerName: "Last Scan Time",
+            valueFormatter: (params: any) => (
+                params.data.scanCount === 0
+                    ? "N/A"
+                    : params.data.lastScanTime.toLocaleString("en-US", {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    })
+            )
+        },
+        {
+            field: "maxScanCount",
+            headerName: "Max Scan Count",
+            valueFormatter: (params: any) => (params.data.maxScanCount === 0 ? "∞" : params.data.maxScanCount),
+            comparator: (a, b, nodeA, nodeB, isDesc) => {
+                return (a === 0 ? Infinity : a) - (b === 0 ? Infinity : b)
+            },
+            editable: true,
+            valueGetter: params => params.data.maxScanCount,
+            valueSetter: params => {
+                try {
+                    updateMaxScanCountTicketMutation.mutate({
+                        ticketId: params.data.id,
+                        newMaxScanCountRaw: params.newValue
+                    })
+                    return true
+                } catch (e) {
+                    console.error(e)
+                    return false
+                }
+            }
+        },
+        {
+            colId: "viewAction",
+            headerName: "View",
+            sortable: false,
+            filter: false,
+            cellRenderer: ViewButtonCellRenderer,
+            flex: 0,
+            width: 100
+        },
+        {
+            colId: "deleteAction",
+            headerName: "Delete",
+            sortable: false,
+            filter: false,
+            cellRenderer: DeleteButtonCellRenderer,
+            flex: 0,
+            width: 100
+        },
+    ]
+
+    const defaultColDef: ColDef = {
+        sortable: true,
+        filter: true,
+        flex: 1,
+        rowDrag: false,
+        lockVisible: true,
+        resizable: true
     }
 
     return (
@@ -335,168 +463,17 @@ export default function TicketViewingPage() {
             {ticketsAreLoading && (
                 <Typography variant="paragraph" className="text-center lg:w-3/4">Loading...</Typography>
             )}
-            {tickets && (
-                <div className='overflow-x-auto w-full'>
-                    <table className="table table-fixed border-collapse mb-6 min-w-fit lg:w-full">
-                        <thead>
-                            <tr className="bg-transparent">
-                                <th>
-                                    <div className="mb-2 lg:mb-0">
-                                        <DatePickerModal
-                                            state={datePickerSelection}
-                                            setState={setDatePickerSelection}
-                                        />
-                                    </div>
-                                </th>
-                                <th>
-                                    <input
-                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
-                                        placeholder="Event name..."
-                                        value={eventNameFilter}
-                                        onInput={e => setEventNameFilter(e.currentTarget.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <input
-                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
-                                        placeholder="Student name..."
-                                        value={studentNameFilter}
-                                        onInput={e => setStudentNameFilter(e.currentTarget.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <input
-                                        className="px-4 py-2 m-1 rounded-lg bg-white text-black text-sm w-5/6 placeholder:text-gray-600 font-normal border-2 border-transparent duration-75 active:border-blue-200 transition-all"
-                                        placeholder="Student number..."
-                                        value={studentNumberFilter}
-                                        onInput={e => setStudentNumberFilter(e.currentTarget.value)}
-                                    />
-                                </th>
-                                <th></th>
-                                <th></th>
-                            </tr>
 
-                            <tr className="bg-gray-400 border border-gray-500 border-collapse text-black font-semibold text-md lg:text-xl">
-                                <th className='px-4 border border-gray-500 py-1'>Created Time</th>
-                                <th className='px-6 border border-gray-500'>Event</th>
-                                <th className='px-4 border border-gray-500'>Student Name</th>
-                                <th className='px-4 border border-gray-500'>Student #</th>
-                                <th className='px-4 border border-gray-500'>Scans</th>
-                                <th className='px-4 border border-gray-500'>Last Scan Time</th>
-                                <th className='px-4 border border-gray-500'>Max Scan Count</th>
-                                <th className='px-4 border border-gray-500'>Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody className='text-gray-800 text-center text-md'>
-                            {filteredTickets && filteredTickets.map(ticket => {
-                                const timestampStr = ticket.timestamp.toLocaleString("en-US", {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit',
-                                });
-
-                                const lastScanTimestampStr = ticket.scanCount === 0
-                                    ? "N/A"
-                                    : ticket.lastScanTime.toLocaleString("en-US", {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        second: '2-digit',
-                                    });
-
-                                return (
-                                    <tr key={ticket.id}>
-                                        <td className='border border-gray-500 px-4 py-1'>{timestampStr}</td>
-                                        <td className='border border-gray-500 px-4 py-1'>
-                                            <Link href={`/events/${ticket.eventId}`} className="text-blue-500 hover:text-blue-700 duration-75 hover:underline">
-                                                {ticket.eventData.name}
-                                            </Link>
-                                        </td>
-                                        <td className='px-4 py-1 border border-gray-500'>
-                                            {(ticket.ownerData.pfp_url && ticket.ownerData.full_name.includes("John Fraser SS")) ? (
-                                                <div className="flex flex-col xl:flex-row gap-1 items-center justify-center w-full">
-                                                    <Image 
-                                                        src={ticket.ownerData.pfp_url} 
-                                                        alt="pfp" 
-                                                        height={25} 
-                                                        width={25} 
-                                                        className="rounded-full" 
-                                                        quality={100}
-                                                        unoptimized
-                                                    />
-                                                    <span>{cleanDisplayNameWithStudentNumber(ticket.ownerData.full_name, ticket.ownerData.student_number)}</span>
-                                                    {
-                                                        checkIfTeacher(ticket.ownerData.full_name) && (
-                                                            <span className="text-sm text-green-500">(teacher)</span>
-                                                        )
-                                                    }
-                                                </div>
-                                            ) : (
-                                                <span>{cleanDisplayNameWithStudentNumber(ticket.ownerData.full_name, ticket.ownerData.student_number)}</span>
-                                            )}
-                                        </td>
-                                        <td className='border border-gray-500 px-4 py-1'>{ticket.ownerData.student_number}</td>
-                                        <td className='border border-gray-500 px-4 py-1'>{ticket.scanCount.toString()}</td>
-                                        <td className='border border-gray-500 px-4 py-1'>{lastScanTimestampStr}</td>
-                                        <td className='border border-gray-500 px-4 py-1'>{ticket.maxScanCount === 0 ? <>&infin;</> : ticket.maxScanCount.toString()}</td>
-                                        <td className='border border-gray-500 px-4 py-2'>
-                                            <div className="flex flex-row flex-wrap gap-2 items-center justify-center">
-                                                <Link
-                                                    href={`/tickets/${ticket.id}`}
-                                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 font-semibold text-sm text-white rounded-lg"
-                                                    rel="noopener noreferrer" target="_blank"
-                                                >
-                                                    View
-                                                </Link>
-
-                                                <button
-                                                    className="px-4 py-2 bg-red-500 hover:bg-red-700 duration-75 font-semibold text-sm text-white rounded-lg"
-                                                    onClick={() => deleteTicketWithId(ticket.id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                            {/*entries.map((data: any) => {
-                            const signInTime = new Date(data.time.seconds * 1000);
-                            const timeString = signInTime.toLocaleTimeString("en-US", {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                            });
-
-                            return (
-                                <tr key={data.student_number}>
-                                    <td className='border border-neutral-500 px-4 py-1'>{data.student_number}</td>
-                                    <td className='border border-neutral-500 px-4'>
-                                        {data.user_info && (
-                                            <div className="flex flex-row gap-1 items-center">
-                                                <Image src={data.user_info.photo_url} alt="pfp" height={25} width={25} className="rounded-full" quality={100} />
-                                                <span>{data.user_info.display_name.replace(" John Fraser SS", "").replace(data.student_number, "")}</span>
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className={`${data.late && "text-yellow-400"} border border-neutral-500 px-4`}>{timeString}</td>
-                                    <td className={`${data.is_good_ip ? "text-gray-300" : "text-red-400"} border border-neutral-500 px-4`}>{data.is_good_ip ? "Yes" : "No"}</td>
-                                    <td className='border border-neutral-500 px-4'>{data.using_vpn ? "Yes" : "No"}</td>
-                                </tr>
-                            )
-                        })*/}
-                        </tbody>
-                    </table>
+            <div className="overflow-x-auto w-full">
+                <div className="ag-theme-alpine" style={{ minWidth: "1000px", height: "64vh" }}>
+                    <AgGridReact
+                        rowData={tickets}
+                        columnDefs={colsDefs}
+                        defaultColDef={defaultColDef}
+                        animateRows={true}
+                    />
                 </div>
-            )}
+            </div>
         </Layout>
     )
 }

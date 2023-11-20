@@ -22,9 +22,9 @@ var (
 )
 
 type Server struct {
-	Router      *chi.Mux
-	Port        string
-	Environment string
+	Router        *chi.Mux
+	Port          string
+	Environment   string
 	SentryHandler *sentryhttp.Handler
 }
 
@@ -47,7 +47,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Heartbeat("/ping"))
 	s.Router.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"https://*", "http://*"}, // !! CHANGE THIS LATER
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "sentry-trace", "baggage"},
 	}))
 	s.Router.Use(httprate.LimitByRealIP(100, 1*time.Second))

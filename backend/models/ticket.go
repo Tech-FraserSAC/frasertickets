@@ -285,6 +285,7 @@ func UpdateExistingTicketByKeys(
 	UPDATABLE_KEYS := map[string]bool{
 		"scanCount":    true,
 		"lastScanTime": true,
+		"maxScanCount": true,
 	}
 
 	// Convert the string/interface map to BSON updates
