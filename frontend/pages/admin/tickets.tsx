@@ -1,27 +1,22 @@
 import Layout from "@/components/admin/Layout";
 import deleteTicket from "@/lib/backend/ticket/deleteTicket";
 import getAllTickets from "@/lib/backend/ticket/getAllTickets";
-import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
 import { Typography } from "@material-tailwind/react";
-import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import createNewTicket from "@/lib/backend/ticket/createNewTicket";
-import DatePickerModal from "@/components/DatePicker";
-import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import cleanDisplayName, { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
-import checkIfTeacher from "@/util/checkIfTeacher";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
+import updateTicket from "@/lib/backend/ticket/updateTicket";
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
 import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
-import updateTicket from "@/lib/backend/ticket/updateTicket";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -52,9 +47,8 @@ const ViewButtonCellRenderer = (props: any) => {
 
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
-    const isMountedRef = useRef(false);
 
-    const { user, loaded } = useFirebaseAuth()
+    const { user } = useFirebaseAuth()
 
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', getAllTickets);
 
@@ -108,14 +102,6 @@ export default function TicketViewingPage() {
     const [modalEventChosen, setModalEventChosen] = useState<any>((eventNames && eventNames.length !== 0) ? eventNames[0] : null);
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
-
-    const [datePickerSelection, setDatePickerSelection] = useState<Range>(
-        {
-            startDate: undefined,
-            endDate: undefined,
-            key: 'selection'
-        }
-    );
 
     const filteredEventNames =
         modalEventQuery === ""
@@ -484,6 +470,7 @@ export default function TicketViewingPage() {
                         rowData={tickets}
                         columnDefs={colsDefs}
                         defaultColDef={defaultColDef}
+                        animateRows={true}
                     />
                 </div>
             </div>

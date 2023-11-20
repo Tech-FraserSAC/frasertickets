@@ -1,21 +1,16 @@
 import Layout from "@/components/admin/Layout";
-import getAllTickets from "@/lib/backend/ticket/getAllTickets";
-import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
 import getAllUsers from "@/lib/backend/user/getAllUsers";
-import checkIfTeacher from "@/util/checkIfTeacher";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
-import cleanDisplayName from "@/util/cleanDisplayName";
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "react-query";
 
 import { AgGridReact } from 'ag-grid-react'; // the AG Grid React Component
+import { ColDef } from "ag-grid-community";
 
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
 import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
-import { ColDef } from "ag-grid-community";
 
 const ProfilePictureCellRenderer = (props: any) => {
     return (
@@ -89,6 +84,7 @@ export default function UserTablePage() {
         flex: 1,
         rowDrag: false,
         lockVisible: true,
+        resizable: true
     }
 
     return (
