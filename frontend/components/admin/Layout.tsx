@@ -33,6 +33,8 @@ export default function Layout({ name, children, noAnim, className }: { name: st
                 <title>{title}</title>
                 <meta name="description" content={description} />
 
+                <meta name="referrer" content="no-referrer" />
+
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={description} />
                 <meta property="og:type" content="website" />
