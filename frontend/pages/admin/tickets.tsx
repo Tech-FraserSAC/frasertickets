@@ -79,10 +79,12 @@ export default function TicketViewingPage() {
     const updateMaxScanCountTicketMutation = useMutation(({ ticketId, newMaxScanCountRaw }: { ticketId: string, newMaxScanCountRaw: string }) => {
         let num = Number(newMaxScanCountRaw)
         if (Number.isNaN(num) || !Number.isInteger(num) || !Number.isFinite(num) || num < 0) {
+            alert("Please provide a number larger than 0, or 0 for infinite scans.")
             throw "New max scan count is invalid"
         }
 
         if (num === 0) {
+            // Need to pass -1 to backend since no value gets parsed as 0 in backend
             num = -1;
         }
         return updateTicket(ticketId, {
