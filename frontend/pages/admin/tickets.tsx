@@ -70,11 +70,16 @@ export default function TicketViewingPage() {
         }
     })
 
-    const updateMaxScanCountTicketMutation = useMutation(({ ticketId, newMaxScanCountRaw }: { ticketId: string, newMaxScanCountRaw: string }) => {
+    const updateMaxScanCountTicketMutation = useMutation(({ ticketId, newMaxScanCountRaw, oldScanCount }: { ticketId: string, newMaxScanCountRaw: string, oldScanCount: number }) => {
         let num = Number(newMaxScanCountRaw)
         if (Number.isNaN(num) || !Number.isInteger(num) || !Number.isFinite(num) || num < 0) {
             alert("Please provide a number larger than 0, or 0 for infinite scans.")
             throw "New max scan count is invalid"
+        }
+        
+        if (oldScanCount > num && num !== 0) {
+            alert("Please provide a max scan count larger than or equal to the current scan count value.")
+            throw "Max scan count smaller than current scan count value"
         }
 
         if (num === 0) {
@@ -262,7 +267,8 @@ export default function TicketViewingPage() {
                 try {
                     updateMaxScanCountTicketMutation.mutate({
                         ticketId: params.data.id,
-                        newMaxScanCountRaw: params.newValue
+                        newMaxScanCountRaw: params.newValue,
+                        oldScanCount: Number(params.data.scanCount),
                     })
                     return true
                 } catch (e) {
