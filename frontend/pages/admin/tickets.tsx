@@ -21,6 +21,7 @@ import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
 import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
+import updateTicket from "@/lib/backend/ticket/updateTicket";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -55,11 +56,7 @@ export default function TicketViewingPage() {
 
     const { user, loaded } = useFirebaseAuth()
 
-    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', async () => {
-        const tickets = await getAllTickets();
-        updateFilteredTickets(tickets);
-        return tickets;
-    });
+    const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-tickets', getAllTickets);
 
     // Just the names and IDs to put in the modal
     const { isLoading: eventsAreLoading, error: eventFetchError, data: eventNames } = useQuery('frasertix-admin-tickets-events', async () => {
@@ -79,16 +76,29 @@ export default function TicketViewingPage() {
         }
     })
 
-    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+    const updateMaxScanCountTicketMutation = useMutation(({ ticketId, newMaxScanCountRaw }: { ticketId: string, newMaxScanCountRaw: string }) => {
+        let num = Number(newMaxScanCountRaw)
+        if (Number.isNaN(num) || !Number.isInteger(num) || !Number.isFinite(num) || num < 0) {
+            throw "New max scan count is invalid"
+        }
+
+        if (num === 0) {
+            num = -1;
+        }
+        return updateTicket(ticketId, {
+            maxScanCount: num
+        })
+    }, {
         onSuccess: () => {
             return refetchTickets()
         }
     })
 
-    const [eventNameFilter, setEventNameFilter] = useState("");
-    const [studentNameFilter, setStudentNameFilter] = useState("");
-    const [studentNumberFilter, setStudentNumberFilter] = useState("");
-    const [filteredTickets, setFilteredTickets] = useState<TicketWithUserAndEventData[] | null>(null);
+    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+        onSuccess: () => {
+            return refetchTickets()
+        }
+    })
 
     const [modalOpen, setModalOpen] = useState(false);
     const modalStudentNumberRef = useRef<HTMLInputElement>(null);
@@ -111,33 +121,6 @@ export default function TicketViewingPage() {
             : eventNames?.filter((event) => {
                 return event.name.toLocaleLowerCase().includes(modalEventQuery.toLocaleLowerCase())
             })
-
-    // TODO: Replace this with logic that requests the server
-    const updateFilteredTickets = useCallback((tickets: TicketWithUserAndEventData[] | undefined) => {
-        setFilteredTickets(!tickets ? null : tickets.filter((ticket) => {
-            const eventNameMatches = ticket.eventData.name.toLocaleLowerCase().indexOf(eventNameFilter.toLocaleLowerCase()) != -1;
-            const studentNameMatches = ticket.ownerData.full_name.toLocaleLowerCase().indexOf(studentNameFilter.toLocaleLowerCase()) != -1;
-            const studentNumberMatches = ticket.ownerData.student_number.indexOf(studentNumberFilter) != -1;
-
-            const timestampMatchesStartDate = datePickerSelection.startDate ?
-                datePickerSelection.startDate.getTime() < ticket.timestamp.getTime() : true;
-            const timestampMatchesEndDate = datePickerSelection.endDate ?
-                datePickerSelection.endDate.getTime() > ticket.timestamp.getTime() : true;
-            let timestampMatches = timestampMatchesStartDate && timestampMatchesEndDate;
-
-            return eventNameMatches && studentNameMatches && studentNumberMatches && timestampMatches;
-        }))
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection])
-
-    // Only refresh the table once done typing
-    useEffect(() => {
-        if (isMountedRef.current) {
-            const timeoutId = setTimeout(() => updateFilteredTickets(tickets), 250);
-            return () => clearTimeout(timeoutId);
-        } else {
-            isMountedRef.current = true;
-        }
-    }, [eventNameFilter, studentNameFilter, studentNumberFilter, datePickerSelection, updateFilteredTickets, tickets])
 
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?")
@@ -284,6 +267,20 @@ export default function TicketViewingPage() {
             valueFormatter: (params: any) => (params.data.maxScanCount === 0 ? "∞" : params.data.maxScanCount),
             comparator: (a, b, nodeA, nodeB, isDesc) => {
                 return (a === 0 ? Infinity : a) - (b === 0 ? Infinity : b)
+            },
+            editable: true,
+            valueGetter: params => params.data.maxScanCount,
+            valueSetter: params => {
+                try {
+                    updateMaxScanCountTicketMutation.mutate({
+                        ticketId: params.data.id,
+                        newMaxScanCountRaw: params.newValue
+                    })
+                    return true
+                } catch (e) {
+                    console.error(e)
+                    return false
+                }
             }
         },
         {
@@ -312,6 +309,7 @@ export default function TicketViewingPage() {
         flex: 1,
         rowDrag: false,
         lockVisible: true,
+        resizable: true
     }
 
     return (
