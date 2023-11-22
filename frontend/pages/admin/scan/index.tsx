@@ -95,8 +95,11 @@ export default function TicketScanningPage() {
                 videoControls?.stop()
             }
         })();
-    }, [qrCodeResult, videoControls])
+    }, [qrCodeResult, videoControls, router])
 
+    useEffect(() => {
+        return () => videoControls?.stop()
+    }, [videoControls, router])
 
     const innerComponent = (() => {
         switch (scanStatus) {
