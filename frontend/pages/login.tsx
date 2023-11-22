@@ -71,7 +71,6 @@ export default function Login() {
             setTimeout(() => {
                 if (!signInButtonVisible) {
                     setLoadingText(loadingTextSet[Math.floor(Math.random() * loadingTextSet.length)])
-                    console.log("wow")
                     startUpdateLoadingTextLoop()
                 }
             }, 2500)
@@ -170,8 +169,7 @@ export default function Login() {
         (async () => {
             const signInWrapper = await getElementBySelectorAsync("#google-login-button")
             signInWrapper.setAttribute("style", "height: 0;")
-            const signInButton = await getElementBySelectorAsync("#google-login-button>div")
-            console.log(signInButton)
+            await getElementBySelectorAsync("#google-login-button>div")
             setSignInButtonVisible(true)
             signInWrapper.setAttribute("style", "height: 40px;")
         })()
@@ -240,7 +238,7 @@ export default function Login() {
                 }
 
                 {
-                    (inBrowser && navigator.userAgent.includes("Instagram")) ?
+                    (inBrowser && navigator.userAgent.includes("AppleWebKit") && navigator.userAgent.includes("Mobile") && !navigator.userAgent.includes("Safari")) ?
                         <Typography variant="small" color="gray" className="text-center mt-2 font-bold">
                             Using Instagram&apos;s browser? Please open this website in your normal browser.
                             You can do this by clicking the three dots at the top and selecting &quot;Open in Browser&quot;.
