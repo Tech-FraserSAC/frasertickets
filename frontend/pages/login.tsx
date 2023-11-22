@@ -246,7 +246,7 @@ export default function Login() {
                 }
 
                 {
-                    ((onInAppBrowserIOS || onInstagramBrowserAndroid)  ?
+                    ((onInAppBrowserIOS || onInstagramBrowserAndroid))  ?
                         <Typography variant="small" color="gray" className="text-center mt-2 font-bold">
                             Using Instagram&apos;s browser? Please open this website in your normal browser.
                             You can do this by clicking the three dots at the top and selecting &quot;Open in Browser&quot;.
