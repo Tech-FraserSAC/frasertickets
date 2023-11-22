@@ -23,6 +23,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import { GetServerSideProps } from "next";
 import parseClientCookies from "@/util/parseCookies";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import Head from "next/head";
+import getElementBySelectorAsync from "@/util/getElementBySelectorAsync";
 
 export default function Login() {
     // const [redirectStatus, setRedirectStatus] = useState({
@@ -47,11 +49,36 @@ export default function Login() {
     }
 
     const [inBrowser, setInBrowser] = useState(false)
+    const [signInButtonVisible, setSignInButtonVisible] = useState(false)
     useEffect(() => {
         setInBrowser(true)
     }, [])
 
     const loginUri = `${inBrowser ? window.location.origin : ""}/auth/redirect`
+
+    const loadingTextSet = [
+        "Loading...",
+        "Please wait...",
+        "Almost there...",
+        "Setting things up...",
+        "Just a few more seconds...",
+        "Setting things up..."
+    ]
+    const [loadingText, setLoadingText] = useState(loadingTextSet[0])
+
+    useEffect(() => {
+        const startUpdateLoadingTextLoop = () => {
+            setTimeout(() => {
+                if (!signInButtonVisible) {
+                    setLoadingText(loadingTextSet[Math.floor(Math.random() * loadingTextSet.length)])
+                    console.log("wow")
+                    startUpdateLoadingTextLoop()
+                }
+            }, 2500)
+        }
+
+        startUpdateLoadingTextLoop()
+    }, [])
 
     // Check whether a new login occured, if so, try to create a user object in DB
     useEffect(() => {
@@ -139,6 +166,17 @@ export default function Login() {
         */
     }, [])
 
+    useEffect(() => {
+        (async () => {
+            const signInWrapper = await getElementBySelectorAsync("#google-login-button")
+            signInWrapper.setAttribute("style", "height: 0;")
+            const signInButton = await getElementBySelectorAsync("#google-login-button>div")
+            console.log(signInButton)
+            setSignInButtonVisible(true)
+            signInWrapper.setAttribute("style", "height: 40px;")
+        })()
+    }, [])
+
     /*
     useEffect(() => {
         // Ensure that a redirect login didn't happen and the redirect was checked
@@ -159,6 +197,10 @@ export default function Login() {
 
     return (
         <Layout name="Login" className="flex flex-col items-center justify-center">
+            <Head>
+                <meta name="referrer" content="strict-origin-when-cross-origin" key="referrer-policy" />
+            </Head>
+
             <div className="flex flex-col items-center justify-center p-8 pb-6 bg-white rounded-lg shadow-md max-w-md">
                 <Typography variant="h3" color="blue-gray" className="text-center mb-2">Log into FraserTickets</Typography>
 
@@ -168,20 +210,31 @@ export default function Login() {
                 /> */}
 
                 {signInReady ? (
-                    <GoogleLogin
-                        onSuccess={() => { }}
-                        size="large"
-                        shape="pill"
-                        ux_mode="redirect"
-                        use_fedcm_for_prompt
-                        hosted_domain="pdsb.net"
-                        theme="filled_blue"
-                        login_uri={loginUri}
-                    />
+                    <>
+                        <GoogleLogin
+                            onSuccess={() => { }}
+                            size="large"
+                            shape="pill"
+                            ux_mode="redirect"
+                            use_fedcm_for_prompt
+                            hosted_domain="pdsb.net"
+                            theme="filled_blue"
+                            login_uri={loginUri}
+                            containerProps={{
+                                id: "google-login-button",
+                            }}
+                        />
+                        {!signInButtonVisible && (
+                            <div className="flex flex-row gap-2 items-center mt-2">
+                                <LoadingSpinner />
+                                <Typography variant="paragraph" className="text-center">{loadingText}</Typography>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="flex flex-row gap-2 items-center">
                         <LoadingSpinner />
-                        <Typography variant="paragraph" className="text-center">Loading...</Typography>
+                        <Typography variant="paragraph" className="text-center">{loadingText}</Typography>
                     </div>
                 )
                 }
