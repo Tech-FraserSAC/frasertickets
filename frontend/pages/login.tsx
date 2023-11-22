@@ -66,6 +66,14 @@ export default function Login() {
     ]
     const [loadingText, setLoadingText] = useState(loadingTextSet[0])
 
+    const onInAppBrowserIOS = inBrowser && 
+        navigator.userAgent.includes("AppleWebKit") && 
+        navigator.userAgent.includes("Mobile") && 
+        !navigator.userAgent.includes("Safari");
+    
+    const onInstagramBrowserAndroid = inBrowser &&
+        navigator.userAgent.includes("Instagram");
+
     useEffect(() => {
         const startUpdateLoadingTextLoop = () => {
             setTimeout(() => {
@@ -238,7 +246,7 @@ export default function Login() {
                 }
 
                 {
-                    (inBrowser && navigator.userAgent.includes("AppleWebKit") && navigator.userAgent.includes("Mobile") && !navigator.userAgent.includes("Safari")) ?
+                    ((onInAppBrowserIOS || onInstagramBrowserAndroid)  ?
                         <Typography variant="small" color="gray" className="text-center mt-2 font-bold">
                             Using Instagram&apos;s browser? Please open this website in your normal browser.
                             You can do this by clicking the three dots at the top and selecting &quot;Open in Browser&quot;.
