@@ -4,13 +4,14 @@ import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import { useState } from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 
 import { AgGridReact } from 'ag-grid-react'; // the AG Grid React Component
 import { ColDef } from "ag-grid-community";
 
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
 import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
+import editUser from "@/lib/backend/user/editUser";
 
 const ProfilePictureCellRenderer = (props: any) => {
     return (
@@ -29,17 +30,25 @@ const ProfilePictureCellRenderer = (props: any) => {
 }
 
 export default function UserTablePage() {
-    const { isLoading, error, data: users } = useQuery('frasertix-admin-users', async () => {
-        const rawUsers = await getAllUsers()
-        return rawUsers.map(user => ({
-            pfp_url: user.pfp_url,
-            full_name: user.full_name,
-            student_number: user.student_number,
-            admin: user.admin,
-        }))
+    const { isLoading, error, data: users, refetch: refetchUsers } = useQuery(
+        'frasertix-admin-users', () => (
+        getAllUsers()
+    ))
+
+    const updateFullNameMutation = useMutation(({ userId, newFullName }: { userId: string, newFullName: string }) => {
+        if (newFullName.trim() === "") {
+            alert("Please provide a non-empty name.")
+            throw "New name is empty"
+        }
+        
+        return editUser(userId, { full_name: newFullName })
+    }, {
+        onSuccess: () => {
+            return refetchUsers()
+        }
     })
 
-    const [columnDefs, setColumnDefs] = useState<ColDef[]>([
+    const columnDefs: ColDef[] = [
         {
             field: "pfp_url",
             headerName: "",
@@ -57,7 +66,21 @@ export default function UserTablePage() {
                     params.data.full_name,
                     params.data.student_number
                 )
-            )
+            ),
+            editable: true,
+            valueGetter: params => params.data.full_name,
+            valueSetter: params => {
+                try {
+                    updateFullNameMutation.mutate({
+                        userId: params.data.id,
+                        newFullName: params.newValue
+                    })
+                    return true
+                } catch (e) {
+                    console.error(e)
+                    return false
+                }
+            }
         },
         {
             field: "student_number",
@@ -76,7 +99,7 @@ export default function UserTablePage() {
             field: "admin",
             headerName: "Admin?",
         },
-    ])
+    ]
 
     const defaultColDef: ColDef = {
         sortable: true,

@@ -58,6 +58,11 @@ func (ctrl UserController) Routes() chi.Router {
 		r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins
 	})
 
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AdminAuthorizerMiddleware)
+		r.Patch("/{id}", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins
+	})
+
 	return r
 }
 
