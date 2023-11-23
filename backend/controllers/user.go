@@ -54,8 +54,8 @@ func (ctrl UserController) Routes() chi.Router {
 			})
 		})
 
-		r.Get("/", ctrl.Get) // GET /users/{id} - returns user data, only available to admins and user
-		// r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins and user
+		r.Get("/", ctrl.Get)      // GET /users/{id} - returns user data, only available to admins and user
+		r.Patch("/", ctrl.Update) // PATCH /users/{id} - updates user data, only available to admins
 	})
 
 	return r
@@ -268,12 +268,12 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 
 // Update updates a user's data.
 //
-//	@Summary		Update user data (REMOVED)
-//	@Description	Update a user's data. Only available to admins. Removed due to security issues.
+//	@Summary		Update user data
+//	@Description	Update a user's data. Only available to admins.
 //	@Tags			user
 //	@Produce		json
 //	@Param			id	path		string	true	"User ID"
-//	@Param			updates	body		models.User	true	"Updates to make (anything can be changed by admins, admin/student_number/pfp_url cannot be changed by non-admins)"
+//	@Param			updates	body	models.User	true	"Updates to make (can only change full name for now)"
 //	@Success		200
 //	@Failure		304
 //	@Failure		400
@@ -282,11 +282,9 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/users/{id} [patch]
 func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
-	// Update keys that should not be touched by a non-admin user
-	PRIVILEGED_UPDATE_KEYS := map[string]bool{
-		"admin":          true,
-		"student_number": true,
-		"pfp_url":        true,
+	// Only keys that can be updated
+	ALLOWED_KEYS := map[string]bool{
+		"full_name": true,
 	}
 
 	// Get ID of requested user
@@ -301,27 +299,28 @@ func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if it exists
-	userData, err := models.GetUserByKey(r.Context(), "_id", id)
-	if err == mongo.ErrNoDocuments {
+	// Check if given user exists
+	if exists, err := models.CheckIfUserExists(r.Context(), id); err != nil {
 		log.Error().Stack().Err(err).Send()
+		render.Render(w, r, util.ErrServer(err))
+		return
+	} else if !exists {
+		log.Warn().Stack().Str("uid", id).Msg("given uid does not exist")
 		render.Render(w, r, util.ErrNotFound)
 		return
 	}
 
 	// Check if non-admin user is attempting to change prohibited traits
-	if !userData.Admin {
-		for key, val := range requestedUpdates {
-			if _, ok := PRIVILEGED_UPDATE_KEYS[key]; ok {
-				log.
-					Warn().
-					Str("uid", id).
-					Str("desired-key", key).
-					Any("desired-value", val).
-					Msg("user attempted to update forbidden key")
-				render.Render(w, r, util.ErrForbidden)
-				return
-			}
+	for key, val := range requestedUpdates {
+		if _, ok := ALLOWED_KEYS[key]; !ok {
+			log.
+				Warn().
+				Str("uid", id).
+				Str("desired-key", key).
+				Any("desired-value", val).
+				Msg("user attempted to update forbidden key")
+			render.Render(w, r, util.ErrForbidden)
+			return
 		}
 	}
 
