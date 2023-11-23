@@ -473,6 +473,10 @@ export default function TicketViewingPage() {
                         columnDefs={colsDefs}
                         defaultColDef={defaultColDef}
                         animateRows={true}
+                        gridOptions={{
+                            suppressScrollOnNewData: true,
+                            getRowId: params => params.data.id
+                        }}
                     />
                 </div>
             </div>

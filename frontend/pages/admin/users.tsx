@@ -121,6 +121,10 @@ export default function UserTablePage() {
                         defaultColDef={defaultColDef}
                         animateRows={true}
                         rowSelection="multiple"
+                        gridOptions={{
+                            suppressScrollOnNewData: true,
+                            getRowId: params => params.data.id
+                        }}
                     />
                 </div>
             </div>
