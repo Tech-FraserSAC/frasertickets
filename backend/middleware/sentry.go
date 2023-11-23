@@ -16,7 +16,7 @@ func CreateNewSentryMiddleware() *sentryhttp.Handler {
 		// Set TracesSampleRate to 1.0 to capture 100%
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
-		TracesSampleRate: 0.3,
+		TracesSampleRate: 1.0,
 	}); err != nil {
 		log.Error().Err(err).Msg("Sentry initialization failed")
 	}
