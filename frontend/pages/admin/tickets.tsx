@@ -466,10 +466,6 @@ export default function TicketViewingPage() {
                 </button>
             </div>
 
-            {ticketsAreLoading && (
-                <Typography variant="paragraph" className="text-center lg:w-3/4">Loading...</Typography>
-            )}
-
             <div className="overflow-x-auto w-full">
                 <div className="ag-theme-alpine" style={{ minWidth: "1000px", height: "64vh" }}>
                     <AgGridReact
