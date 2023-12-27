@@ -19,7 +19,7 @@ func CreateNewSentryMiddleware() *sentryhttp.Handler {
 		log.Error().Err(err).Msg("Sentry initialization failed")
 	}
 	defer sentry.Flush(time.Second)
-	log.Debug().Msg("Sentry initialized")
+	log.Debug().Msg("sentry initialized")
 
 	return sentryhttp.New(sentryhttp.Options{
 		Repanic: true,

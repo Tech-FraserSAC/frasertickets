@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -100,10 +101,20 @@ func main() {
 	}
 	studentNumberColNum-- // Move to 0-based index
 
+	var localMaxScanCountColNum int // -1 -> no given column number
+	fmt.Printf("What column # stores the maximum scan count for a ticket? [1-%d, 0 for none]? ", csvReader.FieldsPerRecord)
+	if n, err := fmt.Scanf("%d", &localMaxScanCountColNum); err != nil || n != 1 {
+		log.Fatal().Err(err).Msg("could not parse local max scan count")
+	}
+	if localMaxScanCountColNum < 0 || localMaxScanCountColNum > int(csvReader.FieldsPerRecord) {
+		log.Fatal().Msg("column # given is outside accepted range")
+	}
+	localMaxScanCountColNum-- // Move to 0-based index
+
 	var globalMaxScanCount int
-	fmt.Printf("What should the maximum scan count be per ticket [>=0, 0 for infinite]? ")
+	fmt.Printf("What should the default maximum scan count be per ticket [>=0, 0 for infinite]? ")
 	if n, err := fmt.Scanf("%d", &globalMaxScanCount); err != nil || n != 1 {
-		log.Fatal().Err(err).Msg("could not parse max scan count")
+		log.Fatal().Err(err).Msg("could not parse global max scan count")
 	}
 	if globalMaxScanCount < 0 {
 		log.Fatal().Msg("global max scan count below 0")
@@ -133,6 +144,18 @@ func main() {
 			rawFullName := rec[studentNameColNum]
 			studentNumber := rec[studentNumberColNum]
 
+			maxScanCount := globalMaxScanCount
+			// Try parsing the local max scan count from DB if column
+			// number exists, otherwise defaulting to global
+			if localMaxScanCountColNum != -1 {
+				tmpScanCount, err := strconv.Atoi(rec[localMaxScanCountColNum])
+				if err != nil {
+					log.Warn().Err(err).Str("rawLocalMaxScanCount", rec[localMaxScanCountColNum]).Msg("could not parse local max scan count")
+				} else {
+					maxScanCount = tmpScanCount
+				}
+			}
+
 			nameSplit := strings.Split(rawFullName, ", ")
 			if len(nameSplit) != 2 {
 				err := fmt.Errorf("more than one comma in name: %s", rawFullName)
@@ -146,7 +169,7 @@ func main() {
 			queuedTicket := models.QueuedTicket{
 				StudentNumber:  studentNumber,
 				EventID:        eventID,
-				MaxScanCount:   globalMaxScanCount,
+				MaxScanCount:   maxScanCount,
 				FullNameUpdate: fullName,
 			}
 
