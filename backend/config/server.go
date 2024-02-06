@@ -65,4 +65,5 @@ func (s *Server) MountHandlers() {
 	s.Router.Mount("/users", controllers.UserController{}.Routes())
 	s.Router.Mount("/events", controllers.EventController{}.Routes())
 	s.Router.Mount("/tickets", controllers.TicketController{}.Routes())
+	s.Router.Mount("/queuedtickets", controllers.QueuedTicketController{}.Routes())
 }
