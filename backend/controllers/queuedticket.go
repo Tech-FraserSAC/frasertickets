@@ -34,8 +34,9 @@ func (ctrl QueuedTicketController) Routes() chi.Router {
 	// Admin-only routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AdminAuthorizerMiddleware)
-		r.Post("/", ctrl.Create) // POST /queuedTickets - create a new ticket, only available to admins
-		r.Get("/", ctrl.ListAll) // GET /queuedTickets - returns all tickets, only available to admins
+		r.Post("/", ctrl.Create)       // POST /queuedtickets - create a new ticket, only available to admins
+		r.Get("/", ctrl.ListAll)       // GET /queuedtickets - returns all tickets, only available to admins
+		r.Delete("/{id}", ctrl.Delete) // DELETE /queuedtickets/{id} - deletes a queued ticket, only available to admins
 	})
 
 	return r
@@ -160,9 +161,9 @@ func (ctrl QueuedTicketController) Create(w http.ResponseWriter, r *http.Request
 	user, err := models.GetUserByKey(r.Context(), "student_number", queuedTicketRaw.StudentNumber)
 	if err == nil {
 		log.Error().Err(err).Str("id", queuedTicketRaw.StudentNumber).Msg("user already exists, no need to make queued ticket")
-		render.Render(w, r, util.ErrInvalidRequest(err))
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("user already exists, no need to make queued ticket")))
 		return
-	} else if err != nil {
+	} else if err != nil && err != mongo.ErrNoDocuments {
 		log.Error().Err(err).Str("id", queuedTicketRaw.StudentNumber).Msg("could not fetch user data")
 		render.Render(w, r, util.ErrServer(err))
 		return
@@ -227,4 +228,63 @@ func (ctrl QueuedTicketController) Create(w http.ResponseWriter, r *http.Request
 		Str("action", "createTicket").
 		Bool("privileged", true).
 		Msg("created a new ticket")
+}
+
+// Delete deletes a queued ticket.
+//
+//	@Summary		Delete a queued ticket
+//	@Description	Deletes a queued ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept			json
+//	@Param			id	path		string	true	"Queued ticket ID"
+//	@Success		200
+//	@Failure		403
+//	@Failure		404
+//	@Failure		500
+//	@Router			/queuedtickets/{id} [delete]
+func (ctrl QueuedTicketController) Delete(w http.ResponseWriter, r *http.Request) {
+	// Get ID of requested queued ticket
+	id := chi.URLParam(r, "id")
+
+	// Convert to ObjectID
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error().Err(err).Msg("could not convert id to objectid")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Fetch queued ticket data so that we can log it later, since we won't be able
+	// to access the ticket later. Errors should be handled in the delete ticket
+	queuedTicket, _ := models.GetQueuedTicket(r.Context(), objID)
+
+	// Try to delete document
+	err = models.DeleteQueuedTicket(r.Context(), objID)
+	if err == models.ErrNoDocumentModified || err == mongo.ErrNoDocuments {
+		log.Error().Err(err).Msg("could not find queued ticket to delete")
+		render.Render(w, r, util.ErrNotFound)
+		return
+	} else if err != nil {
+		log.Error().Err(err).Msg("could not delete queued ticket")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	requesterUID := ""
+	if err == nil {
+		requesterUID = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "queuedticket").
+		Str("requester_uid", requesterUID).
+		Str("ticket_id", objID.Hex()).
+		Any("queued_ticket", queuedTicket).
+		Str("action", "deleteQueuedTicket").
+		Bool("privileged", true).
+		Msg("deleted queued ticket")
 }

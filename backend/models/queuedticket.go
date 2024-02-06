@@ -14,8 +14,9 @@ import (
 
 type QueuedTicket struct {
 	ID             primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
-	StudentNumber  string             `json:"student_number" bson:"student_number"`
-	EventID        primitive.ObjectID `json:"event_id"       bson:"event_id"`
+	StudentNumber  string             `json:"studentNumber" bson:"student_number"`
+	EventID        primitive.ObjectID `json:"eventID"       bson:"event_id"`
+	EventData      Event              `json:"eventData"      bson:"event_data"`
 	Timestamp      time.Time          `json:"timestamp"      bson:"timestamp"`
 	MaxScanCount   int                `json:"max_scan_count" bson:"max_scan_count"`
 	FullNameUpdate string             `json:"full_name_update" bson:"full_name_update"`
@@ -49,13 +50,29 @@ func CreateQueuedTicketIndices(ctx context.Context) error {
 }
 
 func GetAllQueuedTickets(ctx context.Context) ([]QueuedTicket, error) {
-	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Find(ctx, bson.M{})
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "events"},
+				{Key: "localField", Value: "event_id"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "event_data"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$event_data"},
+		},
+	}
+
+	// Try to get data from MongoDB
+	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Aggregate(ctx, pipeline)
 	if err != nil {
 		return []QueuedTicket{}, err
 	}
 	defer cursor.Close(ctx)
 
-	// Attempt to decode BSON into structs
+	// Attempt to convert BSON data into Ticket structs
 	var queuedTickets []QueuedTicket
 	if err := cursor.All(ctx, &queuedTickets); err != nil {
 		return []QueuedTicket{}, err
@@ -65,13 +82,38 @@ func GetAllQueuedTickets(ctx context.Context) ([]QueuedTicket, error) {
 }
 
 func GetQueuedTicket(ctx context.Context, queuedTicketID primitive.ObjectID) (QueuedTicket, error) {
-	res := lib.Datastore.Db.Collection(queuedTicketsColName).FindOne(ctx, bson.M{"_id": queuedTicketID})
-	if res.Err() != nil {
-		return QueuedTicket{}, res.Err()
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: bson.M{"_id": queuedTicketID}},
+		},
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "events"},
+				{Key: "localField", Value: "eventId"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "event_data"},
+			},
+			},
+		},
+		{
+			{Key: "$unwind", Value: "$event_data"},
+		},
 	}
 
+	// Try to get data from DB
+	cursor, err := lib.Datastore.Db.Collection(queuedTicketsColName).Aggregate(ctx, pipeline)
+	if err != nil {
+		return QueuedTicket{}, err
+	}
+	defer cursor.Close(ctx)
+
+	// Attempt to convert BSON data into QueuedTicket structs
 	var queuedTicket QueuedTicket
-	if err := res.Decode(&queuedTicket); err != nil {
+	if nextExists := cursor.Next(ctx); !nextExists {
+		return QueuedTicket{}, mongo.ErrNoDocuments
+	}
+
+	if err := cursor.Decode(&queuedTicket); err != nil {
 		return QueuedTicket{}, err
 	}
 
