@@ -1,6 +1,4 @@
 import Layout from "@/components/admin/Layout";
-import deleteTicket from "@/lib/backend/ticket/deleteTicket";
-import getAllTickets from "@/lib/backend/ticket/getAllTickets";
 import { Typography } from "@material-tailwind/react";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -8,16 +6,16 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Dialog, Transition, Combobox } from '@headlessui/react'
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
-import createNewTicket from "@/lib/backend/ticket/createNewTicket";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
-import updateTicket from "@/lib/backend/ticket/updateTicket";
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
 import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
 import getAllQueuedTickets from "@/lib/backend/queuedticket/getAllQueuedTickets";
+import deleteQueuedTicket from "@/lib/backend/queuedticket/deleteQueuedTicket";
+import createNewQueuedTicket from "@/lib/backend/queuedticket/createNewQueuedTicket";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -53,6 +51,8 @@ export default function TicketViewingPage() {
 
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-queued-tickets', getAllQueuedTickets);
 
+    console.log(tickets)
+
     // Just the names and IDs to put in the modal
     const { isLoading: eventsAreLoading, error: eventFetchError, data: eventNames } = useQuery('frasertix-admin-tickets-events', async () => {
         const events = await getAllEvents();
@@ -65,11 +65,17 @@ export default function TicketViewingPage() {
         return mappedEvents;
     });
 
-    // const createTicketMutation = useMutation(({ studentNumber, eventId, maxScanCount }: { studentNumber: string, eventId: string, maxScanCount: number }) => createNewTicket(studentNumber, eventId, maxScanCount), {
-    //     onSettled: () => {
-    //         return refetchTickets()
-    //     }
-    // })
+    const createTicketMutation = useMutation(({ studentNumber, eventId, maxScanCount }: { studentNumber: string, eventId: string, maxScanCount: number }) => createNewQueuedTicket(studentNumber, eventId, maxScanCount), {
+        onSettled: () => {
+            return refetchTickets()
+        }
+    })
+
+    const deleteQueuedTicketMutation = useMutation(({ queuedTicketId }: { queuedTicketId: string }) => deleteQueuedTicket(queuedTicketId), {
+        onSuccess: () => {
+            return refetchTickets()
+        }
+    })
 
     const [modalOpen, setModalOpen] = useState(false);
     const modalStudentNumberRef = useRef<HTMLInputElement>(null);
@@ -100,18 +106,18 @@ export default function TicketViewingPage() {
             alert("Please provide a valid event and make sure it is selected.");
         } else {
             try {
-                // await createTicketMutation.mutateAsync({ studentNumber: studentNumber.toString(), eventId: modalEventChosen.id, maxScanCount: maxScanCount });
-                alert("Ticket has been created.")
+                await createTicketMutation.mutateAsync({ studentNumber: studentNumber.toString(), eventId: modalEventChosen.id, maxScanCount: maxScanCount });
+                alert("Queued ticket has been created.")
 
                 modalStudentNumberRef.current!.value = "";
                 setModalOpen(false);
-                // await queryClient.invalidateQueries("frasertix-admin-tickets");
+                await queryClient.invalidateQueries("frasertix-admin-queued-tickets");
             } catch (err: any) {
                 if (err && err.response) {
                     if (err.response.status === 409) {
-                        alert("The user already has a ticket. Please check this and try again.");
+                        alert("The (possible) user already has a ticket. Please check this and try again.");
                     } else if (err.response.status === 400) {
-                        alert("There are no accounts associated with the given student number. Please ask them to register and try again.");
+                        alert("There is already an account registered to this student number. Please switch to the Tickets page and make their ticket there.");
                     } else if (err.response.status === 403 && studentNumber === user?.email?.replace("@pdsb.net", "")) {
                         // While 403 can be returned for a user who isn't allowed to post,
                         // it would have likely been caused if the student number is the same as the one of the
@@ -130,6 +136,32 @@ export default function TicketViewingPage() {
 
         setModalSubmitting(false);
     }
+
+    const deleteQueuedTicketWithId = async (id: string) => {
+        const deletionAllowed = confirm("Are you sure you want to delete this queued ticket?")
+        if (!deletionAllowed) {
+            return
+        }
+
+        try {
+            await deleteQueuedTicketMutation.mutateAsync({ queuedTicketId: id });
+            alert("Queued ticket has been deleted.");
+        } catch (err) {
+            alert("Something went wrong when deleting the ticket. Please try again.");
+            throw err;
+        }
+    }
+
+    const DeleteButtonCellRenderer = (props: any) => (
+        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
+            <button
+                className="px-4 py-2 bg-red-500 hover:bg-red-700 duration-75 font-semibold text-xs text-white rounded-lg"
+                onClick={() => deleteQueuedTicketWithId(props.data.id)}
+            >
+                Delete
+            </button>
+        </div>
+    )
 
     const colsDefs: ColDef[] = [
         {
@@ -154,15 +186,7 @@ export default function TicketViewingPage() {
             cellRenderer: EventCellRenderer,
         },
         {
-            field: "ownerData.full_name",
-            headerName: "Student Name",
-            valueFormatter: (params: any) => cleanDisplayNameWithStudentNumber(
-                params.data.ownerData.full_name,
-                params.data.ownerData.student_number
-            )
-        },
-        {
-            field: "ownerData.student_number",
+            field: "studentNumber",
             headerName: "Student #",
             comparator: (a, b, nodeA, nodeB, isDesc) => {
                 const numA = Number(a.replace(/\D/g, ''))
@@ -175,57 +199,14 @@ export default function TicketViewingPage() {
             },
         },
         {
-            field: "scanCount",
-            headerName: "Scans",
-        },
-        {
-            field: "lastScanTime",
-            headerName: "Last Scan Time",
-            valueFormatter: (params: any) => (
-                params.data.scanCount === 0
-                    ? "N/A"
-                    : params.data.lastScanTime.toLocaleString("en-US", {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })
-            )
-        },
-        {
             field: "maxScanCount",
             headerName: "Max Scan Count",
             valueFormatter: (params: any) => (params.data.maxScanCount === 0 ? "∞" : params.data.maxScanCount),
             comparator: (a, b, nodeA, nodeB, isDesc) => {
                 return (a === 0 ? Infinity : a) - (b === 0 ? Infinity : b)
             },
-            editable: true,
-            valueGetter: params => params.data.maxScanCount,
-            valueSetter: params => {
-                try {
-                    updateMaxScanCountTicketMutation.mutate({
-                        ticketId: params.data.id,
-                        newMaxScanCountRaw: params.newValue,
-                        oldScanCount: Number(params.data.scanCount),
-                    })
-                    return true
-                } catch (e) {
-                    console.error(e)
-                    return false
-                }
-            }
-        },
-        {
-            colId: "viewAction",
-            headerName: "View",
-            sortable: false,
-            filter: false,
-            cellRenderer: ViewButtonCellRenderer,
-            flex: 0,
-            width: 100
+            editable: false,
+            valueGetter: params => params.data.maxScanCount
         },
         {
             colId: "deleteAction",
