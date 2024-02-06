@@ -8,7 +8,6 @@ import getAllEvents from "@/lib/backend/event/getAllEvents";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
 import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
@@ -30,28 +29,12 @@ const EventCellRenderer = (props: any) => {
     )
 }
 
-const ViewButtonCellRenderer = (props: any) => {
-    return (
-        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
-            <Link
-                href={`/tickets/${props.data.id}`}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 font-semibold text-xs text-white rounded-lg"
-                rel="noopener noreferrer" target="_blank"
-            >
-                View
-            </Link>
-        </div>
-    )
-}
-
 export default function TicketViewingPage() {
     const queryClient = useQueryClient();
 
     const { user } = useFirebaseAuth()
 
     const { isLoading: ticketsAreLoading, error: ticketFetchError, data: tickets, refetch: refetchTickets } = useQuery('frasertix-admin-queued-tickets', getAllQueuedTickets);
-
-    console.log(tickets)
 
     // Just the names and IDs to put in the modal
     const { isLoading: eventsAreLoading, error: eventFetchError, data: eventNames } = useQuery('frasertix-admin-tickets-events', async () => {
@@ -229,7 +212,7 @@ export default function TicketViewingPage() {
     }
 
     return (
-        <Layout name="Tickets" className="p-4 md:p-8 lg:px-12">
+        <Layout name="Queued Tickets" className="p-4 md:p-8 lg:px-12">
             <Transition.Root show={modalOpen} >
                 <Dialog as="div" className="relative z-10" onClose={setModalOpen}>
                     <Transition.Child
@@ -379,12 +362,12 @@ export default function TicketViewingPage() {
             </Transition.Root>
 
             <div className="flex flex-col items-center">
-                <Typography variant="h1" className="text-center mb-2">Tickets</Typography>
+                <Typography variant="h1" className="text-center mb-2">Queued Tickets</Typography>
                 <button
                     className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
                     onClick={() => setModalOpen(true)}
                 >
-                    Create Ticket
+                    Create Queued Ticket
                 </button>
             </div>
 

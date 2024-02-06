@@ -10,16 +10,14 @@ import {
     Collapse,
 } from "@material-tailwind/react";
 import {
-    UserCircleIcon,
     ChevronDownIcon,
-    PowerIcon,
     Bars2Icon,
-    CalendarDaysIcon,
     ArrowRightOnRectangleIcon,
     UserIcon,
     UsersIcon,
     TicketIcon,
-    QrCodeIcon
+    QrCodeIcon,
+    QueueListIcon
 } from "@heroicons/react/24/outline";
 import { createElement, useEffect, useState } from "react";
 import { useFirebaseAuth } from "../FirebaseAuthContext";
@@ -55,7 +53,7 @@ function ProfileMenu() {
                 <Button
                     variant="text"
                     color="blue-gray"
-                    className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 md:ml-auto"
+                    className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto"
                 >
                     <Image
                         src={user?.photoURL ?? DefaultAvatar}
@@ -122,6 +120,11 @@ const navListItems = [
         link: "/admin/tickets"
     },
     {
+        label: "Queued Tickets",
+        icon: QueueListIcon,
+        link: "/admin/queued-tickets"
+    },
+    {
         label: "Users",
         icon: UsersIcon,
         link: "/admin/users"
@@ -135,7 +138,7 @@ const navListItems = [
 
 function NavList() {
     return (
-        <ul className="my-2 flex flex-col gap-2 md:mb-0 md:mt-0 md:flex-row md:items-center">
+        <ul className="my-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
                 <Link key={key} href={link}>
                     <Typography
@@ -143,7 +146,7 @@ function NavList() {
                         color="blue-gray"
                         className="font-normal"
                     >
-                        <MenuItem className="flex items-center gap-2 md:rounded-full">
+                        <MenuItem className="flex items-center gap-2 lg:rounded-full">
                             {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
                             {label}
                         </MenuItem>
@@ -162,12 +165,12 @@ export function ComplexNavbar() {
     useEffect(() => {
         window.addEventListener(
             "resize",
-            () => window.innerWidth >= 768 && setIsNavOpen(false),
+            () => window.innerWidth >= 1024 && setIsNavOpen(false),
         );
     }, []);
 
     return (
-        <Navbar className="md:mx-4 md:mt-4 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
+        <Navbar className="lg:mx-4 lg:mt-4 p-2 rounded-none lg:rounded-full lg:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
                 <Link href="/admin">
                     <Typography
@@ -176,7 +179,7 @@ export function ComplexNavbar() {
                         FraserTickets (Admin)
                     </Typography>
                 </Link>
-                <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 md:block">
+                <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 lg:block">
                     <NavList />
                 </div>
                 <IconButton
@@ -184,7 +187,7 @@ export function ComplexNavbar() {
                     color="blue-gray"
                     variant="text"
                     onClick={toggleIsNavOpen}
-                    className="ml-auto mr-2 md:hidden"
+                    className="ml-auto mr-2 lg:hidden"
                 >
                     <Bars2Icon className="h-6 w-6" />
                 </IconButton>
