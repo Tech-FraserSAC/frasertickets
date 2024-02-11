@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import Head from "next/head";
-import router from "next/router";
+import { useRouter } from "next/router";
 
 import { m } from "framer-motion";
 
@@ -35,6 +35,7 @@ export default function Layout({
     adminProtected?: boolean;
 }) {
     const { user, loaded } = useFirebaseAuth();
+    const router = useRouter();
 
     const title = `${name} | FraserTickets`;
     const description = adminProtected
