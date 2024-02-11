@@ -1,0 +1,4 @@
+package-lock.json
+
+# Ignore the auth helpers which are directly from Firebase
+public/auth_helpers/*

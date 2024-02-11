@@ -1,54 +1,63 @@
-import {
-    Navbar,
-    Typography,
-    Button,
-    Menu,
-    MenuHandler,
-    MenuList,
-    MenuItem,
-    IconButton,
-    Collapse,
-} from "@material-tailwind/react";
-import {
-    ChevronDownIcon,
-    Bars2Icon,
-    ArrowRightOnRectangleIcon,
-    UserIcon,
-    UsersIcon,
-    TicketIcon,
-    QrCodeIcon,
-    QueueListIcon
-} from "@heroicons/react/24/outline";
 import { createElement, useEffect, useState } from "react";
-import { useFirebaseAuth } from "../FirebaseAuthContext";
+
 import Image from "next/image";
-import DefaultAvatar from "@/assets/default-avatar.jpg"
-import logOut from "@/util/logOut";
 import Link from "next/link";
 import router from "next/router";
+
+import {
+    ArrowRightOnRectangleIcon,
+    Bars2Icon,
+    ChevronDownIcon,
+    QrCodeIcon,
+    QueueListIcon,
+    TicketIcon,
+    UserIcon,
+    UsersIcon,
+} from "@heroicons/react/24/outline";
+import {
+    Button,
+    Collapse,
+    IconButton,
+    Menu,
+    MenuHandler,
+    MenuItem,
+    MenuList,
+    Navbar,
+    Typography,
+} from "@material-tailwind/react";
+
+import logOut from "@/util/logOut";
+
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+
+import DefaultAvatar from "@/assets/default-avatar.jpg";
 
 // profile menu component
 const profileMenuItems = [
     {
         label: "Enter User Portal",
         icon: UserIcon,
-        action: () => router.push("/events")
+        action: () => router.push("/events"),
     },
     {
         label: "Sign Out",
         icon: ArrowRightOnRectangleIcon,
-        action: () => logOut()
+        action: () => logOut(),
     },
 ];
 
 function ProfileMenu() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const { user } = useFirebaseAuth()
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { user } = useFirebaseAuth();
 
-    const closeMenu = () => setIsMenuOpen(false)
+    const closeMenu = () => setIsMenuOpen(false);
 
     return (
-        <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
+        <Menu
+            open={isMenuOpen}
+            handler={setIsMenuOpen}
+            placement="bottom-end"
+        >
             <MenuHandler>
                 <Button
                     variant="text"
@@ -67,8 +76,7 @@ function ProfileMenu() {
 
                     <ChevronDownIcon
                         strokeWidth={2.5}
-                        className={`h-3 w-3 transition-transform ${isMenuOpen ? "rotate-180" : ""
-                            }`}
+                        className={`h-3 w-3 transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
                     />
                 </Button>
             </MenuHandler>
@@ -79,13 +87,12 @@ function ProfileMenu() {
                         <MenuItem
                             key={label}
                             onClick={() => {
-                                action()
-                                closeMenu()
+                                action();
+                                closeMenu();
                             }}
-                            className={`flex items-center gap-2 rounded ${isLastItem
-                                ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10"
-                                : ""
-                                }`}
+                            className={`flex items-center gap-2 rounded ${
+                                isLastItem ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10" : ""
+                            }`}
                         >
                             {createElement(icon, {
                                 className: `h-4 w-4 ${isLastItem ? "text-red-500" : ""}`,
@@ -107,7 +114,6 @@ function ProfileMenu() {
     );
 }
 
-// nav list component
 const navListItems = [
     // {
     //     label: "Events",
@@ -117,22 +123,22 @@ const navListItems = [
     {
         label: "Tickets",
         icon: TicketIcon,
-        link: "/admin/tickets"
+        link: "/admin/tickets",
     },
     {
         label: "Queued Tickets",
         icon: QueueListIcon,
-        link: "/admin/queued-tickets"
+        link: "/admin/queued-tickets",
     },
     {
         label: "Users",
         icon: UsersIcon,
-        link: "/admin/users"
+        link: "/admin/users",
     },
     {
         label: "Scan",
         icon: QrCodeIcon,
-        link: "/admin/scan"
+        link: "/admin/scan",
     },
 ];
 
@@ -140,14 +146,19 @@ function NavList() {
     return (
         <ul className="my-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
-                <Link key={key} href={link}>
+                <Link
+                    key={key}
+                    href={link}
+                >
                     <Typography
                         variant="small"
                         color="blue-gray"
                         className="font-normal"
                     >
                         <MenuItem className="flex items-center gap-2 lg:rounded-full">
-                            {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
+                            {createElement(icon, {
+                                className: "h-[18px] w-[18px]",
+                            })}{" "}
                             {label}
                         </MenuItem>
                     </Typography>
@@ -163,19 +174,14 @@ export function ComplexNavbar() {
     const toggleIsNavOpen = () => setIsNavOpen((cur) => !cur);
 
     useEffect(() => {
-        window.addEventListener(
-            "resize",
-            () => window.innerWidth >= 1024 && setIsNavOpen(false),
-        );
+        window.addEventListener("resize", () => window.innerWidth >= 1024 && setIsNavOpen(false));
     }, []);
 
     return (
         <Navbar className="lg:mx-4 lg:mt-4 p-2 rounded-none lg:rounded-full lg:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
                 <Link href="/admin">
-                    <Typography
-                        className="mr-4 ml-2 cursor-pointer font-medium text-xl"
-                    >
+                    <Typography className="mr-4 ml-2 cursor-pointer font-medium text-xl">
                         FraserTickets (Admin)
                     </Typography>
                 </Link>
@@ -193,7 +199,10 @@ export function ComplexNavbar() {
                 </IconButton>
                 <ProfileMenu />
             </div>
-            <Collapse open={isNavOpen} className="h-full">
+            <Collapse
+                open={isNavOpen}
+                className="h-full"
+            >
                 <NavList />
             </Collapse>
         </Navbar>

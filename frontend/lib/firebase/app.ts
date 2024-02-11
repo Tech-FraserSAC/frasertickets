@@ -1,12 +1,13 @@
-import { initializeApp, getApps } from "firebase/app"
-import config from "./config"
+import { getApps, initializeApp } from "firebase/app";
+
+import config from "@/lib/firebase/config";
 
 export default function initializeFirebase() {
     if (getApps().length === 0) {
         try {
-            initializeApp(config)
+            initializeApp(config);
         } catch (error: any) {
-            console.error("Firebase initialization error:", error.stack)
+            console.error("Firebase initialization error:", error.stack);
         }
     }
 }

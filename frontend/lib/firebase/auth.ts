@@ -1,5 +1,6 @@
-import { getAuth } from "firebase/auth"
-import initializeFirebase from "./app"
+import { getAuth } from "firebase/auth";
 
-initializeFirebase()
-export default getAuth()
+import initializeFirebase from "@/lib/firebase/app";
+
+initializeFirebase();
+export default getAuth();
