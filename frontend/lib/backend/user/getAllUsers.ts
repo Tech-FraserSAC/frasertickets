@@ -1,6 +1,5 @@
-import User, { convertToUser } from "@/lib/backend/user";
-
 import sendBackendRequest from "@/lib/backend/sendBackendRequest";
+import User, { convertToUser } from "@/lib/backend/user";
 
 // Admin-only route!
 export default async function getAllUsers() {

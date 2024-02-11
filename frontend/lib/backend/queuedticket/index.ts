@@ -1,3 +1,7 @@
+import createNewQueuedTicket from "./createNewQueuedTicket";
+import deleteQueuedTicket from "./deleteQueuedTicket";
+import getAllQueuedTickets from "./getAllQueuedTickets";
+
 type QueuedTicket = {
     id: string;
     studentNumber: string;
@@ -21,3 +25,4 @@ export function convertToQueuedTicket(rawData: { [key: string]: any }): QueuedTi
 }
 
 export default QueuedTicket;
+export { createNewQueuedTicket, deleteQueuedTicket, getAllQueuedTickets };

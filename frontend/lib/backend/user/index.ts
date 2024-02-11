@@ -1,3 +1,7 @@
+import addUser from "./addUser";
+import editUser from "./editUser";
+import getAllUsers from "./getAllUsers";
+
 type User = {
     id: string;
     admin: boolean;
@@ -17,3 +21,4 @@ export function convertToUser(rawData: { [key: string]: any }): User {
 }
 
 export default User;
+export { addUser, editUser, getAllUsers };

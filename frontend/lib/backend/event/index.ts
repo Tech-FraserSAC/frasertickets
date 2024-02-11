@@ -1,3 +1,6 @@
+import getAllEvents from "@/lib/backend/event/getAllEvents";
+import getEvent from "@/lib/backend/event/getEvent";
+
 type Event = {
     id: string;
     name: string;
@@ -23,3 +26,4 @@ export function convertToEvent(rawData: { [key: string]: any }): Event {
 }
 
 export default Event;
+export { getEvent, getAllEvents };

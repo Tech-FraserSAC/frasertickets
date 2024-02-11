@@ -9,10 +9,8 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
-import getAllEvents from "@/lib/backend/event/getAllEvents";
-import createNewQueuedTicket from "@/lib/backend/queuedticket/createNewQueuedTicket";
-import deleteQueuedTicket from "@/lib/backend/queuedticket/deleteQueuedTicket";
-import getAllQueuedTickets from "@/lib/backend/queuedticket/getAllQueuedTickets";
+import { getAllEvents } from "@/lib/backend/event";
+import { createNewQueuedTicket, deleteQueuedTicket, getAllQueuedTickets } from "@/lib/backend/queuedticket";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
