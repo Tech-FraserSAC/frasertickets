@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { DateRangePicker, RangeKeyDict, Range } from 'react-date-range';
-import 'react-date-range/dist/styles.css'; // main css file
-import 'react-date-range/dist/theme/default.css'; // theme css file
+import React, { useState, useRef, useEffect } from "react";
+import { DateRangePicker, RangeKeyDict, Range } from "react-date-range";
+// main css file
+import "react-date-range/dist/styles.css";
+// theme css file
+import "react-date-range/dist/theme/default.css";
 
 interface Props {
-    state: Range,
-    setState: React.Dispatch<React.SetStateAction<Range>>
+    state: Range;
+    setState: React.Dispatch<React.SetStateAction<Range>>;
 }
 
 function DatePickerModal({ state, setState }: Props) {
@@ -17,17 +19,20 @@ function DatePickerModal({ state, setState }: Props) {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (
-                modalRef.current && !modalRef.current.contains(e.target as Node) &&
-                buttonRef.current && !buttonRef.current.contains(e.target as Node) &&
-                clearRef.current && !clearRef.current.contains(e.target as Node)
+                modalRef.current &&
+                !modalRef.current.contains(e.target as Node) &&
+                buttonRef.current &&
+                !buttonRef.current.contains(e.target as Node) &&
+                clearRef.current &&
+                !clearRef.current.contains(e.target as Node)
             ) {
                 setIsOpen(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isOpen]);
 
@@ -36,7 +41,7 @@ function DatePickerModal({ state, setState }: Props) {
         const rect = buttonRef.current!.getBoundingClientRect();
         return {
             top: `${rect.bottom + window.scrollY}px`,
-            left: `${rect.left + window.scrollX}px`
+            left: `${rect.left + window.scrollX}px`,
         };
     };
 
@@ -56,17 +61,19 @@ function DatePickerModal({ state, setState }: Props) {
                     ref={modalRef}
                     style={{
                         ...getButtonPosition(),
-                        zIndex: 1000
+                        zIndex: 1000,
                     }}
                     className="flex flex-col gap-2 absolute z-10 mt-2 p-4 bg-white border rounded shadow-lg"
                 >
                     <button
                         ref={clearRef}
-                        onClick={() => setState({
-                            startDate: undefined,
-                            endDate: undefined,
-                            key: "selection"
-                        })}
+                        onClick={() =>
+                            setState({
+                                startDate: undefined,
+                                endDate: undefined,
+                                key: "selection",
+                            })
+                        }
                         className="text-sm mb-2 bg-orange-500 text-white px-4 py-2 mx-4 lg:mx-8 rounded hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300"
                     >
                         Clear

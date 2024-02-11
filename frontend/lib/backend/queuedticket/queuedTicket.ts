@@ -1,12 +1,12 @@
 type QueuedTicket = {
-    id: string,
-    studentNumber: string,
-    eventId: string,
-    eventData: Event,
-    timestamp: Date,
-    maxScanCount: Number,
-    fullNameUpdate: string
-}
+    id: string;
+    studentNumber: string;
+    eventId: string;
+    eventData: Event;
+    timestamp: Date;
+    maxScanCount: Number;
+    fullNameUpdate: string;
+};
 
 export function convertToQueuedTicket(rawData: { [key: string]: any }): QueuedTicket {
     return {
@@ -16,8 +16,8 @@ export function convertToQueuedTicket(rawData: { [key: string]: any }): QueuedTi
         eventData: rawData.eventData as Event,
         timestamp: new Date(rawData.timestamp),
         maxScanCount: rawData.max_scan_count,
-        fullNameUpdate: rawData.full_name_update
-    }
+        fullNameUpdate: rawData.full_name_update,
+    };
 }
 
-export default QueuedTicket
+export default QueuedTicket;

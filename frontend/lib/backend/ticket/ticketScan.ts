@@ -1,14 +1,15 @@
-import User, { convertToUser } from "../user/user"
-import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData"
+import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
+
+import User, { convertToUser } from "../user/user";
 
 type TicketScan = {
-    scanCount: number,
-    timestamp: Date,
-    ticketData: TicketWithUserAndEventData,
-    userData: User,
-    processed: boolean,
-    noProcessReason?: string
-}
+    scanCount: number;
+    timestamp: Date;
+    ticketData: TicketWithUserAndEventData;
+    userData: User;
+    processed: boolean;
+    noProcessReason?: string;
+};
 
 export function convertToTicketScan(rawData: { [key: string]: any }): TicketScan {
     return {
@@ -17,8 +18,8 @@ export function convertToTicketScan(rawData: { [key: string]: any }): TicketScan
         ticketData: convertToTicketWithEventData(rawData.ticketData),
         userData: convertToUser(rawData.userData),
         processed: rawData.processed,
-        noProcessReason: rawData.processed ? undefined : rawData.noProcessReason
-    }
+        noProcessReason: rawData.processed ? undefined : rawData.noProcessReason,
+    };
 }
 
-export default TicketScan
+export default TicketScan;

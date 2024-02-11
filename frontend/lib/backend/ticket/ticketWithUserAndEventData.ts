@@ -1,17 +1,17 @@
-import Event, { convertToEvent } from "../event/event"
-import User, { convertToUser } from "../user/user"
+import Event, { convertToEvent } from "../event/event";
+import User, { convertToUser } from "../user/user";
 
 type TicketWithUserAndEventData = {
-    id: string,
-    ownerId: string,
-    eventId: string,
-    timestamp: Date,
-    eventData: Event,
-    ownerData: User,
-    scanCount: Number,
-    lastScanTime: Date,
-    maxScanCount: Number
-}
+    id: string;
+    ownerId: string;
+    eventId: string;
+    timestamp: Date;
+    eventData: Event;
+    ownerData: User;
+    scanCount: Number;
+    lastScanTime: Date;
+    maxScanCount: Number;
+};
 
 export function convertToTicketWithEventData(rawData: { [key: string]: any }): TicketWithUserAndEventData {
     return {
@@ -23,8 +23,8 @@ export function convertToTicketWithEventData(rawData: { [key: string]: any }): T
         ownerData: convertToUser(rawData.ownerData),
         scanCount: Number(rawData.scanCount),
         lastScanTime: new Date(rawData.lastScanTime),
-        maxScanCount: rawData.maxScanCount
-    }
+        maxScanCount: rawData.maxScanCount,
+    };
 }
 
-export default TicketWithUserAndEventData
+export default TicketWithUserAndEventData;

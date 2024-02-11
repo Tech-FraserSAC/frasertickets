@@ -1,16 +1,16 @@
-import Layout from '@/components/Layout'
-import Link from 'next/link'
+import Link from "next/link";
 
-export function UnauthorizedComponent({ home } : { home?: string }) {
+import Layout from "@/components/Layout";
+
+export function UnauthorizedComponent({ home }: { home?: string }) {
     return (
-        <div className="flex flex-col h-screen flex-grow justify-center" key="page-404">
+        <div
+            className="flex flex-col h-screen flex-grow justify-center"
+            key="page-404"
+        >
             <div className="flex flex-col p-8">
-                <h1 className="text-8xl text-center mb-2 font-semibold text-red-500">
-                    401
-                </h1>
-                <h2 className="text-3xl text-center mb-6 text-black">
-                    Unauthorized
-                </h2>
+                <h1 className="text-8xl text-center mb-2 font-semibold text-red-500">401</h1>
+                <h2 className="text-3xl text-center mb-6 text-black">Unauthorized</h2>
 
                 <p className="text-xl text-center mb-6 text-gray-700">
                     Sorry, you don&apos;t have access to the following page. Try checking if you&apos;re signed in.
@@ -26,7 +26,7 @@ export function UnauthorizedComponent({ home } : { home?: string }) {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default function Page401() {
@@ -34,5 +34,5 @@ export default function Page401() {
         <Layout name="401 Unauthorized">
             <UnauthorizedComponent />
         </Layout>
-    )
+    );
 }

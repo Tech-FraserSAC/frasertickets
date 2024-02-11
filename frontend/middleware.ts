@@ -1,32 +1,32 @@
-import { NextFetchEvent, NextResponse, URLPattern } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { serialize } from "cookie"
+import { serialize } from "cookie";
+import { NextFetchEvent, NextResponse, URLPattern } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Gets the path segments from an entire path
 const PATTERNS = [
     [
-        new URLPattern({ pathname: '/__/auth/:path' }),
+        new URLPattern({ pathname: "/__/auth/:path" }),
         // @ts-ignore
         ({ pathname }) => pathname.groups,
     ],
-]
+];
 
-// Runs path extractors on url 
+// Runs path extractors on url
 const params = (url: string) => {
-    const input = url.split('?')[0]
-    let result: { [key: string]: any } = {}
+    const input = url.split("?")[0];
+    let result: { [key: string]: any } = {};
 
     for (const [pattern, handler] of PATTERNS) {
         // @ts-ignore
-        const patternResult = pattern.exec(input)
-        if (patternResult !== null && 'pathname' in patternResult) {
+        const patternResult = pattern.exec(input);
+        if (patternResult !== null && "pathname" in patternResult) {
             // @ts-ignore
-            result = handler(patternResult)
-            break
+            result = handler(patternResult);
+            break;
         }
     }
-    return result
-}
+    return result;
+};
 
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
     if (request.nextUrl.pathname.startsWith("/auth")) {
@@ -39,11 +39,11 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
             const response = NextResponse.redirect(`${baseUrl}/login`, 302);
 
             // Set the cookie in the response header
-            response.cookies.set('credential', credential, {
+            response.cookies.set("credential", credential, {
                 httpOnly: false,
                 maxAge: 60, // 1 minute
-                path: '/login',
-                sameSite: 'strict',
+                path: "/login",
+                sameSite: "strict",
             });
 
             // Return the response
@@ -63,12 +63,15 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
 
         const data = await (await fetch(new URL(`auth_helpers/${path}`, baseUrl))).text();
         const response = new NextResponse(data);
-        response.headers.set("Content-Type", (path.includes(".js") ? "text/javascript;" : "text/html;") + " charset=utf-8")
+        response.headers.set(
+            "Content-Type",
+            (path.includes(".js") ? "text/javascript;" : "text/html;") + " charset=utf-8",
+        );
 
         return response;
     }
 }
 
 export const config = {
-    matcher: ['/auth/redirect', '/__/auth/:path*']
-}
+    matcher: ["/auth/redirect", "/__/auth/:path*"],
+};
