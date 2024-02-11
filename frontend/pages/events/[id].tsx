@@ -1,11 +1,13 @@
-import getEvent from "@/lib/backend/event/getEvent";
-import formatFullDate from "@/util/formatFullDate";
-import { Breadcrumbs, Carousel, Typography } from "@material-tailwind/react";
+import { Carousel, Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useQuery } from "react-query";
+
+import getEvent from "@/lib/backend/event/getEvent";
+
+import formatFullDate from "@/util/formatFullDate";
 
 import Layout from "@/components/Layout";
 

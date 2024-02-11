@@ -1,16 +1,11 @@
-import getEvent from "@/lib/backend/event/getEvent";
-import getTicket from "@/lib/backend/ticket/getTicket";
-import formatFullDate from "@/util/formatFullDate";
-import { Breadcrumbs, Carousel, Typography } from "@material-tailwind/react";
-import Image from "next/image";
-import Link from "next/link";
-import Router, { useRouter } from "next/router";
+import { Typography } from "@material-tailwind/react";
+import { useRouter } from "next/router";
 import { useState } from "react";
-import { AiOutlineArrowLeft } from "react-icons/ai";
 import QRCode from "react-qr-code";
 import { useQuery } from "react-query";
 
-import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import getTicket from "@/lib/backend/ticket/getTicket";
+
 import Layout from "@/components/Layout";
 
 import { ForbiddenComponent } from "../403";

@@ -1,26 +1,23 @@
-import addUser from "@/lib/backend/user/addUser";
-import auth from "@/lib/firebase/auth";
-import getElementBySelectorAsync from "@/util/getElementBySelectorAsync";
-import parseClientCookies from "@/util/parseCookies";
 import { Typography } from "@material-tailwind/react";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import {
     GoogleAuthProvider,
     browserLocalPersistence,
-    getRedirectResult,
     setPersistence,
     signInWithCredential,
     signInWithRedirect,
     signOut,
 } from "firebase/auth";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import router from "next/router";
 import { useEffect, useState } from "react";
-import GoogleButton from "react-google-button";
 
-import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import addUser from "@/lib/backend/user/addUser";
+import auth from "@/lib/firebase/auth";
+
+import getElementBySelectorAsync from "@/util/getElementBySelectorAsync";
+import parseClientCookies from "@/util/parseCookies";
+
 import Layout from "@/components/Layout";
 import LoadingSpinner from "@/components/LoadingSpinner";
 

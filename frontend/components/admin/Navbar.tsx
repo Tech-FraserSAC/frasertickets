@@ -1,30 +1,31 @@
 import DefaultAvatar from "@/assets/default-avatar.jpg";
-import logOut from "@/util/logOut";
 import {
-    ChevronDownIcon,
-    Bars2Icon,
     ArrowRightOnRectangleIcon,
-    UserIcon,
-    UsersIcon,
-    TicketIcon,
+    Bars2Icon,
+    ChevronDownIcon,
     QrCodeIcon,
     QueueListIcon,
+    TicketIcon,
+    UserIcon,
+    UsersIcon,
 } from "@heroicons/react/24/outline";
 import {
-    Navbar,
-    Typography,
     Button,
+    Collapse,
+    IconButton,
     Menu,
     MenuHandler,
-    MenuList,
     MenuItem,
-    IconButton,
-    Collapse,
+    MenuList,
+    Navbar,
+    Typography,
 } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
 import router from "next/router";
 import { createElement, useEffect, useState } from "react";
+
+import logOut from "@/util/logOut";
 
 import { useFirebaseAuth } from "../FirebaseAuthContext";
 

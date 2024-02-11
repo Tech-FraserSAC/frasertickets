@@ -1,5 +1,4 @@
 import getTokenSafely from "./getTokenSafely";
-import { IdTokenResult } from "firebase/auth";
 
 interface DecodedToken {
     admin?: boolean;

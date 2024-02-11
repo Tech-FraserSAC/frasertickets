@@ -1,6 +1,3 @@
-import { convertToTicket } from "./ticket";
-import { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
-
 import sendBackendRequest from "../sendBackendRequest";
 
 export default async function deleteTicket(id: string) {

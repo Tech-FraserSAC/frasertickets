@@ -1,6 +1,5 @@
-import TicketScan from "@/lib/backend/ticket/ticketScan";
 import { Button, Typography } from "@material-tailwind/react";
-import { BrowserQRCodeReader, BrowserCodeReader, IScannerControls } from "@zxing/browser";
+import { BrowserCodeReader, BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";

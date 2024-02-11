@@ -1,6 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
-
 import config from "./config";
+import { getApps, initializeApp } from "firebase/app";
 
 export default function initializeFirebase() {
     if (getApps().length === 0) {

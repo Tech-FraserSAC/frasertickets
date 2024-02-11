@@ -1,6 +1,5 @@
-import { serialize } from "cookie";
-import { NextFetchEvent, NextResponse, URLPattern } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextFetchEvent, NextResponse, URLPattern } from "next/server";
 
 // Gets the path segments from an entire path
 const PATTERNS = [

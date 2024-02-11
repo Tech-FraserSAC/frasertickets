@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import { DateRangePicker, RangeKeyDict, Range } from "react-date-range";
+import React, { useEffect, useRef, useState } from "react";
+import { DateRangePicker, Range } from "react-date-range";
+
 // main css file
 import "react-date-range/dist/styles.css";
 // theme css file

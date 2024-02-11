@@ -1,14 +1,12 @@
-import Event from "@/lib/backend/event/event";
-import getAllEvents from "@/lib/backend/event/getAllEvents";
+import { Button, Card, CardBody, CardFooter, Typography } from "@material-tailwind/react";
+import Link from "next/link";
+import { useQuery } from "react-query";
+
 import getSelfTickets from "@/lib/backend/ticket/getSelfTickets";
 import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
+
 import cleanDisplayName from "@/util/cleanDisplayName";
 import formatDateRange from "@/util/formatFullDate";
-import { Button, Card, CardBody, CardFooter, CardHeader, Typography } from "@material-tailwind/react";
-import Image from "next/image";
-import Link from "next/link";
-import { Fragment } from "react";
-import { useQuery } from "react-query";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/Layout";

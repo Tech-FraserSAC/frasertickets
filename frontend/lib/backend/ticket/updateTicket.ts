@@ -1,5 +1,3 @@
-import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
-
 import sendBackendRequest from "../sendBackendRequest";
 
 interface UpdateBody {

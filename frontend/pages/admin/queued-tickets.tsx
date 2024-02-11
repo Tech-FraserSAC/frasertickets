@@ -1,23 +1,26 @@
-import getAllEvents from "@/lib/backend/event/getAllEvents";
-import createNewQueuedTicket from "@/lib/backend/queuedticket/createNewQueuedTicket";
-import deleteQueuedTicket from "@/lib/backend/queuedticket/deleteQueuedTicket";
-// Optional theme CSS
-import getAllQueuedTickets from "@/lib/backend/queuedticket/getAllQueuedTickets";
-import { studentOrTeacherNumberRegex } from "@/util/regexps";
-import { Dialog, Transition, Combobox } from "@headlessui/react";
+import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
-import "ag-grid-community/styles/ag-grid.css";
-// Core grid CSS, always needed
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridReact } from "ag-grid-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
+import getAllEvents from "@/lib/backend/event/getAllEvents";
+import createNewQueuedTicket from "@/lib/backend/queuedticket/createNewQueuedTicket";
+import deleteQueuedTicket from "@/lib/backend/queuedticket/deleteQueuedTicket";
+import getAllQueuedTickets from "@/lib/backend/queuedticket/getAllQueuedTickets";
+
+import { studentOrTeacherNumberRegex } from "@/util/regexps";
+
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/admin/Layout";
+
+// Core grid CSS, always needed
+import "ag-grid-community/styles/ag-grid.css";
+// Optional theme CSS
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
 const EventCellRenderer = (props: any) => {
     return (

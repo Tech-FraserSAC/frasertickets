@@ -8,17 +8,14 @@
     "printWidth": 120,
     "importOrder": [
         "<THIRD_PARTY_MODULES>",
-        "interface",
-        "(?=content|api)",
-        "context/",
-        "mock/",
-        "config",
-        "utils/",
-        "hooks/",
-        "(components/|./index)",
+        "lib/",
+        "util/",
+        "components/",
+        "styles/",
+        "public/",
         ".svg",
-        "^../(.*)$",
-        "(?=./styles.module.scss)"
+        ".css",
+        "^../(.*)$"
     ],
     "importOrderSeparation": true,
     "singleAttributePerLine": true

@@ -1,4 +1,3 @@
-import Ticket, { convertToTicket } from "./ticket";
 import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
 
 import sendBackendRequest from "../sendBackendRequest";

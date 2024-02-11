@@ -1,19 +1,20 @@
-// Optional theme CSS
-import editUser from "@/lib/backend/user/editUser";
-import getAllUsers from "@/lib/backend/user/getAllUsers";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { Typography } from "@material-tailwind/react";
-// the AG Grid React Component
 import { ColDef } from "ag-grid-community";
-import "ag-grid-community/styles/ag-grid.css";
-// Core grid CSS, always needed
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridReact } from "ag-grid-react";
 import Image from "next/image";
-import { useState } from "react";
 import { useMutation, useQuery } from "react-query";
 
-import Layout from "@/components/admin/Layout";
+import editUser from "lib/backend/user/editUser";
+import getAllUsers from "lib/backend/user/getAllUsers";
+
+import { cleanDisplayNameWithStudentNumber } from "util/cleanDisplayName";
+
+import Layout from "components/admin/Layout";
+
+// Core grid CSS, always needed
+import "ag-grid-community/styles/ag-grid.css";
+// Optional theme CSS
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
 const ProfilePictureCellRenderer = (props: any) => {
     return (

@@ -5,9 +5,7 @@ import { ComplexNavbar } from "./Navbar";
 import { m } from "framer-motion";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 
-import { useFirebaseAuth } from "../FirebaseAuthContext";
 import Footer from "../Footer";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
