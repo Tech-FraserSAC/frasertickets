@@ -98,6 +98,23 @@ export default function EventsIndex() {
 
             {!(isLoading || error) ? (
                 <div className="flex flex-col gap-4">
+                    {events && events.length === 0 && (
+                        <div className="flex flex-col items-center">
+                            <Typography
+                                variant="h3"
+                                className="mb-2 text-center"
+                                color="blue-gray"
+                            >
+                                No events
+                            </Typography>
+                            <Typography
+                                variant="lead"
+                                className="text-center lg:w-3/4"
+                            >
+                                It looks like there aren&apos;t any events yet. Check this website later when an event is being held!
+                            </Typography>
+                        </div>
+                    )}
                     {currentEvents && currentEvents.length !== 0 && (
                         <div>
                             <Typography
