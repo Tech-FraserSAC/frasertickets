@@ -1,7 +1,8 @@
+import Image from "next/image";
+
 import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import Image from "next/image";
 import { useMutation, useQuery } from "react-query";
 
 import editUser from "lib/backend/user/editUser";

@@ -1,7 +1,9 @@
-import { m } from "framer-motion";
+import { useEffect, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+
+import { m } from "framer-motion";
 
 import BannerPhoto from "../../assets/landing-banner-4.jpg";
 import { useFirebaseAuth } from "../FirebaseAuthContext";

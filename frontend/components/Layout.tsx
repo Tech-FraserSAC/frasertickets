@@ -1,9 +1,11 @@
+import { useEffect } from "react";
+
+import Head from "next/head";
+import router from "next/router";
+
 import { useFirebaseAuth } from "./FirebaseAuthContext";
 import { ComplexNavbar } from "./user/Navbar";
 import { m } from "framer-motion";
-import Head from "next/head";
-import router from "next/router";
-import { useEffect } from "react";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 

@@ -1,10 +1,12 @@
+import { useRef, useState } from "react";
+
+import Link from "next/link";
+
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import Link from "next/link";
-import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 import getAllEvents from "@/lib/backend/event/getAllEvents";

@@ -1,9 +1,10 @@
-import { ForbiddenComponent } from "@/pages/403";
-import { Typography } from "@material-tailwind/react";
+import { useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+
+import { Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
 import scanTicket from "@/lib/backend/ticket/scanTicket";
@@ -11,6 +12,8 @@ import scanTicket from "@/lib/backend/ticket/scanTicket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/admin/Layout";
+
+import { ForbiddenComponent } from "@/pages/403";
 
 enum ScanStatus {
     SUCCESS,

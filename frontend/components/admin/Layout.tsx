@@ -1,12 +1,12 @@
-import AdminRestrictedPage from "./AdminRestrictedPage";
-import { ComplexNavbar } from "./Navbar";
-// import Navbar from "./Navbar"
-// import Footer from "./Footer"
-import { m } from "framer-motion";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import Footer from "../Footer";
+import { m } from "framer-motion";
+
+import AdminRestrictedPage from "@/components/admin/AdminRestrictedPage";
+import { ComplexNavbar } from "@/components/admin/Navbar";
+
+import Footer from "@/components/Footer";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 

@@ -1,6 +1,7 @@
-import { Button, Card, CardBody, CardFooter, CardHeader, Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
+
+import { Button, Card, CardBody, CardFooter, CardHeader, Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
 import Event from "@/lib/backend/event/event";

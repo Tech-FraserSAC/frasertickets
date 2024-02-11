@@ -1,6 +1,8 @@
-import { Typography } from "@material-tailwind/react";
-import { useRouter } from "next/router";
 import { useState } from "react";
+
+import { useRouter } from "next/router";
+
+import { Typography } from "@material-tailwind/react";
 import QRCode from "react-qr-code";
 import { useQuery } from "react-query";
 

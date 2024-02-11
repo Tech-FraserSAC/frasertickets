@@ -1,5 +1,6 @@
-import { Button, Card, CardBody, CardFooter, Typography } from "@material-tailwind/react";
 import Link from "next/link";
+
+import { Button, Card, CardBody, CardFooter, Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
 import getSelfTickets from "@/lib/backend/ticket/getSelfTickets";

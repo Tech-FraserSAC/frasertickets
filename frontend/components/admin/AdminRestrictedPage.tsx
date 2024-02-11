@@ -1,12 +1,14 @@
-import { UnauthorizedComponent } from "@/pages/401";
-import { ForbiddenComponent } from "@/pages/403";
-import { Typography } from "@material-tailwind/react";
 import { PropsWithChildren, useEffect, useState } from "react";
+
+import { Typography } from "@material-tailwind/react";
 
 import getDecodedTokenSafely from "@/lib/auth/getDecodedTokenSafely";
 
-import { useFirebaseAuth } from "components/FirebaseAuthContext";
-import LoadingSpinner from "components/LoadingSpinner";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+import { UnauthorizedComponent } from "@/pages/401";
+import { ForbiddenComponent } from "@/pages/403";
 
 export default function AdminRestrictedPage(props: PropsWithChildren) {
     const { user, loaded } = useFirebaseAuth();

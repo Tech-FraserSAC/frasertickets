@@ -1,8 +1,10 @@
-import { Button, Typography } from "@material-tailwind/react";
-import { BrowserCodeReader, BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
+import { useEffect, useRef, useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+
+import { Button, Typography } from "@material-tailwind/react";
+import { BrowserCodeReader, BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/admin/Layout";

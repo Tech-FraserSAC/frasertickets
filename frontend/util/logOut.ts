@@ -1,5 +1,6 @@
-import { signOut } from "firebase/auth";
 import router from "next/router";
+
+import { signOut } from "firebase/auth";
 
 import auth from "@/lib/firebase/auth";
 

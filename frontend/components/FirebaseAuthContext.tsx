@@ -1,6 +1,8 @@
-import { User as firebaseUser, onAuthStateChanged, signOut } from "firebase/auth";
-import router from "next/router";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+
+import router from "next/router";
+
+import { User as firebaseUser, onAuthStateChanged, signOut } from "firebase/auth";
 
 import addUser from "@/lib/backend/user/addUser";
 import auth from "@/lib/firebase/auth";

@@ -1,7 +1,8 @@
-import { Carousel, Typography } from "@material-tailwind/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+
+import { Carousel, Typography } from "@material-tailwind/react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useQuery } from "react-query";
 

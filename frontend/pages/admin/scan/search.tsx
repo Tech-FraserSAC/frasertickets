@@ -1,10 +1,12 @@
-import { Combobox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
-import { Button, Typography } from "@material-tailwind/react";
+import { useRef, useState } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+
+import { Combobox, Transition } from "@headlessui/react";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { Button, Typography } from "@material-tailwind/react";
 import { useMutation, useQuery } from "react-query";
 
 import getAllEvents from "@/lib/backend/event/getAllEvents";

@@ -1,3 +1,9 @@
+import { createElement, useEffect, useState } from "react";
+
+import Image from "next/image";
+import Link from "next/link";
+import router from "next/router";
+
 import DefaultAvatar from "@/assets/default-avatar.jpg";
 import {
     ArrowRightOnRectangleIcon,
@@ -20,10 +26,6 @@ import {
     Navbar,
     Typography,
 } from "@material-tailwind/react";
-import Image from "next/image";
-import Link from "next/link";
-import router from "next/router";
-import { createElement, useEffect, useState } from "react";
 
 import logOut from "@/util/logOut";
 

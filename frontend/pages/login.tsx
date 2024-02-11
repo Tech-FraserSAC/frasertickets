@@ -1,3 +1,8 @@
+import { useEffect, useState } from "react";
+
+import Head from "next/head";
+import router from "next/router";
+
 import { Typography } from "@material-tailwind/react";
 import { GoogleLogin } from "@react-oauth/google";
 import {
@@ -8,9 +13,6 @@ import {
     signInWithRedirect,
     signOut,
 } from "firebase/auth";
-import Head from "next/head";
-import router from "next/router";
-import { useEffect, useState } from "react";
 
 import addUser from "@/lib/backend/user/addUser";
 import auth from "@/lib/firebase/auth";
