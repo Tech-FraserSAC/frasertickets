@@ -16,7 +16,6 @@ import {
 
 import addUser from "@/lib/backend/user/addUser";
 import auth from "@/lib/firebase/auth";
-
 import getElementBySelectorAsync from "@/util/getElementBySelectorAsync";
 import parseClientCookies from "@/util/parseCookies";
 

@@ -5,7 +5,6 @@ import { useQuery } from "react-query";
 
 import getSelfTickets from "@/lib/backend/ticket/getSelfTickets";
 import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
-
 import cleanDisplayName from "@/util/cleanDisplayName";
 import formatDateRange from "@/util/formatFullDate";
 

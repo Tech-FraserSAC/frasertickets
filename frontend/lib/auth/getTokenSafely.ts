@@ -1,4 +1,4 @@
-import auth from "../firebase/auth";
+import auth from "@/lib/firebase/auth";
 
 /**
  * @description Gets an auth token safely. Always makes sure to use very fresh tokens for admin routes,

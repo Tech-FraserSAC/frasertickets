@@ -1,4 +1,4 @@
-import initializeFirebase from "./app";
+import initializeFirebase from "@/lib/firebase/app";
 import { getAuth } from "firebase/auth";
 
 initializeFirebase();

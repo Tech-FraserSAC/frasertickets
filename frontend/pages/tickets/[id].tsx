@@ -9,10 +9,9 @@ import { useQuery } from "react-query";
 import getTicket from "@/lib/backend/ticket/getTicket";
 
 import Layout from "@/components/Layout";
-
-import { ForbiddenComponent } from "../403";
-import { NotFoundComponent } from "../404";
-import { ServerErrorComponent } from "../500";
+import { ForbiddenComponent } from "@/pages/403";
+import { NotFoundComponent } from "@/pages/404";
+import { ServerErrorComponent } from "@/pages/500";
 
 const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
 

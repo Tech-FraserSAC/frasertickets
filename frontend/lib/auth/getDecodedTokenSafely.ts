@@ -1,4 +1,4 @@
-import getTokenSafely from "./getTokenSafely";
+import getTokenSafely from "@/lib/auth/getTokenSafely";
 
 interface DecodedToken {
     admin?: boolean;

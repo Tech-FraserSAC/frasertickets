@@ -1,4 +1,4 @@
-import sendBackendRequest from "../sendBackendRequest";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 interface UserUpdates {
     full_name: string;

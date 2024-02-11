@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import getTokenSafely from "lib/auth/getTokenSafely";
-import getBackendRoute from "lib/backend/getBackendRoute";
+import getTokenSafely from "@/lib/auth/getTokenSafely";
+import getBackendRoute from "@/lib/backend/getBackendRoute";
 
 type Method = "get" | "post" | "patch" | "delete";
 

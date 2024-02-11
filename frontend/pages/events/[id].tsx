@@ -7,7 +7,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useQuery } from "react-query";
 
 import getEvent from "@/lib/backend/event/getEvent";
-
 import formatFullDate from "@/util/formatFullDate";
 
 import Layout from "@/components/Layout";

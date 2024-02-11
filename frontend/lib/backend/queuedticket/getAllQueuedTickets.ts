@@ -1,6 +1,5 @@
-import QueuedTicket, { convertToQueuedTicket } from "./queuedTicket";
-
-import sendBackendRequest from "../sendBackendRequest";
+import QueuedTicket, { convertToQueuedTicket } from "@/lib/backend/queuedticket";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 // Admin-only route!
 export default async function getAllQueuedTickets() {

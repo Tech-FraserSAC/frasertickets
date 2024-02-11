@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import router from "next/router";
 
-import DefaultAvatar from "@/assets/default-avatar.jpg";
 import {
     ArrowRightOnRectangleIcon,
     Bars2Icon,
@@ -29,7 +28,9 @@ import {
 
 import logOut from "@/util/logOut";
 
-import { useFirebaseAuth } from "../FirebaseAuthContext";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+
+import DefaultAvatar from "@/assets/default-avatar.jpg";
 
 // profile menu component
 const profileMenuItems = [

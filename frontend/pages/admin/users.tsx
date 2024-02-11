@@ -5,12 +5,11 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery } from "react-query";
 
-import editUser from "lib/backend/user/editUser";
-import getAllUsers from "lib/backend/user/getAllUsers";
+import editUser from "@/lib/backend/user/editUser";
+import getAllUsers from "@/lib/backend/user/getAllUsers";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
-import { cleanDisplayNameWithStudentNumber } from "util/cleanDisplayName";
-
-import Layout from "components/admin/Layout";
+import Layout from "@/components/admin/Layout";
 
 // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-grid.css";

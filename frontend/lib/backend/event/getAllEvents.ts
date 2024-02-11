@@ -1,6 +1,5 @@
-import Event, { convertToEvent } from "./event";
-
-import sendBackendRequest from "../sendBackendRequest";
+import Event, { convertToEvent } from "@/lib/backend/event";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 export default async function getAllEvents() {
     const res = await sendBackendRequest("/events", "get");

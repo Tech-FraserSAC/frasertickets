@@ -1,4 +1,4 @@
-import sendBackendRequest from "../sendBackendRequest";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 export default async function addUser() {
     await sendBackendRequest(`/users/add`, "post", true, true, undefined, undefined, {

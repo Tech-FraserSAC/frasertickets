@@ -3,10 +3,9 @@ import { useRouter } from "next/router";
 
 import { m } from "framer-motion";
 
+import Footer from "@/components/Footer";
 import AdminRestrictedPage from "@/components/admin/AdminRestrictedPage";
 import { ComplexNavbar } from "@/components/admin/Navbar";
-
-import Footer from "@/components/Footer";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 

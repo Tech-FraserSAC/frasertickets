@@ -1,5 +1,5 @@
-import Event, { convertToEvent } from "../event/event";
-import User, { convertToUser } from "../user/user";
+import Event, { convertToEvent } from "@/lib/backend/event";
+import User, { convertToUser } from "@/lib/backend/user";
 
 type TicketWithUserAndEventData = {
     id: string;

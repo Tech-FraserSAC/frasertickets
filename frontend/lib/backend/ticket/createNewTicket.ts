@@ -1,6 +1,7 @@
-import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
-
-import sendBackendRequest from "../sendBackendRequest";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
+import TicketWithUserAndEventData, {
+    convertToTicketWithEventData,
+} from "@/lib/backend/ticket/ticketWithUserAndEventData";
 
 // Admin-only route!
 export default async function createNewTicket(ownerID: string, eventID: string, maxScanCount: number) {

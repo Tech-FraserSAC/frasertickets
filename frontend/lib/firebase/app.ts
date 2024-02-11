@@ -1,4 +1,4 @@
-import config from "./config";
+import config from "@/lib/firebase/config";
 import { getApps, initializeApp } from "firebase/app";
 
 export default function initializeFirebase() {

@@ -1,6 +1,7 @@
-import TicketWithUserAndEventData, { convertToTicketWithEventData } from "./ticketWithUserAndEventData";
-
-import User, { convertToUser } from "../user/user";
+import TicketWithUserAndEventData, {
+    convertToTicketWithEventData,
+} from "@/lib/backend/ticket/ticketWithUserAndEventData";
+import User, { convertToUser } from "@/lib/backend/user";
 
 type TicketScan = {
     scanCount: number;

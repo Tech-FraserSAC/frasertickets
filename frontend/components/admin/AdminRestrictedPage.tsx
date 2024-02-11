@@ -6,7 +6,6 @@ import getDecodedTokenSafely from "@/lib/auth/getDecodedTokenSafely";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
-
 import { UnauthorizedComponent } from "@/pages/401";
 import { ForbiddenComponent } from "@/pages/403";
 

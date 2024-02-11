@@ -1,6 +1,5 @@
-import { convertToQueuedTicket } from "./queuedTicket";
-
-import sendBackendRequest from "../sendBackendRequest";
+import { convertToQueuedTicket } from "@/lib/backend/queuedticket";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 // Admin-only route!
 export default async function createNewQueuedTicket(studentNumber: string, eventID: string, maxScanCount: number) {

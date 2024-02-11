@@ -11,7 +11,6 @@ import { useMutation, useQuery } from "react-query";
 
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import searchForTicket from "@/lib/backend/ticket/searchForTicket";
-
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/admin/Layout";

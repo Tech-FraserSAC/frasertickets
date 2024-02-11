@@ -5,8 +5,9 @@ import Link from "next/link";
 
 import { m } from "framer-motion";
 
-import BannerPhoto from "../../assets/landing-banner-4.jpg";
-import { useFirebaseAuth } from "../FirebaseAuthContext";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+
+import BannerPhoto from "@/assets/landing-banner-4.jpg";
 
 const transition = { duration: 1.4, ease: [0.6, 0.01, 0.0, 0.9] };
 

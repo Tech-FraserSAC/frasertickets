@@ -1,4 +1,4 @@
-import sendBackendRequest from "../sendBackendRequest";
+import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 export default async function deleteQueuedTicket(id: string) {
     const res = await sendBackendRequest(`/queuedtickets/${id}`, "delete", true, true);
