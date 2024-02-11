@@ -1,5 +1,5 @@
 import sendBackendRequest from "@/lib/backend/sendBackendRequest";
-import TicketScan, { convertToTicketScan } from "@/lib/backend/ticket/ticketScan";
+import TicketScan, { convertToTicketScan } from "@/lib/backend/ticket/scan";
 
 // Admin-only route!
 export default async function scanTicket(ticketID: string) {

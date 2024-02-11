@@ -1,7 +1,14 @@
 import Event, { convertToEvent } from "@/lib/backend/event";
+import createNewTicket from "@/lib/backend/ticket/createNewTicket";
+import deleteTicket from "@/lib/backend/ticket/deleteTicket";
+import getAllTickets from "@/lib/backend/ticket/getAllTickets";
+import getSelfTickets from "@/lib/backend/ticket/getSelfTickets";
+import getTicket from "@/lib/backend/ticket/getTicket";
+import searchForTicket from "@/lib/backend/ticket/searchForTicket";
+import updateTicket from "@/lib/backend/ticket/updateTicket";
 import User, { convertToUser } from "@/lib/backend/user";
 
-type TicketWithUserAndEventData = {
+type Ticket = {
     id: string;
     ownerId: string;
     eventId: string;
@@ -13,7 +20,7 @@ type TicketWithUserAndEventData = {
     maxScanCount: Number;
 };
 
-export function convertToTicketWithEventData(rawData: { [key: string]: any }): TicketWithUserAndEventData {
+export function convertToTicket(rawData: { [key: string]: any }): Ticket {
     return {
         id: rawData.id,
         ownerId: rawData.ownerID,
@@ -27,4 +34,5 @@ export function convertToTicketWithEventData(rawData: { [key: string]: any }): T
     };
 }
 
-export default TicketWithUserAndEventData;
+export default Ticket;
+export { createNewTicket, deleteTicket, getAllTickets, getSelfTickets, getTicket, searchForTicket, updateTicket };

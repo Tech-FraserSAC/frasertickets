@@ -3,8 +3,7 @@ import Link from "next/link";
 import { Button, Card, CardBody, CardFooter, Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
-import getSelfTickets from "@/lib/backend/ticket/getSelfTickets";
-import TicketWithUserAndEventData from "@/lib/backend/ticket/ticketWithUserAndEventData";
+import Ticket, { getSelfTickets } from "@/lib/backend/ticket";
 import cleanDisplayName from "@/util/cleanDisplayName";
 import formatDateRange from "@/util/formatFullDate";
 
@@ -16,7 +15,7 @@ const TicketCard = ({
     fullName,
     allowTicketShow = true,
 }: {
-    ticket: TicketWithUserAndEventData;
+    ticket: Ticket;
     fullName: string;
     allowTicketShow?: boolean;
 }) => {

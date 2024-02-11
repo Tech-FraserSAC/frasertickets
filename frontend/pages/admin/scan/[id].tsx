@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
-import scanTicket from "@/lib/backend/ticket/scanTicket";
+import { scanTicket } from "@/lib/backend/ticket/scan";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/admin/Layout";

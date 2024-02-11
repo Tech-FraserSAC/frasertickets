@@ -10,10 +10,7 @@ import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 
 import { getAllEvents } from "@/lib/backend/event";
-import createNewTicket from "@/lib/backend/ticket/createNewTicket";
-import deleteTicket from "@/lib/backend/ticket/deleteTicket";
-import getAllTickets from "@/lib/backend/ticket/getAllTickets";
-import updateTicket from "@/lib/backend/ticket/updateTicket";
+import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 

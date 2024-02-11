@@ -6,7 +6,7 @@ import { Typography } from "@material-tailwind/react";
 import QRCode from "react-qr-code";
 import { useQuery } from "react-query";
 
-import getTicket from "@/lib/backend/ticket/getTicket";
+import { getTicket } from "@/lib/backend/ticket";
 
 import Layout from "@/components/Layout";
 import { ForbiddenComponent } from "@/pages/403";

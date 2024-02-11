@@ -10,7 +10,7 @@ import { Button, Typography } from "@material-tailwind/react";
 import { useMutation, useQuery } from "react-query";
 
 import { getAllEvents } from "@/lib/backend/event";
-import searchForTicket from "@/lib/backend/ticket/searchForTicket";
+import { searchForTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/admin/Layout";

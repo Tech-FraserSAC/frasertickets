@@ -1,7 +1,5 @@
 import sendBackendRequest from "@/lib/backend/sendBackendRequest";
-import TicketWithUserAndEventData, {
-    convertToTicketWithEventData,
-} from "@/lib/backend/ticket/ticketWithUserAndEventData";
+import Ticket, { convertToTicket } from "@/lib/backend/ticket";
 
 // Admin-only route!
 export default async function searchForTicket(eventID: string, studentNumber: string) {
@@ -11,7 +9,7 @@ export default async function searchForTicket(eventID: string, studentNumber: st
     });
 
     const rawTicket = res.data as { [key: string]: any }[];
-    const ticket = convertToTicketWithEventData(rawTicket);
+    const ticket = convertToTicket(rawTicket);
 
-    return ticket as TicketWithUserAndEventData;
+    return ticket as Ticket;
 }
