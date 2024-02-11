@@ -10,7 +10,7 @@ import { useQuery } from "react-query";
 import { scanTicket } from "@/lib/backend/ticket/scan";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
-import Layout from "@/components/admin/Layout";
+import Layout from "@/components/Layout";
 import { ForbiddenComponent } from "@/pages/403";
 
 enum ScanStatus {
@@ -417,6 +417,7 @@ export default function TicketScanningPage() {
         <Layout
             name="Ticket Scan"
             className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
             <Typography
                 variant="h1"

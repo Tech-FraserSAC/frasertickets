@@ -14,7 +14,7 @@ import { createNewQueuedTicket, deleteQueuedTicket, getAllQueuedTickets } from "
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import Layout from "@/components/admin/Layout";
+import Layout from "@/components/Layout";
 
 // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-grid.css";
@@ -245,6 +245,7 @@ export default function TicketViewingPage() {
         <Layout
             name="Queued Tickets"
             className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
             <Transition.Root show={modalOpen}>
                 <Dialog

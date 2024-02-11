@@ -8,7 +8,7 @@ import { useMutation, useQuery } from "react-query";
 import { editUser, getAllUsers } from "@/lib/backend/user";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
-import Layout from "@/components/admin/Layout";
+import Layout from "@/components/Layout";
 
 // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-grid.css";
@@ -115,6 +115,7 @@ export default function UserTablePage() {
         <Layout
             name="Users"
             className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
             <Typography
                 variant="h1"

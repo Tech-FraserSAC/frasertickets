@@ -6,7 +6,9 @@ import router from "next/router";
 import { m } from "framer-motion";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import { ComplexNavbar } from "@/components/user/Navbar";
+import AdminRestrictedPage from "@/components/admin/AdminRestrictedPage";
+import { ComplexNavbar as AdminNavbar } from "@/components/admin/Navbar";
+import { ComplexNavbar as UserNavbar } from "@/components/user/Navbar";
 
 const transition = { ease: [0.6, 0.01, 0.0, 0.9] };
 
@@ -23,23 +25,34 @@ export default function Layout({
     noAnim,
     className,
     userProtected,
+    adminProtected,
 }: {
     name: string;
     children: any;
     noAnim?: boolean;
     className?: string;
     userProtected?: boolean;
+    adminProtected?: boolean;
 }) {
     const { user, loaded } = useFirebaseAuth();
 
     const title = `${name} | FraserTickets`;
-    const description = "The digital ticketing platform for John Fraser S.S.";
+    const description = adminProtected
+        ? "The digital ticketing platform for John Fraser S.S."
+        : "An admin page for FraserTickets.";
 
     useEffect(() => {
         if (user === null && loaded && userProtected) {
             router.push("/401");
         }
     }, [user, loaded]);
+
+    let navbar: JSX.Element | null = null;
+    if (adminProtected) {
+        navbar = <AdminNavbar />;
+    } else if (userProtected) {
+        navbar = <UserNavbar />;
+    }
 
     return (
         <div
@@ -87,7 +100,7 @@ export default function Layout({
                 />
             </Head>
 
-            {userProtected && <ComplexNavbar />}
+            {navbar !== null && navbar}
 
             <m.div
                 initial={noAnim ? undefined : contentVariants.initial}
@@ -96,7 +109,11 @@ export default function Layout({
                 transition={noAnim ? undefined : contentVariants.transition}
                 className={`flex-grow ${className}`}
             >
-                {children}
+                {adminProtected ? (
+                    <AdminRestrictedPage key={router.pathname}>{children}</AdminRestrictedPage>
+                ) : (
+                    children
+                )}
             </m.div>
         </div>
     );

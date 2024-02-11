@@ -13,7 +13,7 @@ import { getAllEvents } from "@/lib/backend/event";
 import { searchForTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
-import Layout from "@/components/admin/Layout";
+import Layout from "@/components/Layout";
 
 interface CondensedEvent {
     name: string;
@@ -328,6 +328,7 @@ export default function TicketSearchAndScanPage() {
         <Layout
             name="Ticket Search"
             className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
             <Typography
                 variant="h1"

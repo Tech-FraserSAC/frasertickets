@@ -7,7 +7,7 @@ import { Button, Typography } from "@material-tailwind/react";
 import { BrowserCodeReader, BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
-import Layout from "@/components/admin/Layout";
+import Layout from "@/components/Layout";
 
 enum ScanStatus {
     SUCCESS,
@@ -178,6 +178,7 @@ export default function TicketScanningPage() {
         <Layout
             name="Ticket Scan"
             className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
             <Typography
                 variant="h1"
