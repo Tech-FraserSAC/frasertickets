@@ -13,8 +13,6 @@ import { ForbiddenComponent } from "@/pages/403";
 import { NotFoundComponent } from "@/pages/404";
 import { ServerErrorComponent } from "@/pages/500";
 
-const studentNameRegex = /[a-zA-Z]{2} - [0-9]{2}[a-zA-Z]{2} (\d{6,7})/gm;
-
 export default function TicketSpecificPage() {
     const router = useRouter();
     const { id } = router.query;

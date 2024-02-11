@@ -25,8 +25,6 @@ export default function TicketSearchAndScanPage() {
 
     // Just the names and IDs to put in the modal
     const {
-        isLoading: eventsAreLoading,
-        error: eventFetchError,
         data: eventNames,
     } = useQuery("frasertix-admin-search-events", async () => {
         const events = await getAllEvents();

@@ -30,15 +30,7 @@ import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 
 import DefaultAvatar from "@/assets/default-avatar.jpg";
 
-// profile menu component
 const profileMenuItems = [
-    /*
-    {
-        label: "Profile",
-        icon: UserCircleIcon,
-        action: () => router.push('/profile'),
-    },
-    */
     {
         label: "Sign Out",
         icon: ArrowRightOnRectangleIcon,
@@ -158,7 +150,6 @@ function ProfileMenu() {
     );
 }
 
-// nav list component
 const navListItems = [
     {
         label: "Events",

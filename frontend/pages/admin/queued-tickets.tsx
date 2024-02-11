@@ -40,16 +40,12 @@ export default function TicketViewingPage() {
     const { user } = useFirebaseAuth();
 
     const {
-        isLoading: ticketsAreLoading,
-        error: ticketFetchError,
         data: tickets,
         refetch: refetchTickets,
     } = useQuery("frasertix-admin-queued-tickets", getAllQueuedTickets);
 
     // Just the names and IDs to put in the modal
     const {
-        isLoading: eventsAreLoading,
-        error: eventFetchError,
         data: eventNames,
     } = useQuery("frasertix-admin-tickets-events", async () => {
         const events = await getAllEvents();

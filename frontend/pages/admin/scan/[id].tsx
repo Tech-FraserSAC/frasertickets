@@ -27,8 +27,6 @@ export default function TicketScanningPage() {
     const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.LOADING);
 
     const {
-        isLoading: rqLoading,
-        error,
         data: scanData,
     } = useQuery("frasertix-scan-ticket", () => scanTicket(router.query.id as string), {
         enabled: router.isReady,

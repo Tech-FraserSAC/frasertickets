@@ -114,7 +114,6 @@ function ProfileMenu() {
     );
 }
 
-// nav list component
 const navListItems = [
     // {
     //     label: "Events",

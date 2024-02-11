@@ -51,13 +51,9 @@ const ViewButtonCellRenderer = (props: any) => {
 };
 
 export default function TicketViewingPage() {
-    const queryClient = useQueryClient();
-
     const { user } = useFirebaseAuth();
 
     const {
-        isLoading: ticketsAreLoading,
-        error: ticketFetchError,
         data: tickets,
         refetch: refetchTickets,
     } = useQuery("frasertix-admin-tickets", getAllTickets);

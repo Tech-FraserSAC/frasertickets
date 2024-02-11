@@ -23,12 +23,6 @@ import Layout from "@/components/Layout";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Login() {
-    // const [redirectStatus, setRedirectStatus] = useState({
-    //     checked: false,
-    //     redirected: false,
-    //     actedUpon: false
-    // })
-
     const [signInReady, setSignInReady] = useState(false);
 
     const authProvider = new GoogleAuthProvider();
@@ -104,9 +98,9 @@ export default function Login() {
 
                         // Try registering them in DB if they are new
                         if (res.user.metadata.creationTime === res.user.metadata.lastSignInTime) {
-                            // Give them a quick alert letting them know what's up with semi-formal tickets
+                            // Give them a quick alert letting them know what's up with general upcoming tickets
                             alert(
-                                "Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.",
+                                "Welcome to FraserTickets! If you are looking for your ticket for an upcoming event, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.",
                             );
                         }
 
@@ -125,49 +119,6 @@ export default function Login() {
         } else {
             setSignInReady(true);
         }
-
-        /*
-        (async () => {
-            const redirectRes = await getRedirectResult(auth)
-
-            if (redirectRes) {
-                try {
-                    // Only allow people to join with student accounts
-                    if (redirectRes.user.email?.includes("@pdsb.net")) {
-                        await addUser()
-
-                        // Try registering them in DB if they are new
-                        if (redirectRes.user.metadata.creationTime === redirectRes.user.metadata.lastSignInTime) {
-                            // Give them a quick alert letting them know what's up with semi-formal tickets
-                            alert("Welcome to FraserTickets! If you are looking for your semi-formal ticket, please keep in mind that it may take a few days for it to show up on the platform. Thank you for understanding.")
-                        }
-
-                        router.push("/events")
-                    }
-                } catch (e) {
-                    alert("Sorry, something went wrong when signing you in.")
-                    console.error(e)
-
-                    // Sign them out so they can sign in again
-                    await signOut(auth)
-                }
-            } else {
-                // Check if they're already signed in
-                // Current user should have already loaded by now, I'd assume?
-                // Since redirect result has already run
-                if (auth.currentUser) {
-                    alert("You are already signed in. Redirecting...")
-                    router.push("/events")
-                }
-            }
-
-            setRedirectStatus({
-                checked: true,
-                redirected: redirectRes !== null,
-                actedUpon: false
-            })
-        })()
-        */
     }, []);
 
     useEffect(() => {
@@ -179,23 +130,6 @@ export default function Login() {
             signInWrapper.setAttribute("style", "height: 40px;");
         })();
     }, []);
-
-    /*
-    useEffect(() => {
-        // Ensure that a redirect login didn't happen and the redirect was checked
-        console.log("Redirect status", redirectStatus)
-        if (redirectStatus.checked && !redirectStatus.redirected && !redirectStatus.actedUpon && user !== null) {
-            alert("You are already signed in. Redirecting...")
-            router.push("/")
-
-            setRedirectStatus({
-                checked: true,
-                redirected: redirectStatus.redirected,
-                actedUpon: true
-            })
-        } 
-    }, [user, redirectStatus])
-    */
 
     return (
         <Layout
@@ -218,11 +152,6 @@ export default function Login() {
                 >
                     Log into FraserTickets
                 </Typography>
-
-                {/* <GoogleButton
-                    onClick={logIn}
-                    disabled={!redirectStatus.checked}
-                /> */}
 
                 {signInReady ? (
                     <>

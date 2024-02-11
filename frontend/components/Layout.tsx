@@ -34,7 +34,6 @@ export default function Layout({
 
     const title = `${name} | FraserTickets`;
     const description = "The digital ticketing platform for John Fraser S.S.";
-    // const imageSrc = "CHANGE ME"
 
     useEffect(() => {
         if (user === null && loaded && userProtected) {
@@ -73,19 +72,6 @@ export default function Layout({
                     property="og:type"
                     content="website"
                 />
-                {/* <meta property="og:image" content={imageSrc} /> */}
-                <meta
-                    property="og:image:type"
-                    content="image/png"
-                />
-                <meta
-                    property="og:image:width"
-                    content="1111"
-                />
-                <meta
-                    property="og:image:height"
-                    content="1111"
-                />
 
                 <meta
                     name="twitter:card"
@@ -99,12 +85,9 @@ export default function Layout({
                     property="twitter:description"
                     content={description}
                 />
-                {/* <meta property="twitter:image:src" content={imageSrc} /> */}
             </Head>
 
             {userProtected && <ComplexNavbar />}
-
-            {/* <Navbar /> */}
 
             <m.div
                 initial={noAnim ? undefined : contentVariants.initial}

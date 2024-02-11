@@ -33,8 +33,6 @@ const ProfilePictureCellRenderer = (props: any) => {
 
 export default function UserTablePage() {
     const {
-        isLoading,
-        error,
         data: users,
         refetch: refetchUsers,
     } = useQuery("frasertix-admin-users", () => getAllUsers());

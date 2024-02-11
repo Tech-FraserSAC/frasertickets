@@ -29,7 +29,6 @@ export default function Layout({
 }) {
     const title = `${name} (Admin) | FraserTickets`;
     const description = "An admin page for FraserTickets.";
-    const imageSrc = "CHANGE ME";
 
     const router = useRouter();
 
@@ -62,22 +61,6 @@ export default function Layout({
                     property="og:type"
                     content="website"
                 />
-                <meta
-                    property="og:image"
-                    content={imageSrc}
-                />
-                <meta
-                    property="og:image:type"
-                    content="image/png"
-                />
-                <meta
-                    property="og:image:width"
-                    content="1111"
-                />
-                <meta
-                    property="og:image:height"
-                    content="1111"
-                />
 
                 <meta
                     name="twitter:card"
@@ -90,10 +73,6 @@ export default function Layout({
                 <meta
                     property="twitter:description"
                     content={description}
-                />
-                <meta
-                    property="twitter:image:src"
-                    content={imageSrc}
                 />
             </Head>
 
