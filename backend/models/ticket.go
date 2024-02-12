@@ -324,23 +324,21 @@ func UpdateExistingTicketByKeys(
 
 	// Convert the string/interface map to BSON updates
 	bsonUpdates := bson.D{}
-	customBsonUpdates := bson.M{}
 	for key, val := range updates {
+		tmpKey := key // To allow for manipulation for custom fields
 		// Don't allow other keys to be updated
 		if !UPDATABLE_KEYS[key] {
 			if CUSTOM_UPDATABLE_KEYS[key] {
-				// Add the key/val pair in BSON
-				customBsonUpdates[key] = val
+				// Adjust key so that it updates under customFields object
+				tmpKey = "customFields." + key
 			} else {
 				return ErrEditNotAllowed
 			}
 		}
 
 		// Add the key/val pair in BSON
-		bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: val})
+		bsonUpdates = append(bsonUpdates, bson.E{Key: tmpKey, Value: val})
 	}
-	// Add all custom fields under where they actually are
-	bsonUpdates = append(bsonUpdates, bson.E{Key: "customFields", Value: customBsonUpdates})
 
 	// Try to update document in DB
 	res, err := lib.Datastore.Db.Collection(ticketsColName).
