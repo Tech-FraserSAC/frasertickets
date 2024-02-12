@@ -147,10 +147,8 @@ export default function TicketViewingPage() {
         }
 
         try {
-            // await deleteTicket(id);
             await deleteTicketMutation.mutateAsync({ ticketId: id });
             alert("Ticket has been deleted.");
-            // await queryClient.invalidateQueries("frasertix-admin-tickets")
         } catch (err) {
             alert("Something went wrong when deleting the ticket. Please try again.");
             throw err;
@@ -176,7 +174,6 @@ export default function TicketViewingPage() {
             alert("Please provide a valid event and make sure it is selected.");
         } else {
             try {
-                // await createNewTicket(studentNumber.toString(), modalEventChosen.id)
                 await createTicketMutation.mutateAsync({
                     studentNumber: studentNumber.toString(),
                     eventId: modalEventChosen.id,
@@ -186,7 +183,6 @@ export default function TicketViewingPage() {
 
                 modalStudentNumberRef.current!.value = "";
                 setModalOpen(false);
-                // await queryClient.invalidateQueries("frasertix-admin-tickets");
             } catch (err: any) {
                 if (err && err.response) {
                     if (err.response.status === 409) {
