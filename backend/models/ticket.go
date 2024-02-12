@@ -2,10 +2,12 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/aritrosaha10/frasertickets/lib"
+	"github.com/aritrosaha10/frasertickets/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,15 +15,16 @@ import (
 )
 
 type Ticket struct {
-	ID                primitive.ObjectID `json:"id"        bson:"_id,omitempty"`
-	Owner             string             `json:"ownerID"   bson:"owner"` // owner ID
-	OwnerData         User               `json:"ownerData" bson:"ownerData"`
-	Event             primitive.ObjectID `json:"eventID"   bson:"event"`
-	EventData         Event              `json:"eventData" bson:"eventData"`
-	Timestamp         time.Time          `json:"timestamp" bson:"timestamp"`
-	ScanCount         int                `json:"scanCount" bson:"scanCount"`
-	LastScanTimestamp time.Time          `json:"lastScanTime" bson:"lastScanTime"`
-	MaxScanCount      int                `json:"maxScanCount" bson:"maxScanCount"`
+	ID                primitive.ObjectID     `json:"id"        bson:"_id,omitempty"`
+	Owner             string                 `json:"ownerID"   bson:"owner"` // owner ID
+	OwnerData         User                   `json:"ownerData" bson:"ownerData"`
+	Event             primitive.ObjectID     `json:"eventID"   bson:"event"`
+	EventData         Event                  `json:"eventData" bson:"eventData"`
+	Timestamp         time.Time              `json:"timestamp" bson:"timestamp"`
+	ScanCount         int                    `json:"scanCount" bson:"scanCount"`
+	LastScanTimestamp time.Time              `json:"lastScanTime" bson:"lastScanTime"`
+	MaxScanCount      int                    `json:"maxScanCount" bson:"maxScanCount"`
+	CustomFields      map[string]interface{} `json:"customFields" bson:"customFields"`
 }
 
 func (ticket *Ticket) Render(w http.ResponseWriter, r *http.Request) error {
@@ -248,13 +251,12 @@ func CreateNewTicket(ctx context.Context, ticket Ticket) (primitive.ObjectID, er
 		return primitive.NilObjectID, ErrAlreadyExists
 	}
 
-	// Check if event exists
-	eventExists, err := CheckIfEventExists(ctx, ticket.Event)
-	if err != nil {
-		return primitive.NilObjectID, err
-	}
-	if !eventExists {
+	// Get event if it exists
+	event, err := GetEvent(ctx, bson.M{"_id": ticket.Event})
+	if err == mongo.ErrNoDocuments {
 		return primitive.NilObjectID, ErrNotFound
+	} else if err != nil {
+		return primitive.NilObjectID, err
 	}
 
 	// Check if user exists
@@ -264,6 +266,19 @@ func CreateNewTicket(ctx context.Context, ticket Ticket) (primitive.ObjectID, er
 	}
 	if !userExists {
 		return primitive.NilObjectID, ErrNotFound
+	}
+
+	// Check if ticket's custom data matches schema
+	valid, schemaErrs, err := ValidateCustomEventFields(ctx, event, ticket.CustomFields)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	if !valid {
+		errStr := ""
+		for _, schemaErr := range schemaErrs {
+			errStr += schemaErr.String() + "\n"
+		}
+		return primitive.NilObjectID, fmt.Errorf(errStr)
 	}
 
 	// Try to add ticket
@@ -287,18 +302,45 @@ func UpdateExistingTicketByKeys(
 		"lastScanTime": true,
 		"maxScanCount": true,
 	}
+	CUSTOM_UPDATABLE_KEYS := map[string]bool{}
+
+	// TODO: Enforce optional data schema
+	ticket, err := GetTicket(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Convert schema to struct format
+	customFieldSchema, err := util.ConvertRawCustomFieldsSchema(ticket.EventData.RawCustomFieldsSchema)
+	if err != nil {
+		return err
+	}
+	// Add all the new properties
+	for key, property := range customFieldSchema.Properties {
+		if property.Editable {
+			CUSTOM_UPDATABLE_KEYS[key] = true
+		}
+	}
 
 	// Convert the string/interface map to BSON updates
 	bsonUpdates := bson.D{}
+	customBsonUpdates := bson.M{}
 	for key, val := range updates {
 		// Don't allow other keys to be updated
 		if !UPDATABLE_KEYS[key] {
-			return ErrEditNotAllowed
+			if CUSTOM_UPDATABLE_KEYS[key] {
+				// Add the key/val pair in BSON
+				customBsonUpdates[key] = val
+			} else {
+				return ErrEditNotAllowed
+			}
 		}
 
 		// Add the key/val pair in BSON
 		bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: val})
 	}
+	// Add all custom fields under where they actually are
+	bsonUpdates = append(bsonUpdates, bson.E{Key: "customFields", Value: customBsonUpdates})
 
 	// Try to update document in DB
 	res, err := lib.Datastore.Db.Collection(ticketsColName).

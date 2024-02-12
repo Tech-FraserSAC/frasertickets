@@ -6,19 +6,21 @@ import (
 	"time"
 
 	"github.com/aritrosaha10/frasertickets/lib"
+	"github.com/xeipuuv/gojsonschema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Event struct {
-	ID             primitive.ObjectID `json:"id"              bson:"_id,omitempty"`
-	Name           string             `json:"name"            bson:"name"`
-	Description    string             `json:"description"     bson:"description"`
-	ImageURLs      []string           `json:"img_urls"        bson:"img_urls"`
-	Location       string             `json:"location"        bson:"location"` // Ex. name of venue
-	Address        string             `json:"address"         bson:"address"`
-	StartTimestamp time.Time          `json:"start_timestamp" bson:"start_timestamp"`
-	EndTimestamp   time.Time          `json:"end_timestamp"   bson:"end_timestamp"`
+	ID                    primitive.ObjectID     `json:"id"              bson:"_id,omitempty"`
+	Name                  string                 `json:"name"            bson:"name"`
+	Description           string                 `json:"description"     bson:"description"`
+	ImageURLs             []string               `json:"img_urls"        bson:"img_urls"`
+	Location              string                 `json:"location"        bson:"location"` // Ex. name of venue
+	Address               string                 `json:"address"         bson:"address"`
+	StartTimestamp        time.Time              `json:"start_timestamp" bson:"start_timestamp"`
+	EndTimestamp          time.Time              `json:"end_timestamp"   bson:"end_timestamp"`
+	RawCustomFieldsSchema map[string]interface{} `json:"custom_fields_schema" bson:"custom_fields_schema"` // Schema for extra data in JSON Schema format
 }
 
 func (event *Event) Render(w http.ResponseWriter, r *http.Request) error {
@@ -59,11 +61,29 @@ func CheckIfEventExists(ctx context.Context, id primitive.ObjectID) (bool, error
 }
 
 func CreateNewEvent(ctx context.Context, event Event) (primitive.ObjectID, error) {
+	// TODO: Parse custom event schema
+
 	// Try to add document
 	res, err := lib.Datastore.Db.Collection(eventsColName).InsertOne(ctx, event)
 
 	// Return object ID
 	return res.InsertedID.(primitive.ObjectID), err
+}
+
+func ValidateCustomEventFields(ctx context.Context, event Event, customFields map[string]interface{}) (bool, []gojsonschema.ResultError, error) {
+	schemaLoader := gojsonschema.NewGoLoader(event.RawCustomFieldsSchema)
+	customFieldsLoader := gojsonschema.NewGoLoader(customFields)
+
+	result, err := gojsonschema.Validate(schemaLoader, customFieldsLoader)
+	if err != nil {
+		return false, []gojsonschema.ResultError{}, err
+	}
+
+	if result.Valid() {
+		return true, result.Errors(), nil
+	} else {
+		return false, result.Errors(), nil
+	}
 }
 
 func UpdateExistingEvent(ctx context.Context, id string, updates map[string]interface{}) error {
@@ -75,6 +95,12 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 		"address":         true,
 		"start_timestamp": true,
 		"end_timestamp":   true,
+	}
+
+	// Get event to get the custom field schema
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
 	}
 
 	// Convert the string/interface map to BSON updates
@@ -91,7 +117,7 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 
 	// Try to update document in DB
 	res, err := lib.Datastore.Db.Collection(eventsColName).
-		UpdateByID(ctx, id, bson.D{{Key: "$set", Value: bsonUpdates}})
+		UpdateByID(ctx, objectID, bson.D{{Key: "$set", Value: bsonUpdates}})
 	if err != nil {
 		return err
 	}

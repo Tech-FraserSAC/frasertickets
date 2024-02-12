@@ -20,9 +20,10 @@ import (
 )
 
 type ticketControllerCreateRequestBody struct {
-	StudentNumber string `json:"studentNumber" validate:"required"`
-	EventID       string `json:"eventID" validate:"required,mongodb"`
-	MaxScanCount  int    `json:"maxScanCount" validate:"gte=0"`
+	StudentNumber string                 `json:"studentNumber" validate:"required"`
+	EventID       string                 `json:"eventID" validate:"required,mongodb"`
+	MaxScanCount  int                    `json:"maxScanCount" validate:"gte=0"`
+	CustomFields  map[string]interface{} `json:"customFields" validate:"required"`
 }
 
 type ticketControllerSearchRequestBody struct {
@@ -35,7 +36,8 @@ type ticketControllerScanRequestBody struct {
 }
 
 type ticketControllerUpdateRequestBody struct {
-	MaxScanCount int `json:"maxScanCount"`
+	MaxScanCount int                    `json:"maxScanCount"`
+	CustomFields map[string]interface{} `json:"customFields"`
 }
 
 type TicketController struct{}
@@ -349,6 +351,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	ticket.EventData = event
 	ticket.Timestamp = time.Now()
 	ticket.MaxScanCount = ticketRaw.MaxScanCount
+	ticket.CustomFields = ticketRaw.CustomFields
 
 	// Try to add to DB
 	id, err := models.CreateNewTicket(r.Context(), ticket)
@@ -790,14 +793,17 @@ func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(updateReq)
-
 	updateBody := make(map[string]interface{})
 	if updateReq.MaxScanCount != 0 {
 		if updateReq.MaxScanCount == -1 {
 			updateBody["maxScanCount"] = 0
 		} else {
 			updateBody["maxScanCount"] = updateReq.MaxScanCount
+		}
+	}
+	for key, val := range updateReq.CustomFields {
+		if key != "maxScanCount" {
+			updateBody[key] = val
 		}
 	}
 
