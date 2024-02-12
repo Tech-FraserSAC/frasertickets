@@ -7,11 +7,11 @@ import { Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
 import { scanTicket } from "@/lib/backend/ticket/scan";
+import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
 
 import Layout from "@/components/Layout";
-import { ForbiddenComponent } from "@/pages/403";
-import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
 import TicketScanInfoTable from "@/components/admin/TicketScanInfoTable";
+import { ForbiddenComponent } from "@/pages/403";
 
 enum ScanStatus {
     SUCCESS,
@@ -26,9 +26,7 @@ export default function TicketScanningPage() {
     const router = useRouter();
     const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.LOADING);
 
-    const {
-        data: scanData,
-    } = useQuery("frasertix-scan-ticket", () => scanTicket(router.query.id as string), {
+    const { data: scanData } = useQuery("frasertix-scan-ticket", () => scanTicket(router.query.id as string), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
             if (error?.response?.status === 400) {
@@ -167,7 +165,10 @@ export default function TicketScanningPage() {
             }
             case ScanStatus.SUCCESS: {
                 // Get all custom fields from the ticket
-                const customProperties = getCustomFieldsFromTicket(scanData!.ticketData.customFields, scanData!.ticketData.eventData.custom_fields_schema);
+                const customProperties = getCustomFieldsFromTicket(
+                    scanData!.ticketData.customFields,
+                    scanData!.ticketData.eventData.custom_fields_schema,
+                );
 
                 return (
                     <div className="flex flex-col items-center">

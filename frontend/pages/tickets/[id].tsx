@@ -8,13 +8,13 @@ import { useQuery } from "react-query";
 
 import { CustomFieldsSchema } from "@/lib/backend/event";
 import { getTicket } from "@/lib/backend/ticket";
+import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
 
 import Layout from "@/components/Layout";
+import TicketInfoTable from "@/components/user/TicketInfoTable";
 import { ForbiddenComponent } from "@/pages/403";
 import { NotFoundComponent } from "@/pages/404";
 import { ServerErrorComponent } from "@/pages/500";
-import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
-import TicketInfoTable from "@/components/user/TicketInfoTable";
 
 export default function TicketSpecificPage() {
     const router = useRouter();
@@ -106,9 +106,9 @@ export default function TicketSpecificPage() {
         customFields: { [key: string]: any };
         customFieldsSchema: CustomFieldsSchema;
     }) => {
-        const properties = getCustomFieldsFromTicket(customFields, customFieldsSchema)
+        const properties = getCustomFieldsFromTicket(customFields, customFieldsSchema);
 
-        return properties.map(property => (
+        return properties.map((property) => (
             <Typography
                 variant="lead"
                 color="blue-gray"
@@ -117,7 +117,7 @@ export default function TicketSpecificPage() {
             >
                 {property.schema.displayName}: {property.value}
             </Typography>
-        ))
+        ));
     };
 
     return (

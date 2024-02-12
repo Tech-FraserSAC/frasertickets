@@ -25,9 +25,7 @@ export default function TicketSearchAndScanPage() {
     const router = useRouter();
 
     // Just the names and IDs to put in the modal
-    const {
-        data: eventNames,
-    } = useQuery("frasertix-admin-search-events", async () => {
+    const { data: eventNames } = useQuery("frasertix-admin-search-events", async () => {
         const events = await getAllEvents();
         const mappedEvents = events
             .sort((a, b) => b.end_timestamp.getTime() - a.start_timestamp.getTime())

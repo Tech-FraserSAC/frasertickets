@@ -1,16 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
-import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
-import Ticket from "@/lib/backend/ticket";
 import { Typography } from "@material-tailwind/react";
 
+import Ticket from "@/lib/backend/ticket";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
+
 export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
-    const customProperties = getCustomFieldsFromTicket(
-        ticket.customFields,
-        ticket.eventData.custom_fields_schema,
-    );
+    const customProperties = getCustomFieldsFromTicket(ticket.customFields, ticket.eventData.custom_fields_schema);
 
     return (
         <table className="border-collapse border border-gray-500 mb-4">
@@ -144,11 +142,7 @@ export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
                             color="blue-gray"
                             className="font-medium"
                         >
-                            {ticket.maxScanCount === 0 ? (
-                                <>&infin;</>
-                            ) : (
-                                ticket.maxScanCount.toString()
-                            )}
+                            {ticket.maxScanCount === 0 ? <>&infin;</> : ticket.maxScanCount.toString()}
                         </Typography>
                     </td>
                 </tr>
@@ -172,13 +166,13 @@ export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
                             {ticket.scanCount === 1
                                 ? "N/A"
                                 : ticket.lastScanTime.toLocaleString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit",
-                                })}
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit",
+                                  })}
                         </Typography>
                     </td>
                 </tr>
@@ -238,6 +232,6 @@ export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
                     </tr>
                 ))}
             </tbody>
-        </table >
+        </table>
     );
 }

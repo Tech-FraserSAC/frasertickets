@@ -32,10 +32,7 @@ const ProfilePictureCellRenderer = (props: any) => {
 };
 
 export default function UserTablePage() {
-    const {
-        data: users,
-        refetch: refetchUsers,
-    } = useQuery("frasertix-admin-users", () => getAllUsers());
+    const { data: users, refetch: refetchUsers } = useQuery("frasertix-admin-users", () => getAllUsers());
 
     const updateFullNameMutation = useMutation(
         ({ userId, newFullName }: { userId: string; newFullName: string }) => {

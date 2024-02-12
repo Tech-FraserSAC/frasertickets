@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { Typography } from "@material-tailwind/react";
+
 import TicketScan from "@/lib/backend/ticket/scan";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
-import { Typography } from "@material-tailwind/react";
 
 export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan }) {
     const customProperties = getCustomFieldsFromTicket(
@@ -118,7 +119,8 @@ export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan
                                     variant="paragraph"
                                     color="blue-gray"
                                     className="font-medium"
-                                >Previous Scan Timestamp
+                                >
+                                    Previous Scan Timestamp
                                 </Typography>
                             </td>
                             <td className="border-collapse border-y border-gray-500 text-right px-3">
@@ -130,13 +132,13 @@ export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan
                                     {scanData?.scanCount === 1
                                         ? "N/A"
                                         : scanData?.ticketData.lastScanTime.toLocaleString("en-US", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "2-digit",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                        })}
+                                              day: "2-digit",
+                                              month: "2-digit",
+                                              year: "2-digit",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                              second: "2-digit",
+                                          })}
                                 </Typography>
                             </td>
                         </tr>
@@ -159,14 +161,14 @@ export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan
                                 className="font-medium"
                             >
                                 {/** We pass in the previous as current for when max is reached **/
-                                    scanData?.timestamp.toLocaleString("en-US", {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        second: "2-digit",
-                                    })}
+                                scanData?.timestamp.toLocaleString("en-US", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                })}
                             </Typography>
                         </td>
                     </tr>
