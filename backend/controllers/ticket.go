@@ -118,10 +118,30 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check admin status for next part, if there's an error, just ignore it
+	// as isAdmin will still be false
+	isAdmin, _ := util.CheckIfAdmin(r.Context())
+
 	// Convert into list of renderers to turn into JSON
 	renderers := []render.Renderer{}
 	for _, ticket := range tickets {
 		t := ticket // Duplicate it before passing by reference to avoid only passing the last user obj
+
+		if !isAdmin {
+			// Remove any sensitive custom data fields before handing it to user
+			customDataSchema, err := util.ConvertRawCustomFieldsSchema(t.EventData.RawCustomFieldsSchema)
+			if err != nil {
+				// Just don't show custom fields if the schema doesn't work
+				t.CustomFields = nil
+			} else {
+				for key, property := range customDataSchema.Properties {
+					if !property.UserVisible {
+						delete(t.CustomFields, key)
+					}
+				}
+			}
+		}
+
 		renderers = append(renderers, &t)
 	}
 
@@ -464,6 +484,21 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 		log.Warn().Str("uid", idToken.UID).Msg("unauthorized user attempting to access another person's ticket")
 		render.Render(w, r, util.ErrForbidden)
 		return
+	}
+
+	// Remove any sensitive custom data fields before handing it to user if they aren't admin
+	if !isAdmin {
+		customDataSchema, err := util.ConvertRawCustomFieldsSchema(ticket.EventData.RawCustomFieldsSchema)
+		if err != nil {
+			// Just don't show custom fields if the schema doesn't work
+			ticket.CustomFields = nil
+		} else {
+			for key, property := range customDataSchema.Properties {
+				if !property.UserVisible {
+					delete(ticket.CustomFields, key)
+				}
+			}
+		}
 	}
 
 	// Return as JSON, fallback if it fails
@@ -891,6 +926,3 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 		Bool("privileged", true).
 		Msg("deleted ticket")
 }
-
-// event ID: 64bdebd2be3ba505e0c17137
-// user ID: 37907632-77e4-46ad-b133-6c589e5172e6
