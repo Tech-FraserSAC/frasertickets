@@ -14,6 +14,7 @@ import { searchForTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/Layout";
+import TicketInfoTable from "@/components/user/TicketInfoTable";
 
 interface CondensedEvent {
     name: string;
@@ -91,7 +92,9 @@ export default function TicketSearchAndScanPage() {
             >
                 Searched Ticket Info
             </Typography>
-            <table className="border-collapse border-2 border-gray-500">
+
+            <TicketInfoTable ticket={ticketSearchMutation.data!} />
+            {/* <table className="border-collapse border-2 border-gray-500">
                 <thead className="border-collapse border-2 border-gray-500 bg-green-200">
                     <th className="text-left border-collapse border-2 border-gray-500 px-2">Attributes</th>
                     <th className="text-right border-collapse border-2 border-gray-500">Value</th>
@@ -185,7 +188,7 @@ export default function TicketSearchAndScanPage() {
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table> */}
 
             <div className="flex flex-wrap gap-2">
                 <Button
@@ -327,7 +330,7 @@ export default function TicketSearchAndScanPage() {
     return (
         <Layout
             name="Ticket Search"
-            className="p-4 md:p-8 lg:px-12"
+            className="flex flex-col p-4 md:p-8 lg:px-12"
             adminProtected
         >
             <Typography

@@ -6,12 +6,15 @@ import { Typography } from "@material-tailwind/react";
 import QRCode from "react-qr-code";
 import { useQuery } from "react-query";
 
+import { CustomFieldsSchema } from "@/lib/backend/event";
 import { getTicket } from "@/lib/backend/ticket";
 
 import Layout from "@/components/Layout";
 import { ForbiddenComponent } from "@/pages/403";
 import { NotFoundComponent } from "@/pages/404";
 import { ServerErrorComponent } from "@/pages/500";
+import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
+import TicketInfoTable from "@/components/user/TicketInfoTable";
 
 export default function TicketSpecificPage() {
     const router = useRouter();
@@ -96,56 +99,45 @@ export default function TicketSpecificPage() {
         }
     }
 
+    const CustomFieldsComponent = ({
+        customFields,
+        customFieldsSchema,
+    }: {
+        customFields: { [key: string]: any };
+        customFieldsSchema: CustomFieldsSchema;
+    }) => {
+        const properties = getCustomFieldsFromTicket(customFields, customFieldsSchema)
+
+        return properties.map(property => (
+            <Typography
+                variant="lead"
+                color="blue-gray"
+                className="font-medium text-center"
+                key={property.id}
+            >
+                {property.schema.displayName}: {property.value}
+            </Typography>
+        ))
+    };
+
     return (
         <Layout
             name={pageName}
             userProtected={true}
             className="p-4 md:p-8 lg:px-12"
         >
-            {isLoading || error ? (
-                isLoading ? (
-                    <span>Loading...</span>
-                ) : (
-                    <span>error...</span>
-                )
+            {isLoading ? (
+                <span>Loading...</span>
             ) : (
                 <div className="flex flex-col items-center">
                     <Typography
                         variant="h2"
-                        className="text-center"
+                        className="text-center mb-2"
                     >
                         Your Ticket for {data!.eventData.name}
                     </Typography>
 
-                    <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-medium text-center mb-4"
-                    >
-                        {studentNumber !== undefined && (
-                            <>
-                                Student Number: {studentNumber}
-                                <br />
-                            </>
-                        )}
-
-                        {scanCount !== undefined && (
-                            <>
-                                # of scans: {scanCount}
-                                <br />
-                            </>
-                        )}
-
-                        {maxScanCount !== undefined && (
-                            <>
-                                Max. # of scans: {maxScanCount === 0 ? <>&infin;</> : maxScanCount}
-                                <br />
-                            </>
-                        )}
-                        {lastScanTimestampStr && scanCount !== 0 && scanCount !== undefined && (
-                            <>Last scanned at {lastScanTimestampStr}</>
-                        )}
-                    </Typography>
+                    <TicketInfoTable ticket={data!} />
 
                     <Typography
                         variant="lead"

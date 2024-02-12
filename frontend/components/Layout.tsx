@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
+import Footer from "./Footer";
 import { m } from "framer-motion";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
@@ -55,9 +56,13 @@ export default function Layout({
         navbar = <UserNavbar />;
     }
 
+    const backgroundGradient = adminProtected
+        ? "from-[#fbc7d4]/25 to-[#9796f0]/25"
+        : "from-[#91EAE4]/30 via-[#86A8E7]/30 to-[#7F7FD5]/30";
+
     return (
         <div
-            className="flex flex-col min-h-screen bg-gradient-to-br from-[#91EAE4]/30 via-[#86A8E7]/30 to-[#7F7FD5]/30 overflow-hidden"
+            className={`flex flex-col min-h-screen bg-gradient-to-br ${backgroundGradient} overflow-hidden`}
             key={name}
         >
             <Head>
@@ -116,6 +121,8 @@ export default function Layout({
                     children
                 )}
             </m.div>
+
+            {(userProtected || adminProtected) && <Footer />}
         </div>
     );
 }

@@ -1,6 +1,22 @@
 import getAllEvents from "@/lib/backend/event/getAllEvents";
 import getEvent from "@/lib/backend/event/getEvent";
 
+export type PropertySchema = {
+    type: "integer" | "string",
+    editable: boolean,
+    userVisible: boolean,
+    description: string,
+    displayName: string;
+    [key: string]: any;
+}
+
+export type CustomFieldsSchema = {
+    type: string;
+    properties: { [key: string]: PropertySchema },
+    required: string[],
+    [key: string]: any
+}
+
 type Event = {
     id: string;
     name: string;
@@ -10,6 +26,7 @@ type Event = {
     address: string;
     start_timestamp: Date;
     end_timestamp: Date;
+    custom_fields_schema: CustomFieldsSchema;
 };
 
 export function convertToEvent(rawData: { [key: string]: any }): Event {
@@ -22,6 +39,7 @@ export function convertToEvent(rawData: { [key: string]: any }): Event {
         address: rawData.address,
         start_timestamp: new Date(rawData.start_timestamp),
         end_timestamp: new Date(rawData.end_timestamp),
+        custom_fields_schema: rawData.custom_fields_schema
     };
 }
 
