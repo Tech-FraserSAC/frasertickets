@@ -284,6 +284,7 @@ export default function TicketCreationModal({
 
                                             <label htmlFor="studentNumber">
                                                 <span className="text-md text-gray-900 text-left">Student Number</span>
+                                                <span className="text-md text-red-500 font-semibold"> *</span>
                                             </label>
 
                                             <input
@@ -305,9 +306,12 @@ export default function TicketCreationModal({
                                                 <></>
                                             )}
 
-                                            <span className="mt-3 text-md text-gray-900 text-left">
-                                                Max Scan Count (blank or 0 &#8594; infinite)
-                                            </span>
+                                            <label htmlFor="maxScanCount">
+                                                <span className="mt-3 text-md text-gray-900 text-left">
+                                                    Max Scan Count (blank or 0 &#8594; infinite)
+                                                </span>
+                                                <span className="text-md text-red-500 font-semibold"> *</span>
+                                            </label>
 
                                             <input
                                                 className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
@@ -324,15 +328,21 @@ export default function TicketCreationModal({
                                                     (propertyId) => {
                                                         const property =
                                                             selectedEvent.custom_fields_schema.properties[propertyId];
+                                                        const requiredKeysSet = new Set(selectedEvent.custom_fields_schema.required)
 
                                                         const inputType =
                                                             convertPropertySchemaTypeToInputType(property);
 
                                                         return (
                                                             <React.Fragment key={propertyId}>
-                                                                <span className="text-md text-gray-900 text-left">
-                                                                    {toTitleCase(property.displayName)}
-                                                                </span>
+                                                                <label htmlFor={propertyId}>
+                                                                    <span className="text-md text-gray-900 text-left">
+                                                                        {toTitleCase(property.displayName)}
+                                                                    </span>
+                                                                    {requiredKeysSet.has(propertyId) ? (
+                                                                        <span className="text-md text-red-500 font-semibold"> *</span>
+                                                                    ) : <></>}
+                                                                </label>
 
                                                                 <span className="text-sm text-gray-800 text-center">
                                                                     {property.description}

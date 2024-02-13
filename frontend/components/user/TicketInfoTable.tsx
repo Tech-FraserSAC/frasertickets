@@ -6,6 +6,7 @@ import { Typography } from "@material-tailwind/react";
 import Ticket from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
+import toTitleCase from "@/util/toTitleCase";
 
 export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
     const customProperties = getCustomFieldsFromTicket(ticket.customFields, ticket.eventData.custom_fields_schema);
@@ -217,7 +218,7 @@ export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
                                 color="blue-gray"
                                 className="font-medium"
                             >
-                                {property.schema.displayName}
+                                {toTitleCase(property.schema.displayName)}
                             </Typography>
                         </td>
                         <td className="border-collapse border-y border-gray-500 text-right p-2">
