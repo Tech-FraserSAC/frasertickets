@@ -78,10 +78,13 @@ export default function TicketCreationModal({
 
     // Add the custom validator to the event itself so that we don't have
     // to regenerate it for every submission
-    const selectedEvent = presetEvent !== undefined ? {
-        ...presetEvent,
-        customFieldValidator: buildValidatorForCustomEventData(presetEvent),
-     } : modalEventChosen;
+    const selectedEvent =
+        presetEvent !== undefined
+            ? {
+                  ...presetEvent,
+                  customFieldValidator: buildValidatorForCustomEventData(presetEvent),
+              }
+            : modalEventChosen;
 
     const createNewTicketUI = async () => {
         setModalSubmitting(true);

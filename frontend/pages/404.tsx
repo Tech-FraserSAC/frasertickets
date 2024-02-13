@@ -4,9 +4,7 @@ import Layout from "@/components/Layout";
 
 export function NotFoundComponent({ home }: { home?: string }) {
     return (
-        <div
-            key="page-404"
-        >
+        <div key="page-404">
             <div className="flex flex-col p-8">
                 <h1 className="text-8xl text-center mb-2 font-semibold text-red-500">404</h1>
                 <h2 className="text-3xl text-center mb-6 text-black">Page Not Found</h2>
