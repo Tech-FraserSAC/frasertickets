@@ -1,0 +1,458 @@
+import { useRef, useState } from "react";
+
+import Link from "next/link";
+
+import { Combobox, Dialog, Transition } from "@headlessui/react";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { Typography } from "@material-tailwind/react";
+import { ColDef } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+
+import { getAllEvents, getEvent } from "@/lib/backend/event";
+import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import { studentOrTeacherNumberRegex } from "@/util/regexps";
+
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+import Layout from "@/components/Layout";
+
+// Core grid CSS, always needed
+import "ag-grid-community/styles/ag-grid.css";
+// Optional theme CSS
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { useRouter } from "next/router";
+
+const EventCellRenderer = (props: any) => {
+    return (
+        <div className="w-full h-full flex items-center">
+            <Link
+                href={`/events/${props.data.eventId}`}
+                className="text-blue-500 hover:text-blue-700 duration-75 hover:underline"
+            >
+                {props.data.eventData.name}
+            </Link>
+        </div>
+    );
+};
+
+const ViewButtonCellRenderer = (props: any) => {
+    return (
+        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
+            <Link
+                href={`/tickets/${props.data.id}`}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 font-semibold text-xs text-white rounded-lg"
+                rel="noopener noreferrer"
+                target="_blank"
+            >
+                View
+            </Link>
+        </div>
+    );
+};
+
+export default function TicketViewingPage() {
+    const router = useRouter();
+    const { user } = useFirebaseAuth();
+    const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", getAllTickets);
+
+    const { data: event } = useQuery(
+        "frasertix-admin-tickets-event",
+        () => getEvent(router.query.id as string),
+        {
+            enabled: router.isReady
+        }
+    );
+
+    const createTicketMutation = useMutation(
+        ({ studentNumber, eventId, maxScanCount }: { studentNumber: string; eventId: string; maxScanCount: number }) =>
+            createNewTicket(studentNumber, eventId, maxScanCount),
+        {
+            onSettled: () => {
+                return refetchTickets();
+            },
+        },
+    );
+
+    const updateMaxScanCountTicketMutation = useMutation(
+        ({
+            ticketId,
+            newMaxScanCountRaw,
+            oldScanCount,
+        }: {
+            ticketId: string;
+            newMaxScanCountRaw: string;
+            oldScanCount: number;
+        }) => {
+            let num = Number(newMaxScanCountRaw);
+            if (Number.isNaN(num) || !Number.isInteger(num) || !Number.isFinite(num) || num < 0) {
+                alert("Please provide a number larger than 0, or 0 for infinite scans.");
+                throw "New max scan count is invalid";
+            }
+
+            if (oldScanCount > num && num !== 0) {
+                alert("Please provide a max scan count larger than or equal to the current scan count value.");
+                throw "Max scan count smaller than current scan count value";
+            }
+
+            if (num === 0) {
+                // Need to pass -1 to backend since no value gets parsed as 0 in backend
+                num = -1;
+            }
+            return updateTicket(ticketId, {
+                maxScanCount: num,
+            });
+        },
+        {
+            onSuccess: () => {
+                return refetchTickets();
+            },
+        },
+    );
+
+    const deleteTicketMutation = useMutation(({ ticketId }: { ticketId: string }) => deleteTicket(ticketId), {
+        onSuccess: () => {
+            return refetchTickets();
+        },
+    });
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const modalStudentNumberRef = useRef<HTMLInputElement>(null);
+    const modalMaxScanCountRef = useRef<HTMLInputElement>(null);
+    const [modalEventQuery, setModalEventQuery] = useState("");
+    const [modalSubmitting, setModalSubmitting] = useState(false);
+
+    const deleteTicketWithId = async (id: string) => {
+        const deletionAllowed = confirm("Are you sure you want to delete this ticket?");
+        if (!deletionAllowed) {
+            return;
+        }
+
+        try {
+            await deleteTicketMutation.mutateAsync({ ticketId: id });
+            alert("Ticket has been deleted.");
+        } catch (err) {
+            alert("Something went wrong when deleting the ticket. Please try again.");
+            throw err;
+        }
+    };
+
+    const createNewTicketUI = async () => {
+        setModalSubmitting(true);
+
+        const studentNumber = modalStudentNumberRef.current?.value ?? "";
+        const maxScanCount = Number(modalMaxScanCountRef.current?.value ?? 0);
+
+        if (!studentOrTeacherNumberRegex.test(studentNumber)) {
+            alert(
+                "Please provide a valid student / teacher number. If you're typing in a teacher number, make sure to include the p00.",
+            );
+        } else if (Number.isNaN(maxScanCount) || maxScanCount < 0 || Math.floor(maxScanCount) !== maxScanCount) {
+            alert(
+                "Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.",
+            );
+        } else if (modalEventChosen === null || modalEventQuery !== "") {
+            // If the query isn't empty, this means they were searching for something but didn't select anything
+            alert("Please provide a valid event and make sure it is selected.");
+        } else {
+            try {
+                await createTicketMutation.mutateAsync({
+                    studentNumber: studentNumber.toString(),
+                    eventId: modalEventChosen.id,
+                    maxScanCount: maxScanCount,
+                });
+                alert("Ticket has been created.");
+
+                modalStudentNumberRef.current!.value = "";
+                setModalOpen(false);
+            } catch (err: any) {
+                if (err && err.response) {
+                    if (err.response.status === 409) {
+                        alert("The user already has a ticket. Please check this and try again.");
+                    } else if (err.response.status === 400) {
+                        alert(
+                            "There are no accounts associated with the given student number. Please ask them to register and try again.",
+                        );
+                    } else if (err.response.status === 403 && studentNumber === user?.email?.replace("@pdsb.net", "")) {
+                        // While 403 can be returned for a user who isn't allowed to post,
+                        // it would have likely been caused if the student number is the same as the one of the
+                        // given student. We don't check this beforehand because it's a lot easier / faster to find
+                        // the user's student number on the backend than it is on the frontend.
+                        alert("You are not allowed to make a ticket for yourself.");
+                    } else {
+                        alert("Something went wrong. Please try again.");
+                    }
+                } else {
+                    alert("Something went wrong. Please try again.");
+                }
+                console.error(err);
+            }
+        }
+
+        setModalSubmitting(false);
+    };
+
+    const DeleteButtonCellRenderer = (props: any) => (
+        <div className="flex flex-row flex-wrap items-center justify-center w-full h-full">
+            <button
+                className="px-4 py-2 bg-red-500 hover:bg-red-700 duration-75 font-semibold text-xs text-white rounded-lg"
+                onClick={() => deleteTicketWithId(props.data.id)}
+            >
+                Delete
+            </button>
+        </div>
+    );
+
+    const colsDefs: ColDef[] = [
+        {
+            field: "timestamp",
+            headerName: "Created Time",
+            valueFormatter: (params: any) =>
+                params.data.timestamp.toLocaleString("en-US", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                }),
+            sort: "desc",
+        },
+        {
+            field: "eventData.name",
+            headerName: "Event",
+            cellRenderer: EventCellRenderer,
+        },
+        {
+            field: "ownerData.full_name",
+            headerName: "Student Name",
+            valueFormatter: (params: any) =>
+                cleanDisplayNameWithStudentNumber(
+                    params.data.ownerData.full_name,
+                    params.data.ownerData.student_number,
+                ),
+        },
+        {
+            field: "ownerData.student_number",
+            headerName: "Student #",
+            comparator: (a, b, nodeA, nodeB, isDesc) => {
+                const numA = Number(a.replace(/\D/g, ""));
+                const numB = Number(b.replace(/\D/g, ""));
+                if (Number.isNaN(numA) || Number.isNaN(numB)) {
+                    return 0;
+                }
+
+                return numA - numB;
+            },
+        },
+        {
+            field: "scanCount",
+            headerName: "Scans",
+        },
+        {
+            field: "lastScanTime",
+            headerName: "Last Scan Time",
+            valueFormatter: (params: any) =>
+                params.data.scanCount === 0
+                    ? "N/A"
+                    : params.data.lastScanTime.toLocaleString("en-US", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                    }),
+        },
+        {
+            field: "maxScanCount",
+            headerName: "Max Scan Count",
+            valueFormatter: (params: any) => (params.data.maxScanCount === 0 ? "∞" : params.data.maxScanCount),
+            comparator: (a, b, nodeA, nodeB, isDesc) => {
+                return (a === 0 ? Infinity : a) - (b === 0 ? Infinity : b);
+            },
+            editable: true,
+            valueGetter: (params) => params.data.maxScanCount,
+            valueSetter: (params) => {
+                try {
+                    updateMaxScanCountTicketMutation.mutate({
+                        ticketId: params.data.id,
+                        newMaxScanCountRaw: params.newValue,
+                        oldScanCount: Number(params.data.scanCount),
+                    });
+                    return true;
+                } catch (e) {
+                    console.error(e);
+                    return false;
+                }
+            },
+        },
+        {
+            colId: "viewAction",
+            headerName: "View",
+            sortable: false,
+            filter: false,
+            cellRenderer: ViewButtonCellRenderer,
+            flex: 0,
+            width: 100,
+        },
+        {
+            colId: "deleteAction",
+            headerName: "Delete",
+            sortable: false,
+            filter: false,
+            cellRenderer: DeleteButtonCellRenderer,
+            flex: 0,
+            width: 100,
+        },
+    ];
+
+    const defaultColDef: ColDef = {
+        sortable: true,
+        filter: true,
+        flex: 1,
+        rowDrag: false,
+        lockVisible: true,
+        resizable: true,
+    };
+
+    return (
+        <Layout
+            name={`Tickets${}`}
+            className="p-4 md:p-8 lg:px-12"
+            adminProtected
+        >
+            <Transition.Root show={modalOpen}>
+                <Dialog
+                    as="div"
+                    className="relative z-10"
+                    onClose={setModalOpen}
+                >
+                    <Transition.Child
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
+                            <Transition.Child
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            >
+                                <Dialog.Panel className="relative transform rounded-lg bg-gray-400 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                                    <div className="bg-slate-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                                        <div className="sm:flex sm:items-start">
+                                            <div className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                                <Dialog.Title
+                                                    as="h2"
+                                                    className="text-2xl font-semibold mb-2 text-black text-center"
+                                                >
+                                                    Create New Ticket
+                                                </Dialog.Title>
+
+                                                <label htmlFor="studentNumber">
+                                                    <span className="text-md text-gray-900 text-left">
+                                                        Student Number
+                                                    </span>
+                                                </label>
+
+                                                <input
+                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-60 sm:w-72 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                    name="studentNumber"
+                                                    id="studentNumber"
+                                                    required
+                                                    minLength={6}
+                                                    maxLength={8}
+                                                    ref={modalStudentNumberRef}
+                                                />
+
+                                                <span className="text-md text-gray-900">Event</span>
+
+                                                <span className="mt-3 text-md text-gray-900 text-left">
+                                                    Max Scan Count (blank or 0 &#8594; infinite)
+                                                </span>
+
+                                                <input
+                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                    name="maxScanCount"
+                                                    id="maxScanCount"
+                                                    type="number"
+                                                    required
+                                                    min={0}
+                                                    ref={modalMaxScanCountRef}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                        <button
+                                            type="button"
+                                            className="inline-flex w-full justify-center rounded-md bg-green-600 disabled:bg-green-700 px-3 py-2 text-sm font-semibold shadow-md text-white hover:bg-green-500 sm:ml-3 sm:w-auto duration-75"
+                                            disabled={modalSubmitting}
+                                            onClick={createNewTicketUI}
+                                        >
+                                            {modalSubmitting ? "Submitting..." : "Create"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-md ring-1 ring-inset ring-gray-300 hover:bg-gray-200 duration-75 sm:mt-0 sm:w-auto"
+                                            onClick={() => setModalOpen(false)}
+                                            disabled={modalSubmitting}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </div>
+                </Dialog>
+            </Transition.Root>
+
+            <div className="flex flex-col items-center">
+                <Typography
+                    variant="h1"
+                    className="text-center mb-2"
+                >
+                    Tickets
+                </Typography>
+                <button
+                    className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
+                    onClick={() => setModalOpen(true)}
+                >
+                    Create Ticket
+                </button>
+            </div>
+
+            <div className="overflow-x-auto w-full">
+                <div
+                    className="ag-theme-alpine"
+                    style={{ minWidth: "1000px", height: "64vh" }}
+                >
+                    <AgGridReact
+                        rowData={tickets}
+                        columnDefs={colsDefs}
+                        defaultColDef={defaultColDef}
+                        animateRows={true}
+                        gridOptions={{
+                            suppressScrollOnNewData: true,
+                            getRowId: (params) => params.data.id,
+                        }}
+                    />
+                </div>
+            </div>
+        </Layout>
+    );
+}
