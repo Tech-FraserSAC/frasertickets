@@ -417,7 +417,7 @@ export default function TicketViewingPage() {
             <div className="flex flex-col items-center justify-center">
                 <Link
                     href="/admin/tickets"
-                    className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-lg font-medium"
+                    className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-lg font-medium hover:underline"
                 >
                     <AiOutlineArrowLeft />
                     <span>Back to all tickets</span>

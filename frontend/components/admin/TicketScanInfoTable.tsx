@@ -6,6 +6,7 @@ import { Typography } from "@material-tailwind/react";
 import TicketScan from "@/lib/backend/ticket/scan";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
+import toTitleCase from "@/util/toTitleCase";
 
 export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan }) {
     const customProperties = getCustomFieldsFromTicket(
@@ -284,7 +285,7 @@ export default function TicketScanInfoTable({ scanData }: { scanData: TicketScan
                                 color="blue-gray"
                                 className="font-medium"
                             >
-                                {property.schema.displayName}
+                                {toTitleCase(property.schema.displayName)}
                             </Typography>
                         </td>
                         <td className="border-collapse border-y border-gray-500 text-right p-2">
