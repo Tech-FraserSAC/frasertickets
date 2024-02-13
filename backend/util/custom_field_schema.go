@@ -39,7 +39,6 @@ func ConvertRawCustomFieldsSchema(raw map[string]interface{}) (CustomFieldsSchem
 
 	// Deserialize 'required' array
 	if requiredRaw, found := raw["required"]; found {
-		fmt.Println([]interface{}(requiredRaw.(primitive.A)))
 		if requiredRawMongoSerialized, ok := requiredRaw.(primitive.A); ok {
 			requiredRawList := []interface{}(requiredRawMongoSerialized)
 			required := make([]string, len(requiredRawList))
