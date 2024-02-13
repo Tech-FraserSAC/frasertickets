@@ -265,7 +265,7 @@ export default function TicketViewingPage() {
                             label="Filter for event"
                             onChange={eventDropdownOnChange}
                         >
-                            {events?.map((event) => <Option value={event.id}>{event.name}</Option>)}
+                            {events?.map((event) => <Option value={event.id} key={event.id}>{event.name}</Option>)}
                         </Select>
                     </div>
                 ) : (
