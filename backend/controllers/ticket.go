@@ -233,14 +233,28 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 //	@Summary		List all tickets
 //	@Description	List all tickets. Only available to admins.
 //	@Tags			ticket
+//	@Param          eventId	query string false "filter by event ID"
 //	@Produce		json
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		403
 //	@Failure		500
 //	@Router			/tickets/all [get]
 func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
+	// Filter by event if search query provided
+	eventIdRaw := r.URL.Query().Get("eventId")
+	filter := bson.M{}
+
+	if eventIdRaw != "" {
+		eventId, err := primitive.ObjectIDFromHex(eventIdRaw)
+		if err == nil {
+			filter["event"] = eventId
+		} else {
+			fmt.Println(err)
+		}
+	}
+
 	// Try to get tickets
-	tickets, err := models.GetTickets(r.Context(), bson.M{})
+	tickets, err := models.GetTickets(r.Context(), filter)
 	if err != nil {
 		log.Error().Err(err).Msg("could not fetch all tickets")
 		render.Render(w, r, util.ErrServer(err))
@@ -277,19 +291,19 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 
 // Create creates a new ticket.
 //
-//		@Summary		Create new ticket
-//		@Description	Create a new ticket. Only available to admins.
-//		@Tags			ticket
-//	 @Accept json
-//		@Produce		json
-//		@Param			event	body		ticketControllerCreateRequestBody	true	"Ticket details"
-//		@Success		200	{object}	models.Ticket
-//		@Failure		400
-//		@Failure		403
-//		@Failure		404
-//		@Failure		409
-//		@Failure		500
-//		@Router			/tickets [post]
+//	@Summary		Create new ticket
+//	@Description	Create a new ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept json
+//	@Produce		json
+//	@Param			event	body	ticketControllerCreateRequestBody	true	"Ticket details"
+//	@Success		200		{object}	models.Ticket
+//	@Failure		400
+//	@Failure		403
+//	@Failure		404
+//	@Failure		409
+//	@Failure		500
+//	@Router			/tickets [post]
 func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
 		ticketRaw ticketControllerCreateRequestBody
