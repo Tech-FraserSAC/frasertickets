@@ -51,8 +51,12 @@ const ViewButtonCellRenderer = (props: any) => {
 export default function TicketViewingPage() {
     const router = useRouter();
     const [modalOpen, setModalOpen] = useState(false);
-    const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", () => getAllTickets());
-    const { data: events } = useQuery("frasertix-admin-tickets-events", getAllEvents);
+    const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", () => getAllTickets(), {
+        refetchOnWindowFocus: !modalOpen, // Don't refetch when modal open to prevent selected event from flashing
+    });
+    const { data: events } = useQuery("frasertix-admin-tickets-events", getAllEvents, {
+        refetchOnWindowFocus: !modalOpen,
+    });
 
     const updateMaxScanCountTicketMutation = useMutation(
         ({
@@ -265,7 +269,14 @@ export default function TicketViewingPage() {
                             label="Filter for event"
                             onChange={eventDropdownOnChange}
                         >
-                            {events?.map((event) => <Option value={event.id} key={event.id}>{event.name}</Option>)}
+                            {events?.map((event) => (
+                                <Option
+                                    value={event.id}
+                                    key={event.id}
+                                >
+                                    {event.name}
+                                </Option>
+                            ))}
                         </Select>
                     </div>
                 ) : (

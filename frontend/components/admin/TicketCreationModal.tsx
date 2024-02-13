@@ -40,6 +40,7 @@ export default function TicketCreationModal({
         },
         {
             enabled: presetEvent === undefined,
+            refetchOnWindowFocus: false // Prevents text flash for event selector
         },
     );
 
@@ -174,7 +175,7 @@ export default function TicketCreationModal({
             value={modalEventChosen}
             onChange={setModalEventChosen}
         >
-            <div className="relative mt-1">
+            <div className="relative">
                 <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                     <Combobox.Input
                         className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none"
@@ -273,75 +274,95 @@ export default function TicketCreationModal({
                                     <div className="sm:flex sm:items-start">
                                         <form
                                             ref={modalFormRef}
-                                            className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left"
+                                            className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 gap-4 sm:text-left"
                                         >
                                             <Dialog.Title
                                                 as="h2"
-                                                className="text-2xl font-semibold mb-2 text-black text-center"
+                                                className="text-2xl font-semibold text-black text-center"
                                             >
                                                 Create New Ticket
                                             </Dialog.Title>
 
-                                            <label htmlFor="studentNumber">
-                                                <span className="text-md text-gray-900 text-left">Student Number</span>
-                                                <span className="text-md text-red-500 font-semibold"> *</span>
-                                            </label>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <label htmlFor="studentNumber">
+                                                    <span className="text-md text-gray-900 text-left">
+                                                        Student Number
+                                                    </span>
 
-                                            <input
-                                                className={`mt-1 mb-3 rounded-lg py-2 px-3 w-60 sm:w-72 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
-                                                name="studentNumber"
-                                                id="studentNumber"
-                                                required
-                                                minLength={6}
-                                                maxLength={8}
-                                                ref={modalStudentNumberRef}
-                                            />
+                                                    <span className="text-md text-red-500 font-semibold"> *</span>
+                                                </label>
+
+                                                <input
+                                                    className={`rounded-lg py-2 px-3 w-60 sm:w-72 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                    name="studentNumber"
+                                                    id="studentNumber"
+                                                    required
+                                                    minLength={6}
+                                                    maxLength={8}
+                                                    ref={modalStudentNumberRef}
+                                                />
+                                            </div>
 
                                             {presetEvent === undefined ? (
-                                                <>
-                                                    <span className="text-md text-gray-900">Event</span>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="text-md text-gray-900">
+                                                        Event
+                                                        <span className="text-md text-red-500 font-semibold"> *</span>
+                                                    </span>
                                                     <EventComboBox />
-                                                </>
+                                                </div>
                                             ) : (
                                                 <></>
                                             )}
 
-                                            <label htmlFor="maxScanCount">
-                                                <span className="mt-3 text-md text-gray-900 text-left">
-                                                    Max Scan Count (blank or 0 &#8594; infinite)
-                                                </span>
-                                                <span className="text-md text-red-500 font-semibold"> *</span>
-                                            </label>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <label htmlFor="maxScanCount">
+                                                    <span className="text-md text-gray-900 text-left">
+                                                        Max Scan Count (blank or 0 &#8594; infinite)
+                                                    </span>
+                                                    <span className="text-md text-red-500 font-semibold"> *</span>
+                                                </label>
 
-                                            <input
-                                                className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
-                                                name="maxScanCount"
-                                                id="maxScanCount"
-                                                type="number"
-                                                required
-                                                min={0}
-                                                ref={modalMaxScanCountRef}
-                                            />
+                                                <input
+                                                    className={`rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                    name="maxScanCount"
+                                                    id="maxScanCount"
+                                                    type="number"
+                                                    required
+                                                    min={0}
+                                                    ref={modalMaxScanCountRef}
+                                                />
+                                            </div>
 
                                             {selectedEvent !== null ? (
                                                 Object.keys(selectedEvent.custom_fields_schema.properties).map(
                                                     (propertyId) => {
                                                         const property =
                                                             selectedEvent.custom_fields_schema.properties[propertyId];
-                                                        const requiredKeysSet = new Set(selectedEvent.custom_fields_schema.required)
+                                                        const requiredKeysSet = new Set(
+                                                            selectedEvent.custom_fields_schema.required,
+                                                        );
 
                                                         const inputType =
                                                             convertPropertySchemaTypeToInputType(property);
 
                                                         return (
-                                                            <React.Fragment key={propertyId}>
+                                                            <div
+                                                                className="flex flex-col items-center gap-1"
+                                                                key={propertyId}
+                                                            >
                                                                 <label htmlFor={propertyId}>
                                                                     <span className="text-md text-gray-900 text-left">
                                                                         {toTitleCase(property.displayName)}
                                                                     </span>
                                                                     {requiredKeysSet.has(propertyId) ? (
-                                                                        <span className="text-md text-red-500 font-semibold"> *</span>
-                                                                    ) : <></>}
+                                                                        <span className="text-md text-red-500 font-semibold">
+                                                                            {" "}
+                                                                            *
+                                                                        </span>
+                                                                    ) : (
+                                                                        <></>
+                                                                    )}
                                                                 </label>
 
                                                                 <span className="text-sm text-gray-800 text-center">
@@ -349,13 +370,13 @@ export default function TicketCreationModal({
                                                                 </span>
 
                                                                 <input
-                                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                                    className={`rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
                                                                     name={propertyId}
                                                                     id={propertyId}
                                                                     type={inputType}
                                                                     required
                                                                 />
-                                                            </React.Fragment>
+                                                            </div>
                                                         );
                                                     },
                                                 )
