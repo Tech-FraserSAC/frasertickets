@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { Combobox, Transition } from "@headlessui/react";
@@ -11,7 +9,6 @@ import { useMutation, useQuery } from "react-query";
 
 import { getAllEvents } from "@/lib/backend/event";
 import { searchForTicket } from "@/lib/backend/ticket";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/Layout";
 import TicketInfoTable from "@/components/user/TicketInfoTable";

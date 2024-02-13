@@ -55,4 +55,4 @@ export function convertToEvent(rawData: { [key: string]: any }): Event {
 }
 
 export default Event;
-export { getEvent, getAllEvents };
+export { getAllEvents, getEvent };
