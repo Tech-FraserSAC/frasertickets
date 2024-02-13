@@ -4,15 +4,13 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { Combobox, Dialog, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { ValidationError, object as yupObject } from "yup";
 
-import { getAllEvents, getEvent } from "@/lib/backend/event";
+import { getEvent } from "@/lib/backend/event";
 import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { buildValidatorForCustomEventData } from "@/util/eventCustomDataValidator";
@@ -26,6 +24,7 @@ import Layout from "@/components/Layout";
 import "ag-grid-community/styles/ag-grid.css";
 // Optional theme CSS
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import TicketCreationModal from "@/components/admin/TicketCreationModal";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -57,10 +56,11 @@ const ViewButtonCellRenderer = (props: any) => {
 
 export default function TicketViewingPage() {
     const router = useRouter();
-    const { user } = useFirebaseAuth();
-
     const eventId = router.isReady ? (router.query.id as string) : "";
 
+    const [modalOpen, setModalOpen] = useState(false);
+    
+    // TODO: ADD ERROR HANDLERS FOR 404/403/500
     const {
         data: event,
         isLoading: eventIsLoading,
@@ -69,7 +69,6 @@ export default function TicketViewingPage() {
     } = useQuery("frasertix-admin-tickets-event", () => getEvent(eventId), {
         enabled: router.isReady,
     });
-
     const eventName = eventIsLoading ? "Event" : event?.name;
 
     const { data: tickets, refetch: refetchTickets } = useQuery(
@@ -77,16 +76,6 @@ export default function TicketViewingPage() {
         () => getAllTickets(eventId),
         {
             enabled: router.isReady,
-        },
-    );
-
-    const createTicketMutation = useMutation(
-        ({ studentNumber, eventId, maxScanCount }: { studentNumber: string; eventId: string; maxScanCount: number }) =>
-            createNewTicket(studentNumber, eventId, maxScanCount),
-        {
-            onSettled: () => {
-                return refetchTickets();
-            },
         },
     );
 
@@ -175,12 +164,6 @@ export default function TicketViewingPage() {
         },
     });
 
-    const [modalOpen, setModalOpen] = useState(false);
-    const modalStudentNumberRef = useRef<HTMLInputElement>(null);
-    const modalMaxScanCountRef = useRef<HTMLInputElement>(null);
-    const [modalEventQuery, setModalEventQuery] = useState("");
-    const [modalSubmitting, setModalSubmitting] = useState(false);
-
     const deleteTicketWithId = async (id: string) => {
         const deletionAllowed = confirm("Are you sure you want to delete this ticket?");
         if (!deletionAllowed) {
@@ -194,58 +177,6 @@ export default function TicketViewingPage() {
             alert("Something went wrong when deleting the ticket. Please try again.");
             throw err;
         }
-    };
-
-    const createNewTicketUI = async () => {
-        setModalSubmitting(true);
-
-        const studentNumber = modalStudentNumberRef.current?.value ?? "";
-        const maxScanCount = Number(modalMaxScanCountRef.current?.value ?? 0);
-
-        if (!studentOrTeacherNumberRegex.test(studentNumber)) {
-            alert(
-                "Please provide a valid student / teacher number. If you're typing in a teacher number, make sure to include the p00.",
-            );
-        } else if (Number.isNaN(maxScanCount) || maxScanCount < 0 || Math.floor(maxScanCount) !== maxScanCount) {
-            alert(
-                "Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.",
-            );
-        } else {
-            try {
-                await createTicketMutation.mutateAsync({
-                    studentNumber: studentNumber.toString(),
-                    eventId: eventId,
-                    maxScanCount: maxScanCount,
-                });
-                alert("Ticket has been created.");
-
-                modalStudentNumberRef.current!.value = "";
-                setModalOpen(false);
-            } catch (err: any) {
-                if (err && err.response) {
-                    if (err.response.status === 409) {
-                        alert("The user already has a ticket. Please check this and try again.");
-                    } else if (err.response.status === 400) {
-                        alert(
-                            "There are no accounts associated with the given student number. Please ask them to register and try again.",
-                        );
-                    } else if (err.response.status === 403 && studentNumber === user?.email?.replace("@pdsb.net", "")) {
-                        // While 403 can be returned for a user who isn't allowed to post,
-                        // it would have likely been caused if the student number is the same as the one of the
-                        // given student. We don't check this beforehand because it's a lot easier / faster to find
-                        // the user's student number on the backend than it is on the frontend.
-                        alert("You are not allowed to make a ticket for yourself.");
-                    } else {
-                        alert("Something went wrong. Please try again.");
-                    }
-                } else {
-                    alert("Something went wrong. Please try again.");
-                }
-                console.error(err);
-            }
-        }
-
-        setModalSubmitting(false);
     };
 
     const DeleteButtonCellRenderer = (props: any) => (
@@ -418,102 +349,12 @@ export default function TicketViewingPage() {
                 <title>{`Tickets for ${eventName}`}</title>
             </Head>
 
-            <Transition.Root show={modalOpen}>
-                <Dialog
-                    as="div"
-                    className="relative z-10"
-                    onClose={setModalOpen}
-                >
-                    <Transition.Child
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:items-center sm:p-0">
-                            <Transition.Child
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            >
-                                <Dialog.Panel className="relative transform rounded-lg bg-gray-400 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                                    <div className="bg-slate-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                                        <div className="sm:flex sm:items-start">
-                                            <div className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                                <Dialog.Title
-                                                    as="h2"
-                                                    className="text-2xl font-semibold mb-2 text-black text-center"
-                                                >
-                                                    Create New Ticket
-                                                </Dialog.Title>
-
-                                                <label htmlFor="studentNumber">
-                                                    <span className="text-md text-gray-900 text-left">
-                                                        Student Number
-                                                    </span>
-                                                </label>
-
-                                                <input
-                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-60 sm:w-72 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
-                                                    name="studentNumber"
-                                                    id="studentNumber"
-                                                    required
-                                                    minLength={6}
-                                                    maxLength={8}
-                                                    ref={modalStudentNumberRef}
-                                                />
-
-                                                <span className="text-md text-gray-900">Event</span>
-
-                                                <span className="mt-3 text-md text-gray-900 text-left">
-                                                    Max Scan Count (blank or 0 &#8594; infinite)
-                                                </span>
-
-                                                <input
-                                                    className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
-                                                    name="maxScanCount"
-                                                    id="maxScanCount"
-                                                    type="number"
-                                                    required
-                                                    min={0}
-                                                    ref={modalMaxScanCountRef}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                                        <button
-                                            type="button"
-                                            className="inline-flex w-full justify-center rounded-md bg-green-600 disabled:bg-green-700 px-3 py-2 text-sm font-semibold shadow-md text-white hover:bg-green-500 sm:ml-3 sm:w-auto duration-75"
-                                            disabled={modalSubmitting}
-                                            onClick={createNewTicketUI}
-                                        >
-                                            {modalSubmitting ? "Submitting..." : "Create"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-md ring-1 ring-inset ring-gray-300 hover:bg-gray-200 duration-75 sm:mt-0 sm:w-auto"
-                                            onClick={() => setModalOpen(false)}
-                                            disabled={modalSubmitting}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </Dialog.Panel>
-                            </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition.Root>
+            <TicketCreationModal 
+                onCreate={() => refetchTickets()}
+                open={modalOpen}
+                setOpen={setModalOpen}
+                event={event}
+            />
 
             <div className="flex flex-col items-center">
                 <Typography
