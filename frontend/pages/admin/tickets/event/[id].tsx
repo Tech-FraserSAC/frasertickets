@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 
+import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
@@ -8,11 +10,14 @@ import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { ValidationError, object as yupObject } from "yup";
 
 import { getAllEvents, getEvent } from "@/lib/backend/event";
 import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import { buildValidatorForCustomEventData } from "@/util/eventCustomDataValidator";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
+import toTitleCase from "@/util/toTitleCase";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/Layout";
@@ -21,7 +26,6 @@ import Layout from "@/components/Layout";
 import "ag-grid-community/styles/ag-grid.css";
 // Optional theme CSS
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { useRouter } from "next/router";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -54,14 +58,26 @@ const ViewButtonCellRenderer = (props: any) => {
 export default function TicketViewingPage() {
     const router = useRouter();
     const { user } = useFirebaseAuth();
-    const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", getAllTickets);
 
-    const { data: event } = useQuery(
-        "frasertix-admin-tickets-event",
-        () => getEvent(router.query.id as string),
+    const eventId = router.isReady ? (router.query.id as string) : "";
+
+    const {
+        data: event,
+        isLoading: eventIsLoading,
+        isError: eventError,
+        isSuccess: eventLoadSuccessful,
+    } = useQuery("frasertix-admin-tickets-event", () => getEvent(eventId), {
+        enabled: router.isReady,
+    });
+
+    const eventName = eventIsLoading ? "Event" : event?.name;
+
+    const { data: tickets, refetch: refetchTickets } = useQuery(
+        "frasertix-admin-tickets",
+        () => getAllTickets(eventId),
         {
-            enabled: router.isReady
-        }
+            enabled: router.isReady,
+        },
     );
 
     const createTicketMutation = useMutation(
@@ -101,6 +117,49 @@ export default function TicketViewingPage() {
             }
             return updateTicket(ticketId, {
                 maxScanCount: num,
+            });
+        },
+        {
+            onSuccess: () => {
+                return refetchTickets();
+            },
+        },
+    );
+
+    const updateCustomFieldMutation = useMutation(
+        ({ ticketId, fieldKey, newFieldValue }: { ticketId: string; fieldKey: string; newFieldValue: any }) => {
+            // Get the actual schema property
+            const property = event!.custom_fields_schema.properties[fieldKey];
+
+            // Create yup validator from schema
+            const schemaValidator = buildValidatorForCustomEventData(event!);
+            const fieldValidator = yupObject().shape({
+                [fieldKey]: schemaValidator.fields[fieldKey],
+            });
+
+            // Run validator on given key/value pair
+            try {
+                fieldValidator.validateSync({ [fieldKey]: newFieldValue });
+            } catch (error) {
+                if (error instanceof ValidationError) {
+                    if (error.type === "typeError") {
+                        alert(`Please provide a value of type '${property.type}'.`);
+                        throw error.message;
+                    } else {
+                        alert(`This error occured while updating '${property.displayName}': ${error.message}`);
+                        throw error;
+                    }
+                } else {
+                    alert("Sorry, something went wrong while trying to update the given attribute.");
+                    throw error;
+                }
+            }
+
+            // Send update to backend
+            return updateTicket(ticketId, {
+                customFields: {
+                    [fieldKey]: newFieldValue,
+                },
             });
         },
         {
@@ -151,14 +210,11 @@ export default function TicketViewingPage() {
             alert(
                 "Please provide a whole number max scan count above or equal to 0, or keep it blank for infinite entires.",
             );
-        } else if (modalEventChosen === null || modalEventQuery !== "") {
-            // If the query isn't empty, this means they were searching for something but didn't select anything
-            alert("Please provide a valid event and make sure it is selected.");
         } else {
             try {
                 await createTicketMutation.mutateAsync({
                     studentNumber: studentNumber.toString(),
-                    eventId: modalEventChosen.id,
+                    eventId: eventId,
                     maxScanCount: maxScanCount,
                 });
                 alert("Ticket has been created.");
@@ -203,7 +259,7 @@ export default function TicketViewingPage() {
         </div>
     );
 
-    const colsDefs: ColDef[] = [
+    const initialColDefs: ColDef[] = [
         {
             field: "timestamp",
             headerName: "Created Time",
@@ -257,14 +313,14 @@ export default function TicketViewingPage() {
                 params.data.scanCount === 0
                     ? "N/A"
                     : params.data.lastScanTime.toLocaleString("en-US", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
 
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                    }),
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                      }),
         },
         {
             field: "maxScanCount",
@@ -289,6 +345,9 @@ export default function TicketViewingPage() {
                 }
             },
         },
+    ];
+
+    const buttonColDefs: ColDef[] = [
         {
             colId: "viewAction",
             headerName: "View",
@@ -309,6 +368,36 @@ export default function TicketViewingPage() {
         },
     ];
 
+    const customFieldsColDefs: ColDef[] = !eventLoadSuccessful
+        ? []
+        : Object.keys(event!.custom_fields_schema.properties).map((propertyId) => {
+              const property = event!.custom_fields_schema.properties[propertyId];
+
+              return {
+                  colId: propertyId,
+                  headerName: toTitleCase(property.displayName),
+                  sortable: true,
+                  filter: true,
+                  editable: property.editable,
+                  valueGetter: (params) => params.data.customFields[propertyId],
+                  valueSetter: (params) => {
+                      try {
+                          updateCustomFieldMutation.mutate({
+                              ticketId: params.data.id,
+                              fieldKey: propertyId,
+                              newFieldValue: params.newValue,
+                          });
+                          return true;
+                      } catch (e) {
+                          console.error(e);
+                          return false;
+                      }
+                  },
+              };
+          });
+
+    const colDefs = [...initialColDefs, ...customFieldsColDefs, ...buttonColDefs];
+
     const defaultColDef: ColDef = {
         sortable: true,
         filter: true,
@@ -320,10 +409,15 @@ export default function TicketViewingPage() {
 
     return (
         <Layout
-            name={`Tickets${}`}
+            name="Tickets for Event"
             className="p-4 md:p-8 lg:px-12"
             adminProtected
         >
+            {/* Override title without causing refresh of entire page from changing prop */}
+            <Head>
+                <title>{`Tickets for ${eventName}`}</title>
+            </Head>
+
             <Transition.Root show={modalOpen}>
                 <Dialog
                     as="div"
@@ -426,7 +520,7 @@ export default function TicketViewingPage() {
                     variant="h1"
                     className="text-center mb-2"
                 >
-                    Tickets
+                    Tickets for {eventName}
                 </Typography>
                 <button
                     className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
@@ -443,7 +537,7 @@ export default function TicketViewingPage() {
                 >
                     <AgGridReact
                         rowData={tickets}
-                        columnDefs={colsDefs}
+                        columnDefs={colDefs}
                         defaultColDef={defaultColDef}
                         animateRows={true}
                         gridOptions={{

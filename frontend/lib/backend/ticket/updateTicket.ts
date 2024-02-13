@@ -1,7 +1,8 @@
 import sendBackendRequest from "@/lib/backend/sendBackendRequest";
 
 interface UpdateBody {
-    maxScanCount: number;
+    maxScanCount?: number;
+    customFields?: { [key: string]: any };
 }
 
 // Admin-only route!
