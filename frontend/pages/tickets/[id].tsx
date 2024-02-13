@@ -9,6 +9,7 @@ import { useQuery } from "react-query";
 import { getTicket } from "@/lib/backend/ticket";
 
 import Layout from "@/components/Layout";
+import TicketInfoTable from "@/components/user/TicketInfoTable";
 import { ForbiddenComponent } from "@/pages/403";
 import { NotFoundComponent } from "@/pages/404";
 import { ServerErrorComponent } from "@/pages/500";
@@ -47,17 +48,6 @@ export default function TicketSpecificPage() {
 
     const isLoading = !router.isReady || rqLoading;
     const pageName = !isLoading ? (data?.eventData.name as string) : "Ticket";
-    const studentNumber = data?.ownerData.student_number;
-    const scanCount = data?.scanCount;
-    const maxScanCount = data?.maxScanCount;
-    const lastScanTimestampStr = data?.lastScanTime.toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
 
     if (error) {
         console.error(error);
@@ -68,7 +58,7 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="404 Not Found"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <NotFoundComponent home="/tickets" />
                 </Layout>
@@ -78,7 +68,7 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="403 Forbidden"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <ForbiddenComponent home="/" />
                 </Layout>
@@ -88,7 +78,7 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="500 Server Error"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <ServerErrorComponent home="/tickets" />
                 </Layout>
@@ -102,50 +92,18 @@ export default function TicketSpecificPage() {
             userProtected={true}
             className="p-4 md:p-8 lg:px-12"
         >
-            {isLoading || error ? (
-                isLoading ? (
-                    <span>Loading...</span>
-                ) : (
-                    <span>error...</span>
-                )
+            {isLoading ? (
+                <span>Loading...</span>
             ) : (
                 <div className="flex flex-col items-center">
                     <Typography
                         variant="h2"
-                        className="text-center"
+                        className="text-center mb-2"
                     >
                         Your Ticket for {data!.eventData.name}
                     </Typography>
 
-                    <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-medium text-center mb-4"
-                    >
-                        {studentNumber !== undefined && (
-                            <>
-                                Student Number: {studentNumber}
-                                <br />
-                            </>
-                        )}
-
-                        {scanCount !== undefined && (
-                            <>
-                                # of scans: {scanCount}
-                                <br />
-                            </>
-                        )}
-
-                        {maxScanCount !== undefined && (
-                            <>
-                                Max. # of scans: {maxScanCount === 0 ? <>&infin;</> : maxScanCount}
-                                <br />
-                            </>
-                        )}
-                        {lastScanTimestampStr && scanCount !== 0 && scanCount !== undefined && (
-                            <>Last scanned at {lastScanTimestampStr}</>
-                        )}
-                    </Typography>
+                    <TicketInfoTable ticket={data!} />
 
                     <Typography
                         variant="lead"

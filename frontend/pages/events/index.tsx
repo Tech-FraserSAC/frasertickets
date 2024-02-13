@@ -111,7 +111,8 @@ export default function EventsIndex() {
                                 variant="lead"
                                 className="text-center lg:w-3/4"
                             >
-                                It looks like there aren&apos;t any events yet. Check this website later when an event is being held!
+                                It looks like there aren&apos;t any events yet. Check this website later when an event
+                                is being held!
                             </Typography>
                         </div>
                     )}

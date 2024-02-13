@@ -39,15 +39,10 @@ export default function TicketViewingPage() {
 
     const { user } = useFirebaseAuth();
 
-    const {
-        data: tickets,
-        refetch: refetchTickets,
-    } = useQuery("frasertix-admin-queued-tickets", getAllQueuedTickets);
+    const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-queued-tickets", getAllQueuedTickets);
 
     // Just the names and IDs to put in the modal
-    const {
-        data: eventNames,
-    } = useQuery("frasertix-admin-tickets-events", async () => {
+    const { data: eventNames } = useQuery("frasertix-admin-tickets-events", async () => {
         const events = await getAllEvents();
         const mappedEvents = events
             .sort((a, b) => b.end_timestamp.getTime() - a.start_timestamp.getTime())

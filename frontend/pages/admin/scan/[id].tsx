@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -8,9 +7,10 @@ import { Typography } from "@material-tailwind/react";
 import { useQuery } from "react-query";
 
 import { scanTicket } from "@/lib/backend/ticket/scan";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
 
 import Layout from "@/components/Layout";
+import TicketScanInfoTable from "@/components/admin/TicketScanInfoTable";
 import { ForbiddenComponent } from "@/pages/403";
 
 enum ScanStatus {
@@ -26,9 +26,7 @@ export default function TicketScanningPage() {
     const router = useRouter();
     const [scanStatus, setScanStatus] = useState<ScanStatus>(ScanStatus.LOADING);
 
-    const {
-        data: scanData,
-    } = useQuery("frasertix-scan-ticket", () => scanTicket(router.query.id as string), {
+    const { data: scanData } = useQuery("frasertix-scan-ticket", () => scanTicket(router.query.id as string), {
         enabled: router.isReady,
         retry: (failureCount, error: any | undefined) => {
             if (error?.response?.status === 400) {
@@ -146,98 +144,7 @@ export default function TicketScanningPage() {
                             Ticket scan has not been recorded since it has already reached the maximum scans allowed.
                         </Typography>
 
-                        <table className="border-collapse border-2 border-gray-500">
-                            <thead className="border-collapse border-2 border-gray-500 bg-green-200">
-                                <th className="text-left border-collapse border-2 border-gray-500 px-2">Attributes</th>
-                                <th className="text-right border-collapse border-2 border-gray-500">Value</th>
-                            </thead>
-
-                            <tbody className="border-collapse border-2 border-gray-500">
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Scan Count</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.scanCount}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Max Scan Count</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.ticketData.maxScanCount.toString()}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">
-                                        Previous Scan Timestamp
-                                    </td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {/** We pass in the previous as current for when max is reached **/
-                                        scanData?.timestamp.toLocaleString("en-US", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "2-digit",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                        })}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Event Name</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2 text-blue-500 hover:text-blue-700 hover:underline">
-                                        <Link
-                                            href={`/events/${scanData?.ticketData.eventId}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {scanData?.ticketData.eventData.name.slice(0, 25)}
-                                            {scanData?.ticketData.eventData.name.length! >= 25 && "..."}
-                                        </Link>
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Student Number</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.userData.student_number}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Display Name</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right p-2">
-                                        {scanData?.userData.pfp_url ? (
-                                            <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image
-                                                    src={scanData?.userData.pfp_url}
-                                                    alt="pfp"
-                                                    height={25}
-                                                    width={25}
-                                                    className="rounded-full"
-                                                    quality={100}
-                                                    unoptimized
-                                                />
-                                                <span>
-                                                    {cleanDisplayNameWithStudentNumber(
-                                                        scanData?.userData.full_name,
-                                                        scanData?.userData.student_number,
-                                                    )}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <td className="border border-gray-500 px-4 py-1">
-                                                {cleanDisplayNameWithStudentNumber(
-                                                    scanData?.userData.full_name,
-                                                    scanData?.userData.student_number,
-                                                )}
-                                            </td>
-                                        )}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <TicketScanInfoTable scanData={scanData!} />
 
                         <div className="flex flex-wrap gap-2 mt-2">
                             <Link
@@ -257,6 +164,12 @@ export default function TicketScanningPage() {
                 );
             }
             case ScanStatus.SUCCESS: {
+                // Get all custom fields from the ticket
+                const customProperties = getCustomFieldsFromTicket(
+                    scanData!.ticketData.customFields,
+                    scanData!.ticketData.eventData.custom_fields_schema,
+                );
+
                 return (
                     <div className="flex flex-col items-center">
                         <Typography
@@ -266,117 +179,7 @@ export default function TicketScanningPage() {
                             Valid Ticket
                         </Typography>
 
-                        <table className="border-collapse border-2 border-gray-500">
-                            <thead className="border-collapse border-2 border-gray-500 bg-green-200">
-                                <th className="text-left border-collapse border-2 border-gray-500 px-2">Attributes</th>
-                                <th className="text-right border-collapse border-2 border-gray-500">Value</th>
-                            </thead>
-
-                            <tbody className="border-collapse border-2 border-gray-500">
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Scan Count</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.scanCount}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Max Scan Count</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.ticketData.maxScanCount === 0 ? (
-                                            <>&infin;</>
-                                        ) : (
-                                            scanData?.ticketData.maxScanCount.toString()
-                                        )}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Scan Timestamp</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.timestamp.toLocaleString("en-US", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "2-digit",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                        })}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">
-                                        Previous Scan Timestamp
-                                    </td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.scanCount === 1
-                                            ? "N/A"
-                                            : scanData?.ticketData.lastScanTime.toLocaleString("en-US", {
-                                                  day: "2-digit",
-                                                  month: "2-digit",
-                                                  year: "2-digit",
-                                                  hour: "2-digit",
-                                                  minute: "2-digit",
-                                                  second: "2-digit",
-                                              })}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Event Name</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2 text-blue-500 hover:text-blue-700 hover:underline">
-                                        <Link
-                                            href={`/events/${scanData?.ticketData.eventId}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {scanData?.ticketData.eventData.name.slice(0, 25)}
-                                            {scanData?.ticketData.eventData.name.length! >= 25 && "..."}
-                                        </Link>
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Student Number</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right px-2">
-                                        {scanData?.userData.student_number}
-                                    </td>
-                                </tr>
-
-                                <tr className="border-collapse border-2 border-gray-500">
-                                    <td className="border-collapse border-2 border-gray-500 px-2">Display Name</td>
-                                    <td className="border-collapse border-2 border-gray-500 text-right p-2">
-                                        {scanData?.userData.pfp_url ? (
-                                            <div className="flex flex-row gap-1 items-center justify-end w-full">
-                                                <Image
-                                                    src={scanData?.userData.pfp_url}
-                                                    alt="pfp"
-                                                    height={25}
-                                                    width={25}
-                                                    className="rounded-full"
-                                                    quality={100}
-                                                    unoptimized
-                                                />
-                                                <span>
-                                                    {cleanDisplayNameWithStudentNumber(
-                                                        scanData?.userData.full_name,
-                                                        scanData?.userData.student_number,
-                                                    )}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <td className="border border-gray-500 px-4 py-1">
-                                                {cleanDisplayNameWithStudentNumber(
-                                                    scanData?.userData.full_name,
-                                                    scanData?.userData.student_number,
-                                                )}
-                                            </td>
-                                        )}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <TicketScanInfoTable scanData={scanData!} />
 
                         <div className="flex flex-wrap gap-2 mt-2">
                             <Link

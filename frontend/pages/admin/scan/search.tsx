@@ -1,7 +1,5 @@
 import { useRef, useState } from "react";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { Combobox, Transition } from "@headlessui/react";
@@ -11,9 +9,9 @@ import { useMutation, useQuery } from "react-query";
 
 import { getAllEvents } from "@/lib/backend/event";
 import { searchForTicket } from "@/lib/backend/ticket";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
 import Layout from "@/components/Layout";
+import TicketInfoTable from "@/components/user/TicketInfoTable";
 
 interface CondensedEvent {
     name: string;
@@ -24,9 +22,7 @@ export default function TicketSearchAndScanPage() {
     const router = useRouter();
 
     // Just the names and IDs to put in the modal
-    const {
-        data: eventNames,
-    } = useQuery("frasertix-admin-search-events", async () => {
+    const { data: eventNames } = useQuery("frasertix-admin-search-events", async () => {
         const events = await getAllEvents();
         const mappedEvents = events
             .sort((a, b) => b.end_timestamp.getTime() - a.start_timestamp.getTime())
@@ -91,7 +87,9 @@ export default function TicketSearchAndScanPage() {
             >
                 Searched Ticket Info
             </Typography>
-            <table className="border-collapse border-2 border-gray-500">
+
+            <TicketInfoTable ticket={ticketSearchMutation.data!} />
+            {/* <table className="border-collapse border-2 border-gray-500">
                 <thead className="border-collapse border-2 border-gray-500 bg-green-200">
                     <th className="text-left border-collapse border-2 border-gray-500 px-2">Attributes</th>
                     <th className="text-right border-collapse border-2 border-gray-500">Value</th>
@@ -185,7 +183,7 @@ export default function TicketSearchAndScanPage() {
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table> */}
 
             <div className="flex flex-wrap gap-2">
                 <Button
@@ -327,7 +325,7 @@ export default function TicketSearchAndScanPage() {
     return (
         <Layout
             name="Ticket Search"
-            className="p-4 md:p-8 lg:px-12"
+            className="flex flex-col p-4 md:p-8 lg:px-12"
             adminProtected
         >
             <Typography

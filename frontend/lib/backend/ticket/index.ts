@@ -18,6 +18,7 @@ type Ticket = {
     scanCount: Number;
     lastScanTime: Date;
     maxScanCount: Number;
+    customFields: { [key: string]: any };
 };
 
 export function convertToTicket(rawData: { [key: string]: any }): Ticket {
@@ -31,6 +32,7 @@ export function convertToTicket(rawData: { [key: string]: any }): Ticket {
         scanCount: Number(rawData.scanCount),
         lastScanTime: new Date(rawData.lastScanTime),
         maxScanCount: rawData.maxScanCount,
+        customFields: rawData.customFields,
     };
 }
 
