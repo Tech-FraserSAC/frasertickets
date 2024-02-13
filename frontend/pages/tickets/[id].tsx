@@ -6,9 +6,7 @@ import { Typography } from "@material-tailwind/react";
 import QRCode from "react-qr-code";
 import { useQuery } from "react-query";
 
-import { CustomFieldsSchema } from "@/lib/backend/event";
 import { getTicket } from "@/lib/backend/ticket";
-import getCustomFieldsFromTicket from "@/util/getCustomFieldsFromTicket";
 
 import Layout from "@/components/Layout";
 import TicketInfoTable from "@/components/user/TicketInfoTable";
@@ -50,17 +48,6 @@ export default function TicketSpecificPage() {
 
     const isLoading = !router.isReady || rqLoading;
     const pageName = !isLoading ? (data?.eventData.name as string) : "Ticket";
-    const studentNumber = data?.ownerData.student_number;
-    const scanCount = data?.scanCount;
-    const maxScanCount = data?.maxScanCount;
-    const lastScanTimestampStr = data?.lastScanTime.toLocaleString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
 
     if (error) {
         console.error(error);
@@ -71,7 +58,7 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="404 Not Found"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <NotFoundComponent home="/tickets" />
                 </Layout>
@@ -81,7 +68,7 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="403 Forbidden"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <ForbiddenComponent home="/" />
                 </Layout>
@@ -91,34 +78,13 @@ export default function TicketSpecificPage() {
                 <Layout
                     name="500 Server Error"
                     userProtected={true}
-                    className="flex flex-col p-4 md:p-8 lg:px-12"
+                    className="flex flex-col justify-center items-center"
                 >
                     <ServerErrorComponent home="/tickets" />
                 </Layout>
             );
         }
     }
-
-    const CustomFieldsComponent = ({
-        customFields,
-        customFieldsSchema,
-    }: {
-        customFields: { [key: string]: any };
-        customFieldsSchema: CustomFieldsSchema;
-    }) => {
-        const properties = getCustomFieldsFromTicket(customFields, customFieldsSchema);
-
-        return properties.map((property) => (
-            <Typography
-                variant="lead"
-                color="blue-gray"
-                className="font-medium text-center"
-                key={property.id}
-            >
-                {property.schema.displayName}: {property.value}
-            </Typography>
-        ));
-    };
 
     return (
         <Layout

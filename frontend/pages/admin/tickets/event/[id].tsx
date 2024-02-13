@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import Head from "next/head";
 import Link from "next/link";
@@ -11,20 +11,21 @@ import { useMutation, useQuery } from "react-query";
 import { ValidationError, object as yupObject } from "yup";
 
 import { getEvent } from "@/lib/backend/event";
-import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
+import { deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 import { buildValidatorForCustomEventData } from "@/util/eventCustomDataValidator";
-import { studentOrTeacherNumberRegex } from "@/util/regexps";
 import toTitleCase from "@/util/toTitleCase";
 
-import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/Layout";
+import TicketCreationModal from "@/components/admin/TicketCreationModal";
+import { ForbiddenComponent } from "@/pages/403";
+import { NotFoundComponent } from "@/pages/404";
+import { ServerErrorComponent } from "@/pages/500";
 
 // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-grid.css";
 // Optional theme CSS
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import TicketCreationModal from "@/components/admin/TicketCreationModal";
 
 const EventCellRenderer = (props: any) => {
     return (
@@ -59,8 +60,8 @@ export default function TicketViewingPage() {
     const eventId = router.isReady ? (router.query.id as string) : "";
 
     const [modalOpen, setModalOpen] = useState(false);
-    
-    // TODO: ADD ERROR HANDLERS FOR 404/403/500
+    const [statusCode, setStatusCode] = useState(200);
+
     const {
         data: event,
         isLoading: eventIsLoading,
@@ -68,6 +69,25 @@ export default function TicketViewingPage() {
         isSuccess: eventLoadSuccessful,
     } = useQuery("frasertix-admin-tickets-event", () => getEvent(eventId), {
         enabled: router.isReady,
+        retry: (failureCount, error: any | undefined) => {
+            if (statusCode != error?.response?.status) {
+                setStatusCode(error?.response?.status);
+            }
+            if (error?.response?.status === 400 || error?.response?.status === 404) {
+                return false;
+            }
+
+            if (error?.response?.status === 403) {
+                return false;
+            }
+
+            if (error?.response?.status === 500) {
+                return false;
+            }
+
+            return failureCount < 1;
+        },
+        refetchInterval: (data, query) => (query.state.error ? 0 : 60 * 1000),
     });
     const eventName = eventIsLoading ? "Event" : event?.name;
 
@@ -338,6 +358,43 @@ export default function TicketViewingPage() {
         resizable: true,
     };
 
+    if (eventError) {
+        console.error(eventError);
+
+        // 400 means its not an actual code, which is basically equivalent to not found
+        if (statusCode === 400 || statusCode === 404) {
+            return (
+                <Layout
+                    name="404 Not Found"
+                    adminProtected={true}
+                    className="flex flex-col justify-center items-center"
+                >
+                    <NotFoundComponent home="/admin/tickets" />
+                </Layout>
+            );
+        } else if (statusCode === 403) {
+            return (
+                <Layout
+                    name="403 Forbidden"
+                    adminProtected={true}
+                    className="flex flex-col justify-center items-center"
+                >
+                    <ForbiddenComponent home="/" />
+                </Layout>
+            );
+        } else {
+            return (
+                <Layout
+                    name="500 Server Error"
+                    adminProtected={true}
+                    className="flex flex-col justify-center items-center"
+                >
+                    <ServerErrorComponent home="/admin/tickets" />
+                </Layout>
+            );
+        }
+    }
+
     return (
         <Layout
             name="Tickets for Event"
@@ -349,7 +406,7 @@ export default function TicketViewingPage() {
                 <title>{`Tickets for ${eventName}`}</title>
             </Head>
 
-            <TicketCreationModal 
+            <TicketCreationModal
                 onCreate={() => refetchTickets()}
                 open={modalOpen}
                 setOpen={setModalOpen}

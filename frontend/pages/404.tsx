@@ -5,7 +5,6 @@ import Layout from "@/components/Layout";
 export function NotFoundComponent({ home }: { home?: string }) {
     return (
         <div
-            className="flex flex-col h-screen flex-grow justify-center"
             key="page-404"
         >
             <div className="flex flex-col p-8">
@@ -18,7 +17,7 @@ export function NotFoundComponent({ home }: { home?: string }) {
 
                 <div className="self-center">
                     <Link
-                        href={home ?? "/"}
+                        href={home === undefined ? "/" : home}
                         className="text-md bg-blue-500 hover:bg-blue-600 duration-75 text-white px-4 py-2 rounded-lg font-semibold"
                     >
                         Take me home!
@@ -33,7 +32,7 @@ export default function Page404() {
     return (
         <Layout
             name="404 Not Found"
-            className="h-screen"
+            className="flex flex-col justify-center items-center h-screen"
         >
             <NotFoundComponent />
         </Layout>
