@@ -17,6 +17,17 @@ export type CustomFieldsSchema = {
     [key: string]: any;
 };
 
+export function convertPropertySchemaTypeToInputType(schema: PropertySchema) {
+    switch (schema.type) {
+        case "integer": {
+            return "number";
+        }
+        default: {
+            return "text";
+        }
+    }
+}
+
 type Event = {
     id: string;
     name: string;

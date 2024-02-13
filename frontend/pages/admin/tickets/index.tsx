@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 import Link from "next/link";
 
@@ -8,11 +8,14 @@ import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { ValidationError } from "yup";
 
-import { getAllEvents } from "@/lib/backend/event";
+import { convertPropertySchemaTypeToInputType, getAllEvents } from "@/lib/backend/event";
 import { createNewTicket, deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
+import { buildValidatorForCustomEventData } from "@/util/eventCustomDataValidator";
 import { studentOrTeacherNumberRegex } from "@/util/regexps";
+import toTitleCase from "@/util/toTitleCase";
 
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/Layout";
@@ -55,21 +58,20 @@ export default function TicketViewingPage() {
 
     const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", () => getAllTickets());
 
-    // Just the names and IDs to put in the modal
-    const { data: eventNames } = useQuery("frasertix-admin-tickets-events", async () => {
+    const { data: events } = useQuery("frasertix-admin-tickets-events", async () => {
         const events = await getAllEvents();
         const mappedEvents = events
             .sort((a, b) => b.end_timestamp.getTime() - a.start_timestamp.getTime())
             .map((event) => ({
-                name: event.name,
-                id: event.id,
+                ...event,
+                customFieldValidator: buildValidatorForCustomEventData(event),
             }));
         return mappedEvents;
     });
 
     const createTicketMutation = useMutation(
-        ({ studentNumber, eventId, maxScanCount }: { studentNumber: string; eventId: string; maxScanCount: number }) =>
-            createNewTicket(studentNumber, eventId, maxScanCount),
+        ({ studentNumber, eventId, maxScanCount, customFields }: { studentNumber: string; eventId: string; maxScanCount: number, customFields: { [key: string]: any } }) =>
+            createNewTicket(studentNumber, eventId, maxScanCount, customFields),
         {
             onSettled: () => {
                 return refetchTickets();
@@ -122,16 +124,15 @@ export default function TicketViewingPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const modalStudentNumberRef = useRef<HTMLInputElement>(null);
     const modalMaxScanCountRef = useRef<HTMLInputElement>(null);
-    const [modalEventChosen, setModalEventChosen] = useState<any>(
-        eventNames && eventNames.length !== 0 ? eventNames[0] : null,
-    );
+    const [modalEventChosen, setModalEventChosen] = useState(events && events.length !== 0 ? events[0] : null);
     const [modalEventQuery, setModalEventQuery] = useState("");
     const [modalSubmitting, setModalSubmitting] = useState(false);
+    const modalFormRef = useRef<HTMLFormElement>(null);
 
     const filteredEventNames =
         modalEventQuery === ""
-            ? eventNames
-            : eventNames?.filter((event) => {
+            ? events
+            : events?.filter((event) => {
                   return event.name.toLocaleLowerCase().includes(modalEventQuery.toLocaleLowerCase());
               });
 
@@ -156,6 +157,31 @@ export default function TicketViewingPage() {
         const studentNumber = modalStudentNumberRef.current?.value ?? "";
         const maxScanCount = Number(modalMaxScanCountRef.current?.value ?? 0);
 
+        // Get all custom fields
+        const builtInFields = new Set(["studentNumber", "maxScanCount", ""]);
+        let customFieldsRaw: { [key: string]: any } = {};
+        modalFormRef.current?.querySelectorAll("input").forEach((input) => {
+            if (!builtInFields.has(input.name)) {
+                customFieldsRaw[input.name] = input.value;
+            }
+        });
+
+        // Validate custom fields against schema
+        let customFields: { [key: string]: any } = {};
+        try {
+            customFields = await modalEventChosen?.customFieldValidator.validate(customFieldsRaw);
+        } catch (err) {
+            if (err instanceof ValidationError) {
+                alert(`Something went wrong while validating your custom fields: ${err.message}`);
+            } else {
+                alert("Something went wrong. Please try again.");
+                console.error(err);
+            }
+
+            setModalSubmitting(false);
+            return;
+        }
+
         if (!studentOrTeacherNumberRegex.test(studentNumber)) {
             alert(
                 "Please provide a valid student / teacher number. If you're typing in a teacher number, make sure to include the p00.",
@@ -173,6 +199,7 @@ export default function TicketViewingPage() {
                     studentNumber: studentNumber.toString(),
                     eventId: modalEventChosen.id,
                     maxScanCount: maxScanCount,
+                    customFields: customFields
                 });
                 alert("Ticket has been created.");
 
@@ -367,7 +394,10 @@ export default function TicketViewingPage() {
                                 <Dialog.Panel className="relative transform rounded-lg bg-gray-400 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                                     <div className="bg-slate-800 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                                         <div className="sm:flex sm:items-start">
-                                            <div className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                            <form
+                                                ref={modalFormRef}
+                                                className="flex flex-col items-center mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left"
+                                            >
                                                 <Dialog.Title
                                                     as="h2"
                                                     className="text-2xl font-semibold mb-2 text-black text-center"
@@ -487,7 +517,43 @@ export default function TicketViewingPage() {
                                                     min={0}
                                                     ref={modalMaxScanCountRef}
                                                 />
-                                            </div>
+
+                                                {modalEventChosen !== null ? (
+                                                    Object.keys(modalEventChosen.custom_fields_schema.properties).map(
+                                                        (propertyId) => {
+                                                            const property =
+                                                                modalEventChosen.custom_fields_schema.properties[
+                                                                    propertyId
+                                                                ];
+
+                                                            const inputType =
+                                                                convertPropertySchemaTypeToInputType(property);
+
+                                                            return (
+                                                                <React.Fragment key={propertyId}>
+                                                                    <span className="text-md text-gray-900 text-left">
+                                                                        {toTitleCase(property.displayName)}
+                                                                    </span>
+
+                                                                    <span className="text-sm text-gray-800 text-center">
+                                                                        {property.description}
+                                                                    </span>
+
+                                                                    <input
+                                                                        className={`mt-1 mb-3 rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                                        name={propertyId}
+                                                                        id={propertyId}
+                                                                        type={inputType}
+                                                                        required
+                                                                    />
+                                                                </React.Fragment>
+                                                            );
+                                                        },
+                                                    )
+                                                ) : (
+                                                    <></>
+                                                )}
+                                            </form>
                                         </div>
                                     </div>
                                     <div className="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
