@@ -329,6 +329,7 @@ func UpdateExistingTicketByKeys(
 		// Don't allow other keys to be updated
 		if !UPDATABLE_KEYS[key] {
 			if CUSTOM_UPDATABLE_KEYS[key] {
+				// TODO: Validate this value against the schema, already done in frontend but best to keep backup
 				// Adjust key so that it updates under customFields object
 				tmpKey = "customFields." + key
 			} else {
