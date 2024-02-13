@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useMutation, useQuery } from "react-query";
 import { ValidationError, object as yupObject } from "yup";
 
@@ -413,13 +414,22 @@ export default function TicketViewingPage() {
                 event={event}
             />
 
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center justify-center">
+                <Link
+                    href="/admin/tickets"
+                    className="flex items-center gap-1 text-blue-500 hover:text-blue-600 text-lg font-medium"
+                >
+                    <AiOutlineArrowLeft />
+                    <span>Back to all tickets</span>
+                </Link>
+
                 <Typography
                     variant="h1"
                     className="text-center mb-2"
                 >
                     Tickets for {eventName}
                 </Typography>
+
                 <button
                     className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
                     onClick={() => setModalOpen(true)}

@@ -1,12 +1,14 @@
 import { useState } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/router";
 
-import { Typography } from "@material-tailwind/react";
+import { Option, Select, Typography } from "@material-tailwind/react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery } from "react-query";
 
+import { getAllEvents } from "@/lib/backend/event";
 import { deleteTicket, getAllTickets, updateTicket } from "@/lib/backend/ticket";
 import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
@@ -47,8 +49,10 @@ const ViewButtonCellRenderer = (props: any) => {
 };
 
 export default function TicketViewingPage() {
+    const router = useRouter();
     const [modalOpen, setModalOpen] = useState(false);
     const { data: tickets, refetch: refetchTickets } = useQuery("frasertix-admin-tickets", () => getAllTickets());
+    const { data: events } = useQuery("frasertix-admin-tickets-events", getAllEvents);
 
     const updateMaxScanCountTicketMutation = useMutation(
         ({
@@ -233,6 +237,8 @@ export default function TicketViewingPage() {
         resizable: true,
     };
 
+    const eventDropdownOnChange = (value?: string) => router.push(`/admin/tickets/event/${value}`);
+
     return (
         <Layout
             name="Tickets"
@@ -245,15 +251,29 @@ export default function TicketViewingPage() {
                 setOpen={setModalOpen}
             />
 
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-2 mb-4">
                 <Typography
                     variant="h1"
-                    className="text-center mb-2"
+                    className="text-center"
                 >
                     Tickets
                 </Typography>
+
+                {events ? (
+                    <div className="w-72">
+                        <Select
+                            label="Filter for event"
+                            onChange={eventDropdownOnChange}
+                        >
+                            {events?.map((event) => <Option value={event.id}>{event.name}</Option>)}
+                        </Select>
+                    </div>
+                ) : (
+                    <></>
+                )}
+
                 <button
-                    className="mb-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-700 duration-75 text-md font-semibold rounded-lg text-white"
                     onClick={() => setModalOpen(true)}
                 >
                     Create Ticket

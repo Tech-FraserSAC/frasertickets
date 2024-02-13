@@ -27,7 +27,7 @@ export default function TicketCreationModal({
     const { user } = useFirebaseAuth();
 
     const { data: events } = useQuery(
-        "frasertix-admin-tickets-events",
+        "frasertix-admin-ticket-creation-events",
         async () => {
             const events = await getAllEvents();
             const mappedEvents = events
