@@ -163,7 +163,7 @@ export default function TicketInfoTable({ ticket }: { ticket: Ticket }) {
                             color="blue-gray"
                             className="font-medium"
                         >
-                            {ticket.scanCount === 1
+                            {ticket.scanCount === 0
                                 ? "N/A"
                                 : ticket.lastScanTime.toLocaleString("en-US", {
                                       month: "short",
