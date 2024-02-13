@@ -248,8 +248,6 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 		eventId, err := primitive.ObjectIDFromHex(eventIdRaw)
 		if err == nil {
 			filter["event"] = eventId
-		} else {
-			fmt.Println(err)
 		}
 	}
 
