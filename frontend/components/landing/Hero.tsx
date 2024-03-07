@@ -25,7 +25,7 @@ const subtitleVariants = {
     animate: {
         opacity: 1,
         y: 0,
-        transition: { ...transition, duration: 1.2, delay: 1.4 },
+        transition: { ...transition, duration: 0.8, delay: 0.4 },
     },
 };
 
@@ -34,7 +34,7 @@ const characterVariants = {
     animate: {
         opacity: 1,
         y: 0,
-        transition: { ...transition, duration: 1.2, delay: 0.4 },
+        transition: { ...transition, duration: 0.8, delay: 0.2 },
     },
 };
 
@@ -43,7 +43,7 @@ const btnVariants = {
     animate: {
         opacity: 1,
         y: 30,
-        transition: { ...transition, duration: 1.2, delay: 2.0 },
+        transition: { ...transition, duration: 0.8, delay: 0.6 },
     },
 };
 

@@ -71,7 +71,7 @@ export default function Login() {
                     setLoadingText(loadingTextSet[Math.floor(Math.random() * loadingTextSet.length)]);
                     startUpdateLoadingTextLoop();
                 }
-            }, 2500);
+            }, 3000);
         };
 
         startUpdateLoadingTextLoop();
