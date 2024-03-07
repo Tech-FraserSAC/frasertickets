@@ -121,12 +121,15 @@ export default function Login() {
             })();
         } else {
             setSignInReady(true);
-            if (user !== undefined && loaded) {
-                alert("You are already signed in. Redirecting...");
-                router.push("/events");
-            }
         }
     }, []);
+
+    useEffect(() => {
+        if (user !== null && loaded && signInReady) {
+            alert("You are already signed in. Redirecting...");
+            router.push("/events");
+        }
+    }, [user, loaded, signInReady]);
 
     useEffect(() => {
         (async () => {
