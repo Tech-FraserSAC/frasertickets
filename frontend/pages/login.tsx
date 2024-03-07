@@ -107,7 +107,7 @@ export default function Login() {
                             );
                         }
 
-                        await router.push("/events");
+                        await router.push("/tickets");
                     }
                 } catch (e) {
                     alert("Sorry, something went wrong when signing you in.");
@@ -127,7 +127,7 @@ export default function Login() {
     useEffect(() => {
         if (user !== null && loaded && signInReady) {
             alert("You are already signed in. Redirecting...");
-            router.push("/events");
+            router.push("/tickets");
         }
     }, [user, loaded, signInReady]);
 
