@@ -21,6 +21,7 @@ import parseClientCookies from "@/util/parseCookies";
 
 import Layout from "@/components/Layout";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 
 export default function Login() {
     const [signInReady, setSignInReady] = useState(false);
@@ -63,6 +64,8 @@ export default function Login() {
         !navigator.userAgent.includes("Safari");
 
     const onInstagramBrowserAndroid = inBrowser && navigator.userAgent.includes("Instagram");
+
+    const { user, loaded } = useFirebaseAuth();
 
     useEffect(() => {
         const startUpdateLoadingTextLoop = () => {
@@ -118,6 +121,10 @@ export default function Login() {
             })();
         } else {
             setSignInReady(true);
+            if (user !== undefined && loaded) {
+                alert("You are already signed in. Redirecting...");
+                router.push("/events");
+            }
         }
     }, []);
 
