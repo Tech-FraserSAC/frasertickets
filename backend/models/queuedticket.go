@@ -13,13 +13,14 @@ import (
 )
 
 type QueuedTicket struct {
-	ID             primitive.ObjectID `json:"id"             bson:"_id,omitempty"`
-	StudentNumber  string             `json:"studentNumber" bson:"student_number"`
-	EventID        primitive.ObjectID `json:"eventID"       bson:"event_id"`
-	EventData      Event              `json:"eventData"      bson:"event_data"`
-	Timestamp      time.Time          `json:"timestamp"      bson:"timestamp"`
-	MaxScanCount   int                `json:"max_scan_count" bson:"max_scan_count"`
-	FullNameUpdate string             `json:"full_name_update" bson:"full_name_update"`
+	ID             primitive.ObjectID     `json:"id"             bson:"_id,omitempty"`
+	StudentNumber  string                 `json:"studentNumber" bson:"student_number"`
+	EventID        primitive.ObjectID     `json:"eventID"       bson:"event_id"`
+	EventData      Event                  `json:"eventData"      bson:"event_data"`
+	Timestamp      time.Time              `json:"timestamp"      bson:"timestamp"`
+	MaxScanCount   int                    `json:"max_scan_count" bson:"max_scan_count"`
+	FullNameUpdate string                 `json:"full_name_update" bson:"full_name_update"`
+	CustomFields   map[string]interface{} `json:"customFields" bson:"customFields"`
 }
 
 func (queuedTicket *QueuedTicket) Render(w http.ResponseWriter, r *http.Request) error {
@@ -139,15 +140,27 @@ func GetQueuedTicketsForStudentNumber(ctx context.Context, studentNumber string)
 func CreateQueuedTicket(ctx context.Context, queuedTicket QueuedTicket) (primitive.ObjectID, error) {
 	queuedTicket.Timestamp = time.Now()
 
-	// Check if ticket already exists
-	exists, err := CheckIfQueuedTicketExists(ctx, bson.M{
+	// Check if queued ticket already exists
+	queuedExists, err := CheckIfQueuedTicketExists(ctx, bson.M{
 		"student_number": queuedTicket.StudentNumber,
 		"event_id":       queuedTicket.EventID,
 	})
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	if exists {
+	if queuedExists {
+		return primitive.NilObjectID, ErrAlreadyExists
+	}
+
+	// Check if an actual ticket already exists
+	actualExists, err := CheckIfTicketExists(ctx, bson.M{
+		"ownerData.student_number": queuedTicket.StudentNumber,
+		"eventID":                  queuedTicket.EventID,
+	})
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	if actualExists {
 		return primitive.NilObjectID, ErrAlreadyExists
 	}
 
@@ -159,6 +172,8 @@ func CreateQueuedTicket(ctx context.Context, queuedTicket QueuedTicket) (primiti
 	if !eventExists {
 		return primitive.NilObjectID, ErrNotFound
 	}
+
+	// TODO: Check if any custom fields match the event's schema
 
 	// Try to add ticket
 	res, err := lib.Datastore.Db.Collection(queuedTicketsColName).InsertOne(ctx, queuedTicket)
@@ -189,6 +204,7 @@ func ConvertQueuedTicketToTicket(ctx context.Context, queuedTicket QueuedTicket,
 		Timestamp:    time.Now(),
 		ScanCount:    0,
 		MaxScanCount: queuedTicket.MaxScanCount,
+		CustomFields: queuedTicket.CustomFields,
 	}
 
 	ticketId, err := CreateNewTicket(ctx, ticket)
