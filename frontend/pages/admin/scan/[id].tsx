@@ -77,7 +77,7 @@ export default function TicketScanningPage() {
                             This QR code doesn&apos;t match our internal format. Try scanning the QR code again.
                         </Typography>
 
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2 items-center justify-center">
                             <button
                                 className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white"
                                 onClick={router.reload}
@@ -111,7 +111,7 @@ export default function TicketScanningPage() {
                             code again.
                         </Typography>
 
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2 items-center justify-center">
                             <button
                                 className="py-2 px-4 bg-blue-500 text-md font-semibold rounded-lg hover:bg-blue-800 duration-75 text-white"
                                 onClick={router.reload}
@@ -146,7 +146,7 @@ export default function TicketScanningPage() {
 
                         <TicketScanInfoTable scanData={scanData!} />
 
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2 items-center justify-center">
                             <Link
                                 className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white"
                                 href="/admin/scan"
@@ -181,7 +181,7 @@ export default function TicketScanningPage() {
 
                         <TicketScanInfoTable scanData={scanData!} />
 
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2 items-center justify-center">
                             <Link
                                 className="py-2 px-4 bg-teal-500 text-md font-semibold rounded-lg hover:bg-teal-800 duration-75 text-white"
                                 href="/admin/scan"

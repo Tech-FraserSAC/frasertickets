@@ -11,7 +11,7 @@ import Layout from "@/components/Layout";
 const EventCard = ({ event }: { event: Event }) => {
     return (
         <div>
-            <Card className="w-fit md:w-80 lg:w-96">
+            <Card className="w-fit sm:w-80 lg:w-96">
                 <CardHeader
                     color="blue-gray"
                     className="relative h-56 mt-4"
@@ -28,15 +28,15 @@ const EventCard = ({ event }: { event: Event }) => {
                     <Typography
                         variant="h5"
                         color="blue-gray"
-                        className="mb-2"
+                        className="mb-2 text-center sm:text-start"
                     >
                         {event.name}
                     </Typography>
-                    <Typography>
+                    <Typography className="text-center sm:text-start">
                         {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
                     </Typography>
                 </CardBody>
-                <CardFooter className="pt-0">
+                <CardFooter className="flex flex-col items-center sm:items-start text-center sm:text-start pt-0">
                     <Link href={`/events/${event.id}`}>
                         <Button>View More</Button>
                     </Link>
@@ -48,21 +48,21 @@ const EventCard = ({ event }: { event: Event }) => {
 
 const SkeletonEventCard = () => {
     return (
-        <Card className="w-fit md:w-80 lg:w-96 animate-pulse">
+        <Card className="w-fit sm:w-80 lg:w-96 animate-pulse">
             <CardHeader
                 color="blue-gray"
                 className="relative h-56 mt-4"
             >
-                <div className="bg-gray-200 h-[300px] md:h-[400px] w-[200px] md:w-[400px]" />
+                <div className="bg-gray-200 h-[300px] sm:h-[400px] w-[200px] sm:w-[400px]" />
             </CardHeader>
             <CardBody>
                 <div className="mb-2">
-                    <div className="h-6 bg-gray-200 rounded-full max-w-[200px] md:max-w-[400px]" />
+                    <div className="h-6 bg-gray-200 rounded-full max-w-[200px] sm:max-w-[400px]" />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] md:max-w-[300px]" />
-                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] md:max-w-[300px]" />
-                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] md:max-w-[300px]" />
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] sm:max-w-[300px]" />
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] sm:max-w-[300px]" />
+                    <div className="h-4 bg-gray-200 rounded-full max-w-[150px] sm:max-w-[300px]" />
                 </div>
             </CardBody>
             <CardFooter className="pt-0">
@@ -87,7 +87,7 @@ export default function EventsIndex() {
         <Layout
             name="Events"
             userProtected={true}
-            className="p-4 md:p-8 lg:px-12"
+            className="p-4 sm:p-8 lg:px-12"
         >
             <Typography
                 variant="h1"

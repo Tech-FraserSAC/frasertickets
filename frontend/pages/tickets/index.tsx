@@ -21,7 +21,7 @@ const TicketCard = ({
 }) => {
     return (
         <div>
-            <Card className="w-96">
+            <Card className="w-auto sm:w-96">
                 <CardBody>
                     <Typography
                         variant="h5"
@@ -110,12 +110,12 @@ export default function EventsIndex() {
                         <div>
                             <Typography
                                 variant="h3"
-                                className="mb-2"
+                                className="mb-2 text-center sm:text-start"
                                 color="blue-gray"
                             >
                                 Happening now
                             </Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                                 {currentTickets.map((ticket) => (
                                     <TicketCard
                                         key={ticket.id}
@@ -131,12 +131,12 @@ export default function EventsIndex() {
                         <div>
                             <Typography
                                 variant="h3"
-                                className="mb-2"
+                                className="mb-2 text-center sm:text-start"
                                 color="blue-gray"
                             >
                                 Upcoming
                             </Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                                 {upcomingTickets.map((ticket) => (
                                     <TicketCard
                                         key={ticket.id}
@@ -152,12 +152,12 @@ export default function EventsIndex() {
                         <div>
                             <Typography
                                 variant="h3"
-                                className="mb-2"
+                                className="mb-2 text-center sm:text-start"
                                 color="blue-gray"
                             >
                                 Previous
                             </Typography>
-                            <div className="flex flex-wrap gap-4">
+                            <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                                 {previousTickets.map((ticket) => (
                                     <TicketCard
                                         key={ticket.id}
