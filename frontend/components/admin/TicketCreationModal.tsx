@@ -283,7 +283,7 @@ export default function TicketCreationModal({
                                                 Create New Ticket
                                             </Dialog.Title>
 
-                                            <div className="flex flex-col items-center gap-1">
+                                            <div className="flex flex-col items-center gap-2">
                                                 <label htmlFor="studentNumber">
                                                     <span className="text-md text-gray-900 text-left">
                                                         Student Number
@@ -304,7 +304,7 @@ export default function TicketCreationModal({
                                             </div>
 
                                             {presetEvent === undefined ? (
-                                                <div className="flex flex-col items-center gap-1">
+                                                <div className="flex flex-col items-center gap-2">
                                                     <span className="text-md text-gray-900">
                                                         Event
                                                         <span className="text-md text-red-500 font-semibold"> *</span>
@@ -315,7 +315,7 @@ export default function TicketCreationModal({
                                                 <></>
                                             )}
 
-                                            <div className="flex flex-col items-center gap-1">
+                                            <div className="flex flex-col items-center gap-2">
                                                 <label htmlFor="maxScanCount">
                                                     <span className="text-md text-gray-900 text-left">
                                                         Max Scan Count (blank or 0 &#8594; infinite)
@@ -346,9 +346,19 @@ export default function TicketCreationModal({
                                                         const inputType =
                                                             convertPropertySchemaTypeToInputType(property);
 
+                                                        let inputFieldWidth;
+                                                        switch (inputType) {
+                                                            case "number": {
+                                                                inputFieldWidth = "w-32";
+                                                            }
+                                                            default: {
+                                                                inputFieldWidth = "w-full";
+                                                            }
+                                                        }
+
                                                         return (
                                                             <div
-                                                                className="flex flex-col items-center gap-1"
+                                                                className="flex flex-col items-center w-full"
                                                                 key={propertyId}
                                                             >
                                                                 <label htmlFor={propertyId}>
@@ -365,12 +375,12 @@ export default function TicketCreationModal({
                                                                     )}
                                                                 </label>
 
-                                                                <span className="text-sm text-gray-800 text-center">
+                                                                <span className="text-sm text-gray-800 text-center mb-2">
                                                                     {property.description}
                                                                 </span>
 
                                                                 <input
-                                                                    className={`rounded-lg py-2 px-3 w-32 align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
+                                                                    className={`rounded-lg py-2 px-3 ${inputFieldWidth} align-middle text-black outline-none focus:ring-2 focus:ring-blue-700 duration-200 bg-white shadow-lg focus:shadow-none`}
                                                                     name={propertyId}
                                                                     id={propertyId}
                                                                     type={inputType}
