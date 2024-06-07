@@ -171,6 +171,7 @@ func main() {
 				EventID:        eventID,
 				MaxScanCount:   maxScanCount,
 				FullNameUpdate: fullName,
+				CustomFields:   map[string]interface{}{}, // TODO: Adjust program to support custom fields
 			}
 
 			queuedTicketID, err := models.CreateQueuedTicket(ctx, queuedTicket)
