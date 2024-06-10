@@ -3,49 +3,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { m } from "framer-motion";
-
 import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 
 import BannerPhoto from "@/assets/landing-banner-4.jpg";
-
-const transition = { duration: 1.4, ease: [0.6, 0.01, 0.0, 0.9] };
-
-const lineVariants = {
-    initial: {},
-    animate: {
-        transition: {
-            staggerChildren: 0.2,
-        },
-    },
-};
-
-const subtitleVariants = {
-    initial: { opacity: 0, y: 50 },
-    animate: {
-        opacity: 1,
-        y: 0,
-        transition: { ...transition, duration: 0.8, delay: 0.4 },
-    },
-};
-
-const characterVariants = {
-    initial: { opacity: 0, y: 50 },
-    animate: {
-        opacity: 1,
-        y: 0,
-        transition: { ...transition, duration: 0.8, delay: 0.2 },
-    },
-};
-
-const btnVariants = {
-    initial: { opacity: 0, y: 50 },
-    animate: {
-        opacity: 1,
-        y: 30,
-        transition: { ...transition, duration: 0.8, delay: 0.6 },
-    },
-};
 
 const bottomLine = "FraserTickets".split("  ");
 
@@ -70,7 +30,7 @@ export default function Hero() {
                     placeholder="blur"
                     className="object-cover object-center w-screen h-screen"
                     alt="Hero image"
-                    quality={100}
+                    quality={40}
                     priority={true}
                 />
             </div>
@@ -78,27 +38,20 @@ export default function Hero() {
             <div className="w-full h-[100vh] absolute bg-black/60 mix-blend-normal" />
 
             <div className="absolute p-4 md:p-16 z-1 flex flex-col justify-center items-center h-[100vh] w-full">
-                <m.div
-                    variants={lineVariants}
-                    initial="initial"
-                    animate="animate"
+                <div
                     className="text-center md:mb-4 break-all font-bold flex flex-col flex-wrap gap-2 text-3xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl"
                 >
                     {bottomLine.map((char) => (
-                        <m.span
+                        <span
                             className="inline-block relative bg-clip-text text-transparent bg-gradient-to-r from-[#5379ed] to-[#2450d6] pb-5 font-poppins"
-                            variants={characterVariants}
                             key={char}
                         >
                             {char}
-                        </m.span>
+                        </span>
                     ))}
-                </m.div>
+                </div>
 
-                <m.div
-                    variants={subtitleVariants}
-                    initial="initial"
-                    animate="animate"
+                <div
                     className="text-white text-2xl md:text-3xl font-light text-center mb-6 md:w-3/4 lg:w-2/3 xl:w-1/2"
                 >
                     The online event ticketing platform for John Fraser S.S. students, made by the{" "}
@@ -111,29 +64,23 @@ export default function Hero() {
                         JFSS SAC
                     </a>
                     .
-                </m.div>
+                </div>
 
-                <m.div
-                    variants={btnVariants}
-                    initial="initial"
-                    animate="animate"
-                >
                     {signedIn ? (
                         <Link
                             href="/events"
-                            className="py-4 px-6 bg-[#4169e1] rounded-lg font-semibold text-white hover:bg-[#1a47ce] duration-150 text-lg lg:text-2xl mt-4"
+                            className="py-4 px-6 bg-[#4169e1] rounded-lg font-semibold text-white hover:bg-[#1a47ce] duration-150 text-lg lg:text-2xl"
                         >
                             Open Portal
                         </Link>
                     ) : (
                         <Link
                             href="/login"
-                            className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl mt-4"
+                            className="py-4 px-6 bg-blue-500 rounded-lg font-semibold text-white hover:bg-blue-700 duration-150 text-lg lg:text-2xl"
                         >
                             Sign in
                         </Link>
                     )}
-                </m.div>
             </div>
         </div>
     );
