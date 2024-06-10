@@ -5,14 +5,13 @@ import { Poppins } from "next/font/google";
 import { QueryClient } from "react-query";
 
 import "@/styles/globals.css";
+import { AnimatePresence, LazyMotion } from "framer-motion";
 
 const FirebaseAuthProvider = dynamic(() =>
     import("@/components/FirebaseAuthContext").then((mod) => mod.FirebaseAuthProvider),
 );
 const QueryClientProvider = dynamic(() => import("react-query").then((mod) => mod.QueryClientProvider));
 const ThemeProvider = dynamic(() => import("@material-tailwind/react").then((mod) => mod.ThemeProvider));
-const AnimatePresence = dynamic(() => import("framer-motion").then((mod) => mod.AnimatePresence));
-const LazyMotion = dynamic(() => import("framer-motion").then((mod) => mod.LazyMotion));
 const GoogleAnalytics = dynamic(() => import("nextjs-google-analytics").then((mod) => mod.GoogleAnalytics));
 const GoogleOAuthProvider = dynamic(() => import("@react-oauth/google").then((mod) => mod.GoogleOAuthProvider));
 
@@ -33,15 +32,10 @@ export default function App({ Component, pageProps }: AppProps) {
                 <QueryClientProvider client={queryClient}>
                     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GCLOUD_CLIENT_ID ?? ""}>
                         <FirebaseAuthProvider>
-                            <LazyMotion
-                                features={domMax}
-                                strict
-                            >
+                            <LazyMotion features={domMax} strict>
                                 <AnimatePresence mode="wait">
-                                    <>
-                                        <GoogleAnalytics trackPageViews />
-                                        <Component {...pageProps} />
-                                    </>
+                                    <GoogleAnalytics trackPageViews />
+                                    <Component {...pageProps} />
                                 </AnimatePresence>
                             </LazyMotion>
                         </FirebaseAuthProvider>
