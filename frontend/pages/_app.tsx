@@ -11,9 +11,8 @@ const FirebaseAuthProvider = dynamic(() =>
     import("@/components/FirebaseAuthContext").then((mod) => mod.FirebaseAuthProvider),
 );
 const QueryClientProvider = dynamic(() => import("react-query").then((mod) => mod.QueryClientProvider));
-const ThemeProvider = dynamic(() => import("@material-tailwind/react").then((mod) => mod.ThemeProvider));
-const GoogleAnalytics = dynamic(() => import("nextjs-google-analytics").then((mod) => mod.GoogleAnalytics));
 const GoogleOAuthProvider = dynamic(() => import("@react-oauth/google").then((mod) => mod.GoogleOAuthProvider));
+const GoogleAnalytics = dynamic(() => import("nextjs-google-analytics").then((mod) => mod.GoogleAnalytics), { ssr: false });
 
 const domMax = () => import("@/lib/anim/domMax").then((res) => res.default);
 
@@ -28,20 +27,18 @@ export default function App({ Component, pageProps }: AppProps) {
 
     return (
         <main className={poppins.variable}>
-            <ThemeProvider>
-                <QueryClientProvider client={queryClient}>
-                    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GCLOUD_CLIENT_ID ?? ""}>
-                        <FirebaseAuthProvider>
-                            <LazyMotion features={domMax} strict>
-                                <AnimatePresence mode="wait">
-                                    <GoogleAnalytics trackPageViews />
-                                    <Component {...pageProps} />
-                                </AnimatePresence>
-                            </LazyMotion>
-                        </FirebaseAuthProvider>
-                    </GoogleOAuthProvider>
-                </QueryClientProvider>
-            </ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+                <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GCLOUD_CLIENT_ID ?? ""}>
+                    <FirebaseAuthProvider>
+                        <LazyMotion features={domMax} strict>
+                            <AnimatePresence mode="wait">
+                                <Component {...pageProps} />
+                                <GoogleAnalytics trackPageViews />
+                            </AnimatePresence>
+                        </LazyMotion>
+                    </FirebaseAuthProvider>
+                </GoogleOAuthProvider>
+            </QueryClientProvider>
         </main>
     );
 }
