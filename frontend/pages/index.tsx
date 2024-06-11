@@ -3,7 +3,7 @@ import Hero from "@/components/landing/Hero";
 
 export default function Home() {
     return (
-        <Layout name="Home" noAnim>
+        <Layout name="Home">
             <Hero />
         </Layout>
     );
