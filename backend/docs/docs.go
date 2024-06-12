@@ -21,6 +21,11 @@ const docTemplate = `{
     "paths": {
         "/events": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Lists all events in the database. Available to all users.",
                 "produces": [
                     "application/json"
@@ -45,6 +50,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creates an event in the database. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -85,6 +95,11 @@ const docTemplate = `{
         },
         "/events/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get the data for one event from the DB. Available to all users.",
                 "produces": [
                     "application/json"
@@ -124,6 +139,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete event from database. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -157,6 +177,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update the details for an event. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -202,8 +227,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/events/{id}/ticket-count": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get the ticket count for an event. Only available to admins.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get ticket count for event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/events/{id}/tickets": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get every ticket for an event. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -243,8 +316,139 @@ const docTemplate = `{
                 }
             }
         },
+        "/queuedtickets": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "List all queued tickets. Only available to admins.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "queuedticket"
+                ],
+                "summary": "List all queued tickets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.QueuedTicket"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new queued ticket. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Create new queued ticket",
+                "parameters": [
+                    {
+                        "description": "Queued ticket details",
+                        "name": "event",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.queuedTicketControllerCreateRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.QueuedTicket"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "409": {
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/queuedtickets/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a queued ticket. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Delete a queued ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Queued ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/tickets": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List the tickets owned by the user sending the request. Available to all users.",
                 "produces": [
                     "application/json"
@@ -272,6 +476,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new ticket. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -321,6 +530,11 @@ const docTemplate = `{
         },
         "/tickets/all": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List all tickets. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -329,6 +543,14 @@ const docTemplate = `{
                     "ticket"
                 ],
                 "summary": "List all tickets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "filter by event ID",
+                        "name": "eventId",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -350,6 +572,11 @@ const docTemplate = `{
         },
         "/tickets/scan": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Scans in a ticket given the ticket ID. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -393,6 +620,11 @@ const docTemplate = `{
         },
         "/tickets/search": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Search for a ticket by using the owner and associated event. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -436,6 +668,11 @@ const docTemplate = `{
         },
         "/tickets/user/{uid}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "List the tickets owned by the user sending the request. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -477,6 +714,11 @@ const docTemplate = `{
         },
         "/tickets/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get one ticket. Only available to admins and the ticket owner.",
                 "produces": [
                     "application/json"
@@ -513,6 +755,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Deletes a ticket. Only available to admins.",
                 "consumes": [
                     "application/json"
@@ -544,10 +791,56 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates a ticket. Only available to admins.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ticket"
+                ],
+                "summary": "Update a ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
             }
         },
         "/users": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Lists all user data in the database. Only available to admins.",
                 "produces": [
                     "application/json"
@@ -572,6 +865,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creates a user in the database when they first make their account. Only available to new users.",
                 "produces": [
                     "application/json"
@@ -601,6 +899,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get a user's data. Only available to admins and the requesting user.",
                 "produces": [
                     "application/json"
@@ -637,14 +940,19 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Update a user's data. Only available to admins. Removed due to security issues.",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update a user's data. Only available to admins.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "user"
                 ],
-                "summary": "Update user data (REMOVED)",
+                "summary": "Update user data",
                 "parameters": [
                     {
                         "type": "string",
@@ -654,7 +962,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Updates to make (anything can be changed by admins, admin/student_number/pfp_url cannot be changed by non-admins)",
+                        "description": "Updates to make (can only change full name for now)",
                         "name": "updates",
                         "in": "body",
                         "required": true,
@@ -691,6 +999,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
+                "custom_fields_schema",
                 "description",
                 "end_timestamp",
                 "img_urls",
@@ -701,6 +1010,10 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string"
+                },
+                "custom_fields_schema": {
+                    "type": "object",
+                    "additionalProperties": true
                 },
                 "description": {
                     "type": "string"
@@ -725,13 +1038,37 @@ const docTemplate = `{
                 }
             }
         },
-        "controllers.ticketControllerCreateRequestBody": {
+        "controllers.queuedTicketControllerCreateRequestBody": {
             "type": "object",
             "required": [
                 "eventID",
                 "studentNumber"
             ],
             "properties": {
+                "eventID": {
+                    "type": "string"
+                },
+                "maxScanCount": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "studentNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.ticketControllerCreateRequestBody": {
+            "type": "object",
+            "required": [
+                "customFields",
+                "eventID",
+                "studentNumber"
+            ],
+            "properties": {
+                "customFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "eventID": {
                     "type": "string"
                 },
@@ -776,6 +1113,11 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "custom_fields_schema": {
+                    "description": "Schema for extra data in JSON Schema format",
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "description": {
                     "type": "string"
                 },
@@ -803,9 +1145,43 @@ const docTemplate = `{
                 }
             }
         },
+        "models.QueuedTicket": {
+            "type": "object",
+            "properties": {
+                "customFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "eventData": {
+                    "$ref": "#/definitions/models.Event"
+                },
+                "eventID": {
+                    "type": "string"
+                },
+                "full_name_update": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "max_scan_count": {
+                    "type": "integer"
+                },
+                "studentNumber": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Ticket": {
             "type": "object",
             "properties": {
+                "customFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "eventData": {
                     "$ref": "#/definitions/models.Event"
                 },
@@ -877,12 +1253,15 @@ const docTemplate = `{
                 },
                 "student_number": {
                     "type": "string"
+                },
+                "superadmin": {
+                    "type": "boolean"
                 }
             }
         }
     },
     "securityDefinitions": {
-        "APIKeyHeader": {
+        "ApiKeyAuth": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

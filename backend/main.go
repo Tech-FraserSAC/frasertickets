@@ -12,7 +12,7 @@ import "github.com/aritrosaha10/frasertickets/app"
 
 // @host		localhost:3001
 // @BasePath	/
-// @securityDefinitions.apikey APIKeyHeader
+// @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 func main() {

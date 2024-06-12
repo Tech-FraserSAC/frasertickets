@@ -32,8 +32,10 @@ export default function App({ Component, pageProps }: AppProps) {
                     <FirebaseAuthProvider>
                         <LazyMotion features={domMax} strict>
                             <AnimatePresence mode="wait">
-                                <Component {...pageProps} />
-                                <GoogleAnalytics trackPageViews />
+                                <>
+                                    <Component {...pageProps} key="component" />
+                                    <GoogleAnalytics trackPageViews />
+                                </>
                             </AnimatePresence>
                         </LazyMotion>
                     </FirebaseAuthProvider>

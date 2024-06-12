@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/aritrosaha10/frasertickets/middleware"
@@ -50,9 +51,10 @@ func (ctrl EventController) Routes() chi.Router {
 		// Admin-only routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuthorizerMiddleware)
-			r.Get("/tickets", ctrl.GetTickets) // GET /events/{id}/tickets - returns all tickets for an event, only for admins
-			r.Patch("/", ctrl.Update)          // PATCH /events/{id} - updates event data, only available to admins
-			r.Delete("/", ctrl.Delete)         // DELETE /events/{id} - deletes event, only available to admins
+			r.Get("/tickets", ctrl.GetTickets)          // GET /events/{id}/tickets - returns all tickets for an event, only for admins
+			r.Get("/ticket-count", ctrl.GetTicketCount) // GET /events/{id}/ticket-count - returns # of tickets for an event, only for admins
+			r.Patch("/", ctrl.Update)                   // PATCH /events/{id} - updates event data, only available to admins
+			r.Delete("/", ctrl.Delete)                  // DELETE /events/{id} - deletes event, only available to admins
 		})
 	})
 
@@ -67,6 +69,7 @@ func (ctrl EventController) Routes() chi.Router {
 //	@Produce		json
 //	@Success		200	{object}	[]models.Event
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events [get]
 func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 	events, err := models.GetAllEvents(r.Context())
@@ -116,6 +119,7 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 //	@Success		200		{object}	models.Event
 //	@Failure		400
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events [post]
 func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -233,6 +237,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events/{id} [get]
 func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
@@ -294,6 +299,7 @@ func (ctrl EventController) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events/{id}/tickets [get]
 func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
@@ -356,6 +362,71 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 		Msg("fetched tickets for event")
 }
 
+// Get event ticket count godoc
+//
+//	@Summary		Get ticket count for event
+//	@Description	Get the ticket count for an event. Only available to admins.
+//	@Tags			event
+//	@Produce		json
+//	@Param			id	path		string	true	"Event ID"
+//	@Success		200	{object}	int
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Security		ApiKeyAuth
+//	@Router			/events/{id}/ticket-count [get]
+func (ctrl EventController) GetTicketCount(w http.ResponseWriter, r *http.Request) {
+	// Get ID of requested event
+	id := chi.URLParam(r, "id")
+
+	// Try to convert the given ID into an Object ID
+	eventID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error().Err(err).Msg("could not convert url param to object id")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
+	// Check if event exists
+	exists, err := models.CheckIfEventExists(r.Context(), eventID)
+	if err != nil {
+		log.Error().Err(err).Msg("could not check if event exists")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+	if !exists {
+		render.Render(w, r, util.ErrNotFound)
+		return
+	}
+
+	// Fetch list of tickets
+	count, err := models.GetTicketCount(r.Context(), bson.M{"event": eventID})
+	if err != nil {
+		log.Error().Err(err).Msg("could not fetch ticket count for event")
+		render.Render(w, r, util.ErrServer(err))
+		return
+	}
+
+	// Return just as number
+	countStr := strconv.FormatInt(count, 10)
+	w.Write([]byte(countStr))
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "getEventTicketCount").
+		Str("eventId", id).
+		Bool("privileged", true).
+		Msg("fetched ticket count for event")
+}
+
 // Update event godoc
 //
 //	@Summary		Update event details
@@ -369,6 +440,7 @@ func (ctrl EventController) GetTickets(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events/{id} [patch]
 func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
@@ -438,6 +510,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/events/{id} [delete]
 func (ctrl EventController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event

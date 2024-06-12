@@ -4,6 +4,9 @@ definitions:
     properties:
       address:
         type: string
+      custom_fields_schema:
+        additionalProperties: true
+        type: object
       description:
         type: string
       end_timestamp:
@@ -20,6 +23,7 @@ definitions:
         type: string
     required:
     - address
+    - custom_fields_schema
     - description
     - end_timestamp
     - img_urls
@@ -27,7 +31,7 @@ definitions:
     - name
     - start_timestamp
     type: object
-  controllers.ticketControllerCreateRequestBody:
+  controllers.queuedTicketControllerCreateRequestBody:
     properties:
       eventID:
         type: string
@@ -37,6 +41,23 @@ definitions:
       studentNumber:
         type: string
     required:
+    - eventID
+    - studentNumber
+    type: object
+  controllers.ticketControllerCreateRequestBody:
+    properties:
+      customFields:
+        additionalProperties: true
+        type: object
+      eventID:
+        type: string
+      maxScanCount:
+        minimum: 0
+        type: integer
+      studentNumber:
+        type: string
+    required:
+    - customFields
     - eventID
     - studentNumber
     type: object
@@ -61,6 +82,10 @@ definitions:
     properties:
       address:
         type: string
+      custom_fields_schema:
+        additionalProperties: true
+        description: Schema for extra data in JSON Schema format
+        type: object
       description:
         type: string
       end_timestamp:
@@ -79,8 +104,31 @@ definitions:
       start_timestamp:
         type: string
     type: object
+  models.QueuedTicket:
+    properties:
+      customFields:
+        additionalProperties: true
+        type: object
+      eventData:
+        $ref: '#/definitions/models.Event'
+      eventID:
+        type: string
+      full_name_update:
+        type: string
+      id:
+        type: string
+      max_scan_count:
+        type: integer
+      studentNumber:
+        type: string
+      timestamp:
+        type: string
+    type: object
   models.Ticket:
     properties:
+      customFields:
+        additionalProperties: true
+        type: object
       eventData:
         $ref: '#/definitions/models.Event'
       eventID:
@@ -129,6 +177,8 @@ definitions:
         type: string
       student_number:
         type: string
+      superadmin:
+        type: boolean
     type: object
 host: localhost:3001
 info:
@@ -154,6 +204,8 @@ paths:
             type: array
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: List all events
       tags:
       - event
@@ -179,6 +231,8 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Create an event
       tags:
       - event
@@ -202,6 +256,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Delete event
       tags:
       - event
@@ -228,6 +284,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Get an event
       tags:
       - event
@@ -259,7 +317,36 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Update event details
+      tags:
+      - event
+  /events/{id}/ticket-count:
+    get:
+      description: Get the ticket count for an event. Only available to admins.
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Get ticket count for event
       tags:
       - event
   /events/{id}/tickets:
@@ -286,9 +373,90 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Get tickets for event
       tags:
       - event
+  /queuedtickets:
+    get:
+      description: List all queued tickets. Only available to admins.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.QueuedTicket'
+            type: array
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: List all queued tickets
+      tags:
+      - queuedticket
+    post:
+      consumes:
+      - application/json
+      description: Create a new queued ticket. Only available to admins.
+      parameters:
+      - description: Queued ticket details
+        in: body
+        name: event
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.queuedTicketControllerCreateRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.QueuedTicket'
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Create new queued ticket
+      tags:
+      - ticket
+  /queuedtickets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a queued ticket. Only available to admins.
+      parameters:
+      - description: Queued ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a queued ticket
+      tags:
+      - ticket
   /tickets:
     get:
       description: List the tickets owned by the user sending the request. Available
@@ -306,6 +474,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: List the requesting user's tickets
       tags:
       - ticket
@@ -337,6 +507,8 @@ paths:
           description: Conflict
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Create new ticket
       tags:
       - ticket
@@ -360,6 +532,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Delete a ticket
       tags:
       - ticket
@@ -384,12 +558,45 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Get one ticket
+      tags:
+      - ticket
+    patch:
+      consumes:
+      - application/json
+      description: Updates a ticket. Only available to admins.
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
+      summary: Update a ticket
       tags:
       - ticket
   /tickets/all:
     get:
       description: List all tickets. Only available to admins.
+      parameters:
+      - description: filter by event ID
+        in: query
+        name: eventId
+        type: string
       produces:
       - application/json
       responses:
@@ -403,6 +610,8 @@ paths:
           description: Forbidden
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: List all tickets
       tags:
       - ticket
@@ -431,6 +640,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Scans a ticket
       tags:
       - ticket
@@ -460,6 +671,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Search for ticket using owner and event
       tags:
       - ticket
@@ -488,6 +701,8 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: List a user's tickets
       tags:
       - ticket
@@ -505,6 +720,8 @@ paths:
             type: array
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: List all users
       tags:
       - user
@@ -524,6 +741,8 @@ paths:
           description: Forbidden
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Create a user in DB on account creation
       tags:
       - user
@@ -550,20 +769,20 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+      security:
+      - ApiKeyAuth: []
       summary: Gets user data
       tags:
       - user
     patch:
-      description: Update a user's data. Only available to admins. Removed due to
-        security issues.
+      description: Update a user's data. Only available to admins.
       parameters:
       - description: User ID
         in: path
         name: id
         required: true
         type: string
-      - description: Updates to make (anything can be changed by admins, admin/student_number/pfp_url
-          cannot be changed by non-admins)
+      - description: Updates to make (can only change full name for now)
         in: body
         name: updates
         required: true
@@ -584,11 +803,13 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
-      summary: Update user data (REMOVED)
+      security:
+      - ApiKeyAuth: []
+      summary: Update user data
       tags:
       - user
 securityDefinitions:
-  APIKeyHeader:
+  ApiKeyAuth:
     in: header
     name: Authorization
     type: apiKey
