@@ -13,19 +13,21 @@ import (
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
+	"github.com/xeipuuv/gojsonschema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type eventControllerCreateRequestBody struct {
-	Name           string   `json:"name"            validate:"required"`
-	Description    string   `json:"description"     validate:"required"`
-	ImageURLs      []string `json:"img_urls"         validate:"required"`
-	Location       string   `json:"location"        validate:"required"`
-	Address        string   `json:"address"         validate:"required"`
-	StartTimestamp string   `json:"start_timestamp" validate:"required"`
-	EndTimestamp   string   `json:"end_timestamp"   validate:"required"`
+	Name                  string                 `json:"name"            validate:"required"`
+	Description           string                 `json:"description"     validate:"required"`
+	ImageURLs             []string               `json:"img_urls"        validate:"required"`
+	Location              string                 `json:"location"        validate:"required"`
+	Address               string                 `json:"address"         validate:"required"`
+	StartTimestamp        string                 `json:"start_timestamp" validate:"required"`
+	EndTimestamp          string                 `json:"end_timestamp"   validate:"required"`
+	RawCustomFieldsSchema map[string]interface{} `json:"custom_fields_schema" validate:"required"`
 }
 
 type EventController struct{}
@@ -179,6 +181,16 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("start timestamp is not before end timestamp")))
 		return
 	}
+
+	// Validate custom fields schema
+	schemaLoader := gojsonschema.NewGoLoader(eventRaw.RawCustomFieldsSchema)
+	_, err = gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		log.Error().Any("rawJSONSchema", eventRaw.RawCustomFieldsSchema).Err(err).Msg("raw JSON schema is invalid")
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("raw JSON schema is invalid")))
+		return
+	}
+	event.RawCustomFieldsSchema = eventRaw.RawCustomFieldsSchema
 
 	// Try to add to DB
 	id, err := models.CreateNewEvent(r.Context(), event)
