@@ -154,7 +154,7 @@ export default function EventsAdminPage() {
                     variant="h1"
                     className="text-center"
                 >
-                    Events
+                    Manage Events
                 </Typography>
 
                 <Link href="/admin/events/create">
