@@ -67,6 +67,7 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                         className="w-full h-full object-cover object-center"
                     />
                 </CardHeader>
+
                 <CardBody>
                     <Typography
                         variant="h5"
@@ -82,6 +83,7 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                         {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
                     </Typography>
                 </CardBody>
+
                 <CardFooter className="flex flex-row gap-2 flex-wrap items-center sm:items-start text-center sm:text-start pt-0">
                     <Link href={`/events/${event.id}`} target="_blank" rel="noreferrer">
                         <Button color="blue">View Page</Button>
@@ -155,7 +157,9 @@ export default function EventsAdminPage() {
                     Events
                 </Typography>
 
-                <Button color="blue">Create Event</Button>
+                <Link href="/admin/events/create">
+                    <Button color="blue">Create Event</Button>
+                </Link>
             </div>
 
 

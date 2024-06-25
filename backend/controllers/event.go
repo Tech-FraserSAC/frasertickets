@@ -147,7 +147,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Make sure there is at least one image
-	if len(event.ImageURLs) == 0 {
+	if len(eventRaw.ImageURLs) == 0 {
 		err := fmt.Errorf("user did not provide any image urls")
 		log.Warn().Err(err).Msg("could not parse body")
 		render.Render(w, r, util.ErrInvalidRequest(err))
@@ -433,8 +433,8 @@ func (ctrl EventController) GetTicketCount(w http.ResponseWriter, r *http.Reques
 //	@Description	Update the details for an event. Only available to admins.
 //	@Tags			event
 //	@Produce		json
-//	@Param			id	path		string	true	"Event ID"
-//	@Param			updates	body		models.Event	true	"Updates to make (not all attributes below are required, and id cannot be changed)"
+//	@Param			id	path	string	true	"Event ID"
+//	@Param			updates	body	models.Event	true	"Updates to make (not all attributes below are required, and id cannot be changed)"
 //	@Success		200
 //	@Failure		304
 //	@Failure		400
