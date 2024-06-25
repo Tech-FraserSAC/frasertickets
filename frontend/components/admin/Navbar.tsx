@@ -7,6 +7,7 @@ import router from "next/router";
 import {
     ArrowRightOnRectangleIcon,
     Bars2Icon,
+    CalendarDaysIcon,
     ChevronDownIcon,
     QrCodeIcon,
     QueueListIcon,
@@ -115,11 +116,11 @@ function ProfileMenu() {
 }
 
 const navListItems = [
-    // {
-    //     label: "Events",
-    //     icon: CalendarDaysIcon,
-    //     link: "/events"
-    // },
+    {
+        label: "Events",
+        icon: CalendarDaysIcon,
+        link: "/admin/events"
+    },
     {
         label: "Tickets",
         icon: TicketIcon,
@@ -159,7 +160,7 @@ function NavList() {
                             {createElement(icon, {
                                 className: "h-[18px] w-[18px]",
                             })}{" "}
-                            {label}
+                            <span>{label}</span>
                         </MenuItem>
                     </Typography>
                 </Link>

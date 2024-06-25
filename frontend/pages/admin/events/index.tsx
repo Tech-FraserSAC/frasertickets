@@ -3,11 +3,52 @@ import { Card, CardHeader, CardBody, Typography, CardFooter, Button } from "@mat
 import Link from "next/link";
 import Image from "next/image";
 import Event, { getAllEvents } from "@/lib/backend/event";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import getEventTicketCount from "@/lib/backend/event/getEventTicketCount";
+import deleteEvent from "@/lib/backend/event/deleteEvent";
+import Swal from "sweetalert2";
 
-const EventCard = ({ event }: { event: Event }) => {
+const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Function }) => {
     const { isLoading, error, data: ticketCount } = useQuery(`frasertix-event-ticket-count-${event.id}`, () => getEventTicketCount(event.id));
+
+    const deleteEventMutation = useMutation(({ eventId }: { eventId: string }) => deleteEvent(eventId), {
+        onSuccess: () => {
+            return refetchEvents();
+        },
+    });
+
+    const deleteEventWithId = async (id: string) => {
+        const swalAlert = await Swal.fire({
+            title: "Are you sure?",
+            text: `Are you sure you want to delete the event "${event.name}"? This action is irreversible.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        });
+
+        if (!swalAlert.isConfirmed) {
+            return;
+        }
+
+        try {
+            await deleteEventMutation.mutateAsync({ eventId: id });
+            Swal.fire({
+                title: "Successfully deleted",
+                text: `The event "${event.name}" has been deleted.`,
+                icon: "success",
+            });
+        } catch (err) {
+            Swal.fire({
+                title: "Something went wrong",
+                text: `Something went wrong while deleting the event "${event.name}". Please try again.`,
+                icon: "error",
+            });
+
+            throw err;
+        }
+    };
 
     if (error) console.error(error);
 
@@ -42,17 +83,22 @@ const EventCard = ({ event }: { event: Event }) => {
                     </Typography>
                 </CardBody>
                 <CardFooter className="flex flex-row gap-2 flex-wrap items-center sm:items-start text-center sm:text-start pt-0">
-                    <Link href={`/events/${event.id}`}>
+                    <Link href={`/events/${event.id}`} target="_blank" rel="noreferrer">
                         <Button color="blue">View Page</Button>
                     </Link>
-                    
+
                     <Link href={`/events/${event.id}`}>
                         <Button color="orange">Edit</Button>
                     </Link>
 
-                    <Link href={`/events/${event.id}`}>
-                        <Button color="red">Delete</Button>
-                    </Link>
+                    <Button 
+                        color="red" 
+                        onClick={(e) => { 
+                            e.preventDefault(); 
+                            deleteEventWithId(event.id); 
+                        }}>
+                            Delete
+                    </Button>
                 </CardFooter>
             </Card>
         </div>
@@ -86,15 +132,15 @@ const SkeletonEventCard = () => {
 };
 
 export default function EventsAdminPage() {
-    const { isLoading, error, data: events } = useQuery("frasertix-events", () => getAllEvents());
+    const { isLoading, error, data: events, refetch: refetchEvents } = useQuery("frasertix-events", () => getAllEvents());
 
     if (error) console.error(error);
 
     const currentEvents = events?.filter(
         (event) => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now(),
-    );
-    const upcomingEvents = events?.filter((event) => event.start_timestamp.getTime() > Date.now());
-    const previousEvents = events?.filter((event) => event.end_timestamp.getTime() < Date.now());
+    ).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
+    const upcomingEvents = events?.filter((event) => event.start_timestamp.getTime() > Date.now()).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());;
+    const previousEvents = events?.filter((event) => event.end_timestamp.getTime() < Date.now()).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());;
     return (
         <Layout
             name="Events"
@@ -146,6 +192,7 @@ export default function EventsAdminPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>
@@ -166,6 +213,7 @@ export default function EventsAdminPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>
@@ -186,6 +234,7 @@ export default function EventsAdminPage() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>
