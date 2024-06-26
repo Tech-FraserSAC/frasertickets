@@ -164,7 +164,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	event.Address = eventRaw.Description
 
 	// Time needs to parsed separately
-	startTs, err := time.Parse("2006-01-02T15:00:00", eventRaw.StartTimestamp)
+	startTs, err := time.Parse(time.RFC3339, eventRaw.StartTimestamp)
 	if err != nil {
 		log.Error().Err(err).Msg("could not parse start timestamp")
 		render.Render(w, r, util.ErrInvalidRequest(err))
@@ -172,7 +172,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	event.StartTimestamp = startTs
 
-	endTs, err := time.Parse("2006-01-02T15:00:00", eventRaw.EndTimestamp)
+	endTs, err := time.Parse(time.RFC3339, eventRaw.EndTimestamp)
 	if err != nil {
 		log.Error().Err(err).Msg("could not parse end timestamp")
 		render.Render(w, r, util.ErrInvalidRequest(err))

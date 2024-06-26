@@ -6,8 +6,8 @@ import { ChangeEvent, useState } from "react";
 import DateTimePicker from "react-tailwindcss-datetimepicker";
 import Swal from "sweetalert2";
 import Editor from "@monaco-editor/react";
+import { ValidationError, array, date, object, string } from "yup";
 
-const now = new Date();
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0);
 
@@ -15,7 +15,24 @@ const endOfToday = new Date(startOfToday);
 endOfToday.setDate(endOfToday.getDate() + 1);
 endOfToday.setSeconds(endOfToday.getSeconds() - 1);
 
+const formSubmissionSchema = object({
+    name: string().required("the name of the event is required"),
+    location: string().required("the location of where the event is being held (ex. the cafeteria) is required"),
+    address: string().required("the address of the event is required"),
+    description: string().required("a brief description of the event is required"),
+    start_timestamp: date().required("a starting time for the event is required"),
+    end_timestamp: date().required("an ending time for the event is required"),
+    img_urls: array().of(string()).min(1, "at least 1 photo is required").max(5, "a maximum of 5 photos are required").required("photos are required"),
+    custom_fields_schema: object().required("a custom fields schema is required, even the default one"),
+});
+  
+
 export default function EventsCreationAdminPage() {
+    const [eventName, setEventName] = useState<string>("");
+    const [locationName, setLocationName] = useState<string>("");
+    const [address, setAddress] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+
     // Set the initial view of picker to last 2 days
     const [selectedRange, setSelectedRange] = useState({
         start: new Date(new Date().setDate(new Date().getDate() - 2)),
@@ -23,7 +40,7 @@ export default function EventsCreationAdminPage() {
     });
     
     const [fileUploads, setFileUploads] = useState<File[]>([]);
-    const [customFieldsSchema, setCustomFieldsSchema] = useState<string | undefined>(`{
+    const [customFieldsSchemaRaw, setCustomFieldsSchemaRaw] = useState<string | undefined>(`{
     "type": "object",
     "properties": {},
     "required": []
@@ -67,6 +84,68 @@ export default function EventsCreationAdminPage() {
         setFileUploads([]);
     }
 
+    const onFormSubmit = async () => {
+        if (fileUploads.length === 0) {
+            Swal.fire({
+                title: "Not enough photos",
+                text: "Please provide 1-5 photos for the event.",
+                icon: "error"
+            });
+            
+            return;
+        }
+
+        // TODO: Upload all images
+
+        // TODO: Verify that custom fields schema is valid JSON Schema
+        const customFieldsSchema: object = {};
+
+        const newEventData = {
+            name: eventName,
+            location: locationName,
+            address: address,
+            description: description,
+            start_timestamp: selectedRange.start.toISOString(),
+            end_timestamp: selectedRange.end.toISOString(),
+            img_urls: ["https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png"],
+            custom_fields_schema: customFieldsSchema,
+        }
+
+        try {
+            const validationRes = await formSubmissionSchema
+                .validate(newEventData, { abortEarly: false })
+        } catch (err) {
+            const validationErrors = (err as ValidationError).errors;
+            let errorMessage = "";
+            for (let i = 0; i < validationErrors.length; i++) {
+                errorMessage += validationErrors[i];
+
+                if (i === validationErrors.length - 1) {
+                    errorMessage += "."
+                } else if (i === validationErrors.length - 2) {
+                    errorMessage += ", and ";
+                } else {
+                    errorMessage += ", ";
+                }
+            }
+            
+            Swal.fire({
+                title: "Invalid form input",
+                text: `Please address the following errors: ${errorMessage}`,
+                icon: "error"
+            });
+            return;
+        }
+
+        // TODO: Figure out mutation
+
+        Swal.fire({
+            title: "Successfully created event!",
+            text: "Your event has successfully been created. Redirecting you to the event page...",
+            icon: "success",
+        });
+    }
+
     return (
         <Layout
             name="Create Event"
@@ -83,14 +162,39 @@ export default function EventsCreationAdminPage() {
             <div className="flex flex-col gap-4 w-5/6 md:w-auto lg:w-full xl:w-5/6 max-w-screen-2xl">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <div className="flex flex-col gap-4 lg:w-full lg:mt-8">
-                        <div>
-                            <Input className="focus:outline-none" label="Name" color="blue" required />
-                        </div>
-
-                        <Input className="focus:outline-none" label="Location" color="blue" required />
-                        <Input className="focus:outline-none" label="Address" color="blue" required />
-                        
-                        <Textarea className="h-32 focus:outline-none resize-y" color="blue" draggable label="Description" required />
+                        <Input 
+                            className="focus:outline-none"
+                            label="Name"
+                            color="blue"
+                            required
+                            value={eventName}
+                            onChange={e => setEventName(e.target.value)}
+                        />
+                        <Input
+                            className="focus:outline-none"
+                            label="Location"
+                            color="blue"
+                            required
+                            value={locationName}
+                            onChange={e => setLocationName(e.target.value)}
+                        />
+                        <Input
+                            className="focus:outline-none"
+                            label="Address"
+                            color="blue"
+                            required
+                            value={address}
+                            onChange={e => setAddress(e.target.value)}
+                        />
+                        <Textarea 
+                            className="h-32 focus:outline-none resize-y"
+                            color="blue"
+                            draggable
+                            label="Description"
+                            required
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                        />
 
                         <div>
                             <div className="flex items-center justify-center w-full">
@@ -136,6 +240,7 @@ export default function EventsCreationAdminPage() {
                             start={selectedRange.start}
                             end={selectedRange.end}
                             applyCallback={handleApply}
+                            autoApply
                             standalone
                             twelveHoursClock
                             years={[new Date().getFullYear(), new Date().getFullYear() + 5]}
@@ -174,8 +279,8 @@ export default function EventsCreationAdminPage() {
                             height="400px"
                             language="json"
                             theme="vs-dark"
-                            value={customFieldsSchema}
-                            onChange={setCustomFieldsSchema}
+                            value={customFieldsSchemaRaw}
+                            onChange={setCustomFieldsSchemaRaw}
                             options={{
                                 automaticLayout: true
                             }}
@@ -183,7 +288,7 @@ export default function EventsCreationAdminPage() {
                     </div>
                 </div>
 
-                <Button color="blue">
+                <Button color="blue" onClick={onFormSubmit}>
                     Create
                 </Button>
             </div>
