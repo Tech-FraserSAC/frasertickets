@@ -1,18 +1,25 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
+	"cloud.google.com/go/storage"
+	"github.com/aritrosaha10/frasertickets/lib"
 	"github.com/aritrosaha10/frasertickets/middleware"
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/h2non/bimg"
 	"github.com/rs/zerolog/log"
 	"github.com/xeipuuv/gojsonschema"
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,7 +30,6 @@ import (
 type eventControllerCreateRequestBody struct {
 	Name                  string                 `json:"name"            validate:"required"`
 	Description           string                 `json:"description"     validate:"required"`
-	ImageURLs             []string               `json:"img_urls"        validate:"required"`
 	Location              string                 `json:"location"        validate:"required"`
 	Address               string                 `json:"address"         validate:"required"`
 	StartTimestamp        string                 `json:"start_timestamp" validate:"required"`
@@ -127,17 +133,28 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		event    models.Event
 	)
 
-	// Parse JSON body
-	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.DisallowUnknownFields()
-	err := bodyDecoder.Decode(&eventRaw)
+	// Parse the multipart form, TODO: maybe consider using formstream in the future if performance optimizations are needed
+	err := r.ParseMultipartForm(50 << 20) // 10 MB
 	if err != nil {
-		log.Error().Err(err).Msg("could not parse body")
-		render.Render(w, r, util.ErrInvalidRequest(err))
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("raw form data is invalid")))
 		return
 	}
 
-	// Validate JSON body
+	eventRaw.Name = r.PostFormValue("name")
+	eventRaw.Description = r.PostFormValue("description")
+	eventRaw.Location = r.PostFormValue("location")
+	eventRaw.Address = r.PostFormValue("address")
+	eventRaw.StartTimestamp = r.PostFormValue("start_timestamp")
+	eventRaw.EndTimestamp = r.PostFormValue("end_timestamp")
+	// Can't provide a JSON object into FormData, so we need to parse it beforehand
+	var rawCustomFieldsSchema map[string]interface{}
+	if err = json.Unmarshal([]byte(r.PostFormValue("custom_fields_schema")), &rawCustomFieldsSchema); err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+	eventRaw.RawCustomFieldsSchema = rawCustomFieldsSchema
+
+	// Validate body
 	validate := validator.New()
 	err = validate.Struct(eventRaw)
 	if err != nil {
@@ -146,11 +163,108 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Make sure there is at least one image
-	if len(eventRaw.ImageURLs) == 0 {
-		err := fmt.Errorf("user did not provide any image urls")
-		log.Warn().Err(err).Msg("could not parse body")
-		render.Render(w, r, util.ErrInvalidRequest(err))
+	// Validate all files are photos before proceeding
+	// TODO: Make this threaded
+	fileHeaders := r.MultipartForm.File["images"]
+	ok := true
+	for i, fileHeader := range fileHeaders {
+		if i > 4 {
+			render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("more than 5 images provided")))
+			ok = false
+			break
+		}
+
+		mimeType := fileHeader.Header.Get("Content-Type")
+		if mimeType != "image/png" && mimeType != "image/jpeg" {
+			render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("non-image file provided, only provide png or jpg files")))
+			ok = false
+			break
+		}
+	}
+	if !ok {
+		return
+	}
+
+	// Process and upload all photos
+	// TODO: Make this threaded
+	imgUrls := make([]string, len(fileHeaders))
+	for i, fileHeader := range fileHeaders {
+		file, err := fileHeader.Open()
+		if err != nil {
+			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not open provided image"), err)))
+			ok = false
+			break
+		}
+		defer file.Close()
+
+		buf := bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, file); err != nil {
+			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not parse provided image"), err)))
+			ok = false
+			break
+		}
+
+		img := bimg.NewImage(buf.Bytes())
+		imgSize, err := img.Size()
+		if err != nil {
+			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("failed to get img size"), err)))
+			ok = false
+			break
+		}
+		imgOpts := bimg.Options{
+			Quality: 100,
+			Width:   imgSize.Width,
+			Height:  imgSize.Height,
+			Type:    bimg.WEBP,
+		}
+
+		// Crop to 2000px width if larger
+		if imgSize.Width > 2000 {
+			imgOpts.Width = 2000
+			imgOpts.Height = imgSize.Height * 2000 / imgSize.Width
+		} else if imgSize.Height > 2000 {
+			imgOpts.Height = 1000
+			imgOpts.Width = imgSize.Width * 2000 / imgSize.Height
+		}
+
+		processedImg, err := img.Process(imgOpts)
+		if err != nil {
+			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not compress image"), err)))
+			ok = false
+			break
+		}
+
+		// Start writing image to GCP
+		processedImgFname := uuid.New().String() + ".webp"
+		cloudStorageObj := lib.CloudStorage.MediaBucket.Object(processedImgFname)
+
+		// Prepare to write byte array to cloud storage
+		wc := cloudStorageObj.NewWriter(r.Context())
+		if _, err = wc.Write(processedImg); err != nil {
+			log.Error().Err(err).Msg("could not write bytes to cloud storage")
+			render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+			ok = false
+			break
+		}
+		if err = wc.Close(); err != nil {
+			log.Error().Err(err).Msg("could not close byte writer to cloud storage")
+			render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+			ok = false
+			break
+		}
+
+		if err = cloudStorageObj.ACL().Set(r.Context(), storage.AllUsers, storage.RoleReader); err != nil {
+			log.Error().Err(err).Msg("could not set permissions of cloud storage obj")
+			render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+			ok = false
+			break
+		}
+
+		url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", lib.CloudStorage.MediaBucketName, processedImgFname)
+		imgUrls[i] = url
+		log.Info().Str("url", url).Msg("uploaded image to gcp")
+	}
+	if !ok {
 		return
 	}
 
@@ -159,7 +273,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	// which seems overkill)
 	event.Name = eventRaw.Name
 	event.Description = eventRaw.Description
-	event.ImageURLs = eventRaw.ImageURLs
+	event.ImageURLs = imgUrls
 	event.Location = eventRaw.Location
 	event.Address = eventRaw.Description
 
