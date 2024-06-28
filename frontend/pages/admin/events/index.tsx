@@ -89,7 +89,7 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                         <Button color="blue">View Page</Button>
                     </Link>
 
-                    <Link href={`/events/${event.id}`}>
+                    <Link href={`/admin/events/edit/${event.id}`}>
                         <Button color="orange">Edit</Button>
                     </Link>
 
