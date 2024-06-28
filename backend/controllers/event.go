@@ -119,9 +119,8 @@ func (ctrl EventController) List(w http.ResponseWriter, r *http.Request) {
 //	@Summary		Create an event
 //	@Description	Creates an event in the database. Only available to admins.
 //	@Tags			event
-//	@Accept			json
+//	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			account	body		eventControllerCreateRequestBody	true	"Event details"
 //	@Success		200		{object}	models.Event
 //	@Failure		400
 //	@Failure		500
@@ -133,13 +132,14 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		event    models.Event
 	)
 
-	// Parse the multipart form, TODO: maybe consider using formstream in the future if performance optimizations are needed
-	err := r.ParseMultipartForm(50 << 20) // 10 MB
+	// TODO: maybe consider using formstream in the future if performance optimizations are needed
+	err := r.ParseMultipartForm(30 << 20) // 30 MB
 	if err != nil {
 		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("raw form data is invalid")))
 		return
 	}
 
+	// Parse raw form data into struct for simple validation later
 	eventRaw.Name = r.PostFormValue("name")
 	eventRaw.Description = r.PostFormValue("description")
 	eventRaw.Location = r.PostFormValue("location")
@@ -164,7 +164,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate all files are photos before proceeding
-	// TODO: Make this threaded
+	// TODO: Make this multithreaded
 	fileHeaders := r.MultipartForm.File["images"]
 	ok := true
 	for i, fileHeader := range fileHeaders {
@@ -186,7 +186,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Process and upload all photos
-	// TODO: Make this threaded
+	// TODO: Make this multithreaded
 	imgUrls := make([]string, len(fileHeaders))
 	for i, fileHeader := range fileHeaders {
 		file, err := fileHeader.Open()

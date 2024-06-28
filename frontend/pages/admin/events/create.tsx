@@ -7,6 +7,13 @@ import DateTimePicker from "react-tailwindcss-datetimepicker";
 import Swal from "sweetalert2";
 import Editor from "@monaco-editor/react";
 import { ValidationError, array, date, object, string } from "yup";
+import Ajv from "ajv";
+import createEvent from "@/lib/backend/event/createEvent";
+import { useRouter } from "next/router";
+
+const ajv = new Ajv({
+    allErrors: true,
+});
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0);
@@ -22,12 +29,15 @@ const formSubmissionSchema = object({
     description: string().required("a brief description of the event is required"),
     start_timestamp: date().required("a starting time for the event is required"),
     end_timestamp: date().required("an ending time for the event is required"),
-    img_urls: array().of(string()).min(1, "at least 1 photo is required").max(5, "a maximum of 5 photos are required").required("photos are required"),
     custom_fields_schema: object().required("a custom fields schema is required, even the default one"),
 });
   
 
 export default function EventsCreationAdminPage() {
+    const router = useRouter();
+
+    const [busy, setBusy] = useState<boolean>(false);
+
     const [eventName, setEventName] = useState<string>("");
     const [locationName, setLocationName] = useState<string>("");
     const [address, setAddress] = useState<string>("");
@@ -84,7 +94,7 @@ export default function EventsCreationAdminPage() {
         setFileUploads([]);
     }
 
-    const onFormSubmit = async () => {
+    const uploadEventToDB = async () => {
         if (fileUploads.length === 0) {
             Swal.fire({
                 title: "Not enough photos",
@@ -95,11 +105,22 @@ export default function EventsCreationAdminPage() {
             return;
         }
 
-        // TODO: Upload all images
+        // Verify that custom fields schema is valid JSON Schema
+        let customFieldsSchema: object;
+        try {
+            customFieldsSchema = JSON.parse(customFieldsSchemaRaw || "");
+            ajv.validateSchema(customFieldsSchema, true);
+        } catch (e) {
+            Swal.fire({
+                title: "Invalid custom fields schema",
+                text: "The provided custom fields schema could not be parsed as valid JSON schema.",
+                icon: "error"
+            });
 
-        // TODO: Verify that custom fields schema is valid JSON Schema
-        const customFieldsSchema: object = {};
+            return;
+        }
 
+        // Collect all the state variables into one object for validation
         const newEventData = {
             name: eventName,
             location: locationName,
@@ -107,13 +128,12 @@ export default function EventsCreationAdminPage() {
             description: description,
             start_timestamp: selectedRange.start.toISOString(),
             end_timestamp: selectedRange.end.toISOString(),
-            img_urls: ["https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png"],
             custom_fields_schema: customFieldsSchema,
         }
 
+        // Validate all form data w/ yup 
         try {
-            const validationRes = await formSubmissionSchema
-                .validate(newEventData, { abortEarly: false })
+            await formSubmissionSchema.validate(newEventData, { abortEarly: false })
         } catch (err) {
             const validationErrors = (err as ValidationError).errors;
             let errorMessage = "";
@@ -137,13 +157,36 @@ export default function EventsCreationAdminPage() {
             return;
         }
 
-        // TODO: Figure out mutation
+        // Convert data into FormData & send to server
+        const formData = new FormData();
+        Object.entries(newEventData).forEach(([key, val]) => formData.append(key, typeof val === "string" ? val : JSON.stringify(val)));
+        fileUploads.forEach(file => { formData.append("images", file) });
 
+        let eventId: string;
+        try {
+            eventId = (await createEvent(formData)).id;
+        } catch (e) {
+            console.error(e)
+            Swal.fire({
+                title: "Something went wrong",
+                text: "Your new event could not be added. Please try again later.",
+                icon: "error"
+            });
+            return;
+        }
+
+        router.push(`/events/${eventId}`);
         Swal.fire({
             title: "Successfully created event!",
             text: "Your event has successfully been created. Redirecting you to the event page...",
             icon: "success",
         });
+    }
+
+    const onFormSubmit = async () => {
+        setBusy(true);
+        await uploadEventToDB();
+        setBusy(false);
     }
 
     return (
@@ -288,7 +331,7 @@ export default function EventsCreationAdminPage() {
                     </div>
                 </div>
 
-                <Button color="blue" onClick={onFormSubmit}>
+                <Button color="blue" onClick={onFormSubmit} disabled={busy}>
                     Create
                 </Button>
             </div>
