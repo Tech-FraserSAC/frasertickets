@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"cloud.google.com/go/storage"
@@ -37,8 +36,6 @@ func CreateNewStorage() *GoogleCloudStorage {
 	if cloudStorage.MediaBucketName == "" {
 		log.Fatal().Msg("could not find media bucket name in env")
 	}
-
-	fmt.Println("abc")
 
 	// Initialize Cloud Storage
 	var client *storage.Client

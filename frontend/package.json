@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@headlessui/react": "^1.7.17",
+        "@hello-pangea/dnd": "^16.6.0",
         "@heroicons/react": "^2.0.18",
         "@material-tailwind/react": "^2.1.0",
         "@monaco-editor/react": "^4.6.0",

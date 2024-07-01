@@ -1,27 +1,27 @@
 import { ChangeEvent, useEffect, useState } from "react";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Input, Textarea, Typography } from "@material-tailwind/react";
-import Editor from "@monaco-editor/react";
-import Ajv from "ajv";
+import { AiOutlineArrowLeft } from "react-icons/ai";
 import Swal from "sweetalert2";
-import { ValidationError, array, date, object, string } from "yup";
+import { ValidationError, date, object, string } from "yup";
 
 import { getEvent } from "@/lib/backend/event";
 import createEvent from "@/lib/backend/event/createEvent";
-import trimFileName from "@/util/trimFileName";
 
 import Layout from "@/components/Layout";
 
 import DateTimePicker from "react-tailwindcss-datetimepicker";
-import { AiOutlineArrowLeft } from "react-icons/ai";
-import Link from "next/link";
 
-const ajv = new Ajv({
-    allErrors: true,
-});
+interface UploadedFile {
+    file: File;
+    objUrl: string;
+}
 
 const startOfToday = new Date();
 startOfToday.setHours(0, 0, 0, 0);
@@ -37,7 +37,6 @@ const formSubmissionSchema = object({
     description: string().required("a brief description of the event is required"),
     start_timestamp: date().required("a starting time for the event is required"),
     end_timestamp: date().required("an ending time for the event is required"),
-    custom_fields_schema: object().required("a custom fields schema is required, even the default one"),
 });
 
 export default function EventsCreationAdminPage() {
@@ -57,7 +56,7 @@ export default function EventsCreationAdminPage() {
         end: endOfToday,
     });
 
-    const [fileUploads, setFileUploads] = useState<File[]>([]);
+    const [images, setImages] = useState<(UploadedFile | string)[]>([]);
 
     const handleApply = (startDate: Date, endDate: Date) => {
         setSelectedRange({ start: startDate, end: endDate });
@@ -67,46 +66,55 @@ export default function EventsCreationAdminPage() {
         const files = Array.from(e.target.files || []);
         const allowedFileTypes = new Set(["image/jpeg", "image/png"]);
 
-        if (files.length === 0) {
-            setFileUploads([]);
-            return;
-        }
-
         if (files.some((file) => !allowedFileTypes.has(file.type))) {
             Swal.fire({
                 title: "Files not uploaded",
                 text: "Please only upload compatible file types (.jpg, .jpeg, .png).",
                 icon: "error",
             });
-            setFileUploads([]);
             return;
-        } else if (files.length > 5) {
+        } else if (files.length + images.length > 5) {
             Swal.fire({
                 title: "Max photos exceeded",
                 text: "Please upload a maximum of 5 photos.",
                 icon: "error",
             });
-            setFileUploads([]);
             return;
         }
 
-        setFileUploads(files);
+        setImages(images.concat(files.map((file) => ({ file, objUrl: URL.createObjectURL(file) }))));
     };
 
-    const clearFileUploads = () => {
-        setFileUploads([]);
+    const onDragEnd = (result: any) => {
+        if (!result.destination) return;
+    
+        setImages((currentImages) => {
+            const reorderedImages = Array.from(currentImages);
+            const [movedImage] = reorderedImages.splice(result.source.index, 1);
+            reorderedImages.splice(result.destination.index, 0, movedImage);
+            return reorderedImages;
+        });
     };
+    
 
     const uploadEventToDB = async () => {
-        // if (fileUploads.length === 0) {
-        //     Swal.fire({
-        //         title: "Not enough photos",
-        //         text: "Please provide 1-5 photos for the event.",
-        //         icon: "error"
-        //     });
+        if (images.length === 0) {
+            Swal.fire({
+                title: "Not enough photos",
+                text: "Please provide 1-5 photos for the event.",
+                icon: "error",
+            });
 
-        //     return;
-        // }
+            return;
+        } else if (images.length > 5) {
+            Swal.fire({
+                title: "Maximum photos exceeded",
+                text: "Please only provide a maximum of 5 photos.",
+                icon: "error",
+            });
+
+            return;
+        }
 
         // Collect all the state variables into one object for validation
         const newEventData = {
@@ -203,6 +211,7 @@ export default function EventsCreationAdminPage() {
                     start: oldEventData.start_timestamp,
                     end: oldEventData.end_timestamp,
                 });
+                setImages(oldEventData.img_urls);
                 setDataReady(true);
             } catch (e) {
                 console.error(e);
@@ -279,16 +288,70 @@ export default function EventsCreationAdminPage() {
                                 onChange={(e) => setDescription(e.target.value)}
                             />
 
-                            <div>
+                            <div className="flex flex-col gap-4">
+                                {images.length > 0 && (
+                                    <DragDropContext onDragEnd={onDragEnd}>
+                                        <Droppable droppableId="images" direction="horizontal">
+                                            {(provided) => (
+                                                <div
+                                                    className="flex flex-row items-center justify-center w-full space-x-2"
+                                                    {...provided.droppableProps}
+                                                    ref={provided.innerRef}
+                                                >
+                                                    {images.map((img, i) => {
+                                                        const srcUrl = typeof img === "string" ? img : img.objUrl;
+                                                        const onRemove = () => {
+                                                            setImages(images.toSpliced(i, 1));
+                                                        };
+
+                                                        return (
+                                                            <Draggable
+                                                                key={btoa(srcUrl)}
+                                                                draggableId={btoa(srcUrl)}
+                                                                index={i}
+                                                            >
+                                                                {(provided) => (
+                                                                    <div
+                                                                        className="relative"
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.draggableProps}
+                                                                        {...provided.dragHandleProps}
+                                                                    >
+                                                                        <div
+                                                                            className="absolute z-10 top-1 right-1 p-1 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-300 active:bg-gray-400 duration-75 transition-colors"
+                                                                            onClick={onRemove}
+                                                                        >
+                                                                            <XMarkIcon className="text-red-500 w-4 h-4 font-bold" />
+                                                                        </div>
+
+                                                                        <Image
+                                                                            src={srcUrl}
+                                                                            width={256}
+                                                                            height={256}
+                                                                            className="object-cover object-center rounded-xl w-auto h-32"
+                                                                            alt=""
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                            </Draggable>
+                                                        );
+                                                    })}
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                    </DragDropContext>
+                                )}
+
                                 <div className="flex items-center justify-center w-full">
                                     <label
                                         htmlFor="dropzone-file"
-                                        className="flex flex-col items-center justify-center w-full h-64 border border-blue-gray-200 rounded-[7px] cursor-pointer hover:bg-gray-700/10 duration-75 transition-all"
+                                        className={`flex flex-col items-center justify-center w-full border border-blue-gray-200 rounded-[7px] cursor-pointer hover:bg-gray-700/10 duration-75 transition-colors ${images.length > 0 ? "h-24" : "h-64"}`}
                                     >
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <ArrowUpTrayIcon className="w-8 h-8 mb-4 text-blue-gray-500" />
+                                            <ArrowUpTrayIcon className="w-8 h-8 mb-2 text-blue-gray-500" />
 
-                                            {fileUploads.length === 0 ? (
+                                            {images.length === 0 ? (
                                                 <>
                                                     <p className="mb-2 text-sm text-blue-gray-500 text-center">
                                                         <span className="font-semibold">Click to upload</span> event
@@ -298,16 +361,11 @@ export default function EventsCreationAdminPage() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <p className="mb-2 text-sm text-blue-gray-500">
+                                                    <p className="text-sm text-blue-gray-500">
                                                         <span className="font-semibold">
-                                                            {fileUploads.length} file{fileUploads.length !== 1 && "s"}
+                                                            {images.length} file{images.length !== 1 && "s"}
                                                         </span>{" "}
                                                         uploaded
-                                                    </p>
-                                                    <p className="text-xs text-blue-gray-500 text-center">
-                                                        {fileUploads
-                                                            .map((file) => trimFileName(file.name, 15))
-                                                            .join(", ")}
                                                     </p>
                                                 </>
                                             )}
@@ -323,15 +381,6 @@ export default function EventsCreationAdminPage() {
                                         />
                                     </label>
                                 </div>
-
-                                {fileUploads.length > 0 && (
-                                    <button
-                                        className="flex flex-row items-center text-red-500 hover:text-red-700 duration-75 transition-colors text-xs mt-1"
-                                        onClick={clearFileUploads}
-                                    >
-                                        <XMarkIcon className="w-4 h-4" /> <span className="-mt-px">Clear</span>
-                                    </button>
-                                )}
                             </div>
                         </div>
                     ) : (
