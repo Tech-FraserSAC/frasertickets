@@ -277,7 +277,9 @@ export default function EventsCreationAdminPage() {
                                                 {fileUploads.map((img, i) => {
                                                     const srcUrl = typeof img === "string" ? img : img.objUrl;
                                                     const onRemove = () => {
-                                                        setFileUploads(fileUploads.toSpliced(i, 1));
+                                                        const fileUploadsCopy = fileUploads.slice();
+                                                        fileUploadsCopy.splice(i, 1);
+                                                        setFileUploads(fileUploadsCopy);
                                                     };
 
                                                     return (
