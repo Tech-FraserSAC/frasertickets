@@ -1,15 +1,22 @@
-import Layout from "@/components/Layout";
-import { Card, CardHeader, CardBody, Typography, CardFooter, Button } from "@material-tailwind/react";
-import Link from "next/link";
 import Image from "next/image";
-import Event, { getAllEvents } from "@/lib/backend/event";
+import Link from "next/link";
+
+import { Card, CardHeader, CardBody, Typography, CardFooter, Button } from "@material-tailwind/react";
 import { useMutation, useQuery } from "react-query";
-import getEventTicketCount from "@/lib/backend/event/getEventTicketCount";
-import deleteEvent from "@/lib/backend/event/deleteEvent";
 import Swal from "sweetalert2";
 
-const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Function }) => {
-    const { isLoading, error, data: ticketCount } = useQuery(`frasertix-event-ticket-count-${event.id}`, () => getEventTicketCount(event.id));
+import Event, { getAllEvents } from "@/lib/backend/event";
+import deleteEvent from "@/lib/backend/event/deleteEvent";
+import getEventTicketCount from "@/lib/backend/event/getEventTicketCount";
+
+import Layout from "@/components/Layout";
+
+const EventCard = ({ event, refetchEvents }: { event: Event; refetchEvents: Function }) => {
+    const {
+        isLoading,
+        error,
+        data: ticketCount,
+    } = useQuery(`frasertix-event-ticket-count-${event.id}`, () => getEventTicketCount(event.id));
 
     const deleteEventMutation = useMutation(({ eventId }: { eventId: string }) => deleteEvent(eventId), {
         onSuccess: () => {
@@ -77,7 +84,7 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                         {event.name}
                     </Typography>
                     <Typography className="text-center sm:text-start mb-2">
-                        {(isLoading || error) ? "..." : ticketCount} ticket{ticketCount !== 1 ? "s" : ""}
+                        {isLoading || error ? "..." : ticketCount} ticket{ticketCount !== 1 ? "s" : ""}
                     </Typography>
                     <Typography className="text-center sm:text-start">
                         {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
@@ -85,7 +92,11 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                 </CardBody>
 
                 <CardFooter className="flex flex-row gap-2 flex-wrap items-center sm:items-start text-center sm:text-start pt-0">
-                    <Link href={`/events/${event.id}`} target="_blank" rel="noreferrer">
+                    <Link
+                        href={`/events/${event.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
                         <Button color="blue">View Page</Button>
                     </Link>
 
@@ -93,13 +104,14 @@ const EventCard = ({ event, refetchEvents }: { event: Event, refetchEvents: Func
                         <Button color="orange">Edit</Button>
                     </Link>
 
-                    <Button 
-                        color="red" 
-                        onClick={(e) => { 
-                            e.preventDefault(); 
-                            deleteEventWithId(event.id); 
-                        }}>
-                            Delete
+                    <Button
+                        color="red"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            deleteEventWithId(event.id);
+                        }}
+                    >
+                        Delete
                     </Button>
                 </CardFooter>
             </Card>
@@ -134,15 +146,24 @@ const SkeletonEventCard = () => {
 };
 
 export default function EventsAdminPage() {
-    const { isLoading, error, data: events, refetch: refetchEvents } = useQuery("frasertix-events", () => getAllEvents());
+    const {
+        isLoading,
+        error,
+        data: events,
+        refetch: refetchEvents,
+    } = useQuery("frasertix-events", () => getAllEvents());
 
     if (error) console.error(error);
 
-    const currentEvents = events?.filter(
-        (event) => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now(),
-    ).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
-    const upcomingEvents = events?.filter((event) => event.start_timestamp.getTime() > Date.now()).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());;
-    const previousEvents = events?.filter((event) => event.end_timestamp.getTime() < Date.now()).sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());;
+    const currentEvents = events
+        ?.filter((event) => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
+    const upcomingEvents = events
+        ?.filter((event) => event.start_timestamp.getTime() > Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
+    const previousEvents = events
+        ?.filter((event) => event.end_timestamp.getTime() < Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
     return (
         <Layout
             name="Events"
@@ -161,7 +182,6 @@ export default function EventsAdminPage() {
                     <Button color="blue">Create Event</Button>
                 </Link>
             </div>
-
 
             {!(isLoading || error) ? (
                 <div className="flex flex-col gap-4">
@@ -262,5 +282,5 @@ export default function EventsAdminPage() {
                 </div>
             )}
         </Layout>
-    )
+    );
 }

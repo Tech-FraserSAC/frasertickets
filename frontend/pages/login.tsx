@@ -19,9 +19,9 @@ import auth from "@/lib/firebase/auth";
 import getElementBySelectorAsync from "@/util/getElementBySelectorAsync";
 import parseClientCookies from "@/util/parseCookies";
 
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
 
 export default function Login() {
     const [signInReady, setSignInReady] = useState(false);

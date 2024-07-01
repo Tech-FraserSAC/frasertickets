@@ -119,7 +119,7 @@ const navListItems = [
     {
         label: "Events",
         icon: CalendarDaysIcon,
-        link: "/admin/events"
+        link: "/admin/events",
     },
     {
         label: "Tickets",

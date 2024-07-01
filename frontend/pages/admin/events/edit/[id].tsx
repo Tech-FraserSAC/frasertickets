@@ -12,13 +12,12 @@ import Swal from "sweetalert2";
 import { ValidationError, date, object, string } from "yup";
 
 import { getEvent } from "@/lib/backend/event";
-import createEvent from "@/lib/backend/event/createEvent";
+import updateEvent from "@/lib/backend/event/updateEvent";
 import uploadEventPhoto from "@/lib/backend/event/uploadEventPhoto";
 
 import Layout from "@/components/Layout";
 
 import DateTimePicker from "react-tailwindcss-datetimepicker";
-import updateEvent from "@/lib/backend/event/updateEvent";
 
 interface UploadedFile {
     file: File;
@@ -163,17 +162,21 @@ export default function EventsCreationAdminPage() {
         }[];
         let newImgUrls: string[];
         try {
-            const newlyUploadedImgUrls = await Promise.all(imgsToUpload.map(async (imgFileRef) => ({
-                url: await uploadEventPhoto(imgFileRef.fInfo.file),
-                origIdx: imgFileRef.idx,
-            })));
-            newImgUrls = images.map((img, i) => typeof img === "string" ? img : newlyUploadedImgUrls.find(val => val.origIdx === i)!.url);
+            const newlyUploadedImgUrls = await Promise.all(
+                imgsToUpload.map(async (imgFileRef) => ({
+                    url: await uploadEventPhoto(imgFileRef.fInfo.file),
+                    origIdx: imgFileRef.idx,
+                })),
+            );
+            newImgUrls = images.map((img, i) =>
+                typeof img === "string" ? img : newlyUploadedImgUrls.find((val) => val.origIdx === i)!.url,
+            );
         } catch (e) {
             console.error(e);
             Swal.fire({
                 title: "Something went wrong",
                 text: "The new images could not be uploaded. Please try again later.",
-                icon: "error"
+                icon: "error",
             });
             return;
         }
@@ -189,11 +192,11 @@ export default function EventsCreationAdminPage() {
                 img_urls: newImgUrls,
             });
         } catch (e) {
-            console.error(e)
+            console.error(e);
             Swal.fire({
                 title: "Something went wrong",
                 text: "The event could not be updated. Please try again later.",
-                icon: "error"
+                icon: "error",
             });
             return;
         }
@@ -228,7 +231,7 @@ export default function EventsCreationAdminPage() {
                 router.push("/admin/events");
                 return;
             }
-            
+
             setEventId(id);
 
             try {

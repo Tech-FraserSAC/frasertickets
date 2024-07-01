@@ -1,7 +1,9 @@
 import { ChangeEvent, useState } from "react";
 
+import Image from "next/image";
 import { useRouter } from "next/router";
 
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button, Input, Textarea, Typography } from "@material-tailwind/react";
 import Editor from "@monaco-editor/react";
@@ -15,9 +17,6 @@ import trimFileName from "@/util/trimFileName";
 import Layout from "@/components/Layout";
 
 import DateTimePicker from "react-tailwindcss-datetimepicker";
-import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-
-import Image from "next/image";
 
 const ajv = new Ajv({
     allErrors: true,

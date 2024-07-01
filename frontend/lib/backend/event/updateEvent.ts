@@ -12,7 +12,7 @@ export interface EventUpdates {
 
 export default async function updateEvent(id: string, updates: EventUpdates) {
     // Need to convert dates to ISO strings beforehand
-    let updatesAdjusted = updates as {[key: string]: any};
+    let updatesAdjusted = updates as { [key: string]: any };
     if (updates.start_timestamp) {
         updatesAdjusted.start_timestamp = updates.start_timestamp.toISOString();
     }
