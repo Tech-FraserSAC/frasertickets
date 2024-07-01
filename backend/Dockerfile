@@ -13,7 +13,13 @@ RUN go mod verify
 # Build binary
 RUN go build -o /go/bin/frasertickets_backend
 
-# STEP 2: Build image solely with executable
+# STEP 2: Install libvips
+FROM alpine:latest AS libvips-installer
+
+# Install libvips and its dependencies
+RUN apk update && apk add --no-cache vips vips-dev
+
+# STEP 3: Build image solely with executable
 FROM scratch
 COPY --from=builder /go/bin/frasertickets_backend /go/bin/frasertickets_backend
 
@@ -22,6 +28,12 @@ COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
+
+# Copy libvips libraries
+COPY --from=libvips-installer /usr/lib/libvips.so.42 /usr/lib/
+COPY --from=libvips-installer /usr/lib/libvips-cpp.so.42 /usr/lib/
+COPY --from=libvips-installer /usr/lib/libvips.so /usr/lib/
+COPY --from=libvips-installer /usr/lib/libvips-cpp.so /usr/lib/
 
 # Set up environment variables
 ENV FRASERTICKETS_ENV production

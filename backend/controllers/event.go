@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -197,6 +198,7 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 	// Process and upload all photos
 	// TODO: Make this multithreaded
 	imgUrls := make([]string, len(fileHeaders))
+	var initialAspectRatio float64
 	for i, fileHeader := range fileHeaders {
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -215,25 +217,31 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 
 		img := bimg.NewImage(buf.Bytes())
 		imgSize, err := img.Size()
+		aspectRatio := float64(imgSize.Width) / float64(imgSize.Height)
 		if err != nil {
 			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("failed to get img size"), err)))
 			ok = false
 			break
 		}
-		imgOpts := bimg.Options{
-			Quality: 100,
-			Width:   imgSize.Width,
-			Height:  imgSize.Height,
-			Type:    bimg.WEBP,
+		if i == 0 {
+			initialAspectRatio = aspectRatio
 		}
 
+		newImgSize := imgSize
 		// Crop to 2000px width if larger
 		if imgSize.Width > 2000 {
-			imgOpts.Width = 2000
-			imgOpts.Height = imgSize.Height * 2000 / imgSize.Width
+			newImgSize.Width = 2000
+			newImgSize.Height = imgSize.Height * 2000 / imgSize.Width
 		} else if imgSize.Height > 2000 {
-			imgOpts.Height = 1000
-			imgOpts.Width = imgSize.Width * 2000 / imgSize.Height
+			newImgSize.Height = 2000
+			newImgSize.Width = imgSize.Width * 2000 / imgSize.Height
+		}
+
+		imgOpts := bimg.Options{
+			Quality: 100,
+			Width:   newImgSize.Width,
+			Height:  newImgSize.Height,
+			Type:    bimg.WEBP,
 		}
 
 		processedImg, err := img.Process(imgOpts)
@@ -241,6 +249,44 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 			render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not compress image"), err)))
 			ok = false
 			break
+		}
+
+		// Crop to first image's aspect ratio so that they always match
+		// Don't need to do an index check, as this will always be false on first image
+		if math.Abs(aspectRatio-initialAspectRatio) > 1e-9 {
+			log.Debug().Int("imgIdx", i).Msg("cropping image")
+
+			// Make sure we don't try to crop outside of the actual image
+			var imgOpts bimg.Options
+			if initialAspectRatio > aspectRatio {
+				imgOpts = bimg.Options{
+					Quality: 100,
+					Width:   newImgSize.Width,
+					Height:  int(float64(newImgSize.Width) * 1.0 / initialAspectRatio),
+					Type:    bimg.WEBP,
+					Crop:    true,
+					Gravity: bimg.GravitySmart,
+				}
+				log.Debug().Int("imgIdx", i).Any("initialSize", newImgSize).Int("width", imgOpts.Width).Int("height", imgOpts.Height).Msg("initial has more width than current, removing height")
+			} else {
+				imgOpts = bimg.Options{
+					Quality: 100,
+					Width:   int(float64(newImgSize.Height) * initialAspectRatio),
+					Height:  newImgSize.Height,
+					Type:    bimg.WEBP,
+					Crop:    true,
+					Gravity: bimg.GravitySmart,
+				}
+				log.Debug().Int("imgIdx", i).Any("initialSize", newImgSize).Int("width", imgOpts.Width).Int("height", imgOpts.Height).Msg("initial has more height than current, removing width")
+			}
+			resizedBImg := bimg.NewImage(processedImg)
+			processedImg, err = resizedBImg.Process(imgOpts)
+			if err != nil {
+				render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not crop image"), err)))
+				ok = false
+				break
+			}
+			log.Debug().Int("imgIdx", i).Any("initialSize", newImgSize).Int("newWidth", imgOpts.Width).Int("newHeight", imgOpts.Height).Msg("successfully cropped img")
 		}
 
 		// Start writing image to GCP
@@ -382,7 +428,7 @@ func (ctrl EventController) UploadPhoto(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Process and upload all photo
+	// Process and upload photo
 	file, err := fileHeader.Open()
 	if err != nil {
 		render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not open provided image"), err)))

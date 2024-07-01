@@ -331,11 +331,12 @@ export default function EventsCreationAdminPage() {
 
                                         {fileUploads.length === 0 ? (
                                             <>
-                                                <p className="mb-2 text-sm text-blue-gray-500 text-center">
+                                                <p className="mb-1 text-sm text-blue-gray-500 text-center">
                                                     <span className="font-semibold">Click to upload</span> event photos
                                                     or drag and drop<span className="text-red-500"> *</span>
                                                 </p>
                                                 <p className="text-xs text-blue-gray-500">(Max. 5, PNG or JPG)</p>
+                                                <p className="text-xs text-blue-gray-500">Note: all images will be cropped to the initial image's aspect ratio.</p>
                                             </>
                                         ) : (
                                             <>
