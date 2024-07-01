@@ -68,8 +68,8 @@ func (ctrl TicketController) Routes() chi.Router {
 		// Admin-only routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuthorizerMiddleware)
-			r.Patch("/", ctrl.Update)  // PATCH /events/{id} - update ticket, only available to admins
-			r.Delete("/", ctrl.Delete) // DELETE /events/{id} - delete ticket, only available to admins
+			r.Patch("/", ctrl.Update)  // PATCH /tickets/{id} - update ticket, only available to admins
+			r.Delete("/", ctrl.Delete) // DELETE /tickets/{id} - delete ticket, only available to admins
 		})
 	})
 
@@ -85,6 +85,7 @@ func (ctrl TicketController) Routes() chi.Router {
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets [get]
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
@@ -172,6 +173,7 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/user/{uid} [get]
 func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
@@ -238,6 +240,7 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		403
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/all [get]
 func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 	// Filter by event if search query provided
@@ -301,6 +304,7 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404
 //	@Failure		409
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets [post]
 func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -450,6 +454,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [get]
 func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
@@ -547,6 +552,7 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/search [post]
 func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerSearchRequestBody
@@ -641,6 +647,7 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/scan [post]
 func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerScanRequestBody
@@ -791,6 +798,7 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [patch]
 func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 	var updateReq ticketControllerUpdateRequestBody
@@ -891,6 +899,7 @@ func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [delete]
 func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket

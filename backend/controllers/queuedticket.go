@@ -51,6 +51,7 @@ func (ctrl QueuedTicketController) Routes() chi.Router {
 //	@Success		200	{object}	[]models.QueuedTicket
 //	@Failure		403
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/queuedtickets [get]
 func (ctrl QueuedTicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 	// Try to get tickets
@@ -91,19 +92,20 @@ func (ctrl QueuedTicketController) ListAll(w http.ResponseWriter, r *http.Reques
 
 // Create creates a new queued ticket.
 //
-//		@Summary		Create new queued ticket
-//		@Description	Create a new queued ticket. Only available to admins.
-//		@Tags			ticket
-//	 	@Accept 		json
-//		@Produce		json
-//		@Param			event	body		queuedTicketControllerCreateRequestBody	true	"Queued ticket details"
-//		@Success		200		{object}	models.QueuedTicket
-//		@Failure		400
-//		@Failure		403
-//		@Failure		404
-//		@Failure		409
-//		@Failure		500
-//		@Router			/queuedtickets [post]
+//	@Summary		Create new queued ticket
+//	@Description	Create a new queued ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept 		json
+//	@Produce		json
+//	@Param			event	body		queuedTicketControllerCreateRequestBody	true	"Queued ticket details"
+//	@Success		200		{object}	models.QueuedTicket
+//	@Failure		400
+//	@Failure		403
+//	@Failure		404
+//	@Failure		409
+//	@Failure		500
+//	@Security		ApiKeyAuth
+//	@Router			/queuedtickets [post]
 func (ctrl QueuedTicketController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
 		queuedTicketRaw queuedTicketControllerCreateRequestBody
@@ -241,6 +243,7 @@ func (ctrl QueuedTicketController) Create(w http.ResponseWriter, r *http.Request
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/queuedtickets/{id} [delete]
 func (ctrl QueuedTicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested queued ticket

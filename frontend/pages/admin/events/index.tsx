@@ -1,14 +1,64 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Button, Card, CardBody, CardFooter, CardHeader, Typography } from "@material-tailwind/react";
-import { useQuery } from "react-query";
+import { Card, CardHeader, CardBody, Typography, CardFooter, Button } from "@material-tailwind/react";
+import { useMutation, useQuery } from "react-query";
+import Swal from "sweetalert2";
 
 import Event, { getAllEvents } from "@/lib/backend/event";
+import deleteEvent from "@/lib/backend/event/deleteEvent";
+import getEventTicketCount from "@/lib/backend/event/getEventTicketCount";
 
 import Layout from "@/components/Layout";
 
-const EventCard = ({ event }: { event: Event }) => {
+const EventCard = ({ event, refetchEvents }: { event: Event; refetchEvents: Function }) => {
+    const {
+        isLoading,
+        error,
+        data: ticketCount,
+    } = useQuery(`frasertix-event-ticket-count-${event.id}`, () => getEventTicketCount(event.id));
+
+    const deleteEventMutation = useMutation(({ eventId }: { eventId: string }) => deleteEvent(eventId), {
+        onSuccess: () => {
+            return refetchEvents();
+        },
+    });
+
+    const deleteEventWithId = async (id: string) => {
+        const swalAlert = await Swal.fire({
+            title: "Are you sure?",
+            text: `Are you sure you want to delete the event "${event.name}"? This action is irreversible.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+        });
+
+        if (!swalAlert.isConfirmed) {
+            return;
+        }
+
+        try {
+            await deleteEventMutation.mutateAsync({ eventId: id });
+            Swal.fire({
+                title: "Successfully deleted",
+                text: `The event "${event.name}" has been deleted.`,
+                icon: "success",
+            });
+        } catch (err) {
+            Swal.fire({
+                title: "Something went wrong",
+                text: `Something went wrong while deleting the event "${event.name}". Please try again.`,
+                icon: "error",
+            });
+
+            throw err;
+        }
+    };
+
+    if (error) console.error(error);
+
     return (
         <div>
             <Card className="w-fit sm:w-80 lg:w-96">
@@ -24,22 +74,45 @@ const EventCard = ({ event }: { event: Event }) => {
                         className="w-full h-full object-cover object-center"
                     />
                 </CardHeader>
+
                 <CardBody>
                     <Typography
                         variant="h5"
                         color="blue-gray"
-                        className="mb-2 text-center sm:text-start"
+                        className="text-center sm:text-start"
                     >
                         {event.name}
+                    </Typography>
+                    <Typography className="text-center sm:text-start mb-2">
+                        {isLoading || error ? "..." : ticketCount} ticket{ticketCount !== 1 ? "s" : ""}
                     </Typography>
                     <Typography className="text-center sm:text-start">
                         {event.description.length > 120 ? event.description.slice(0, 120) + "..." : event.description}
                     </Typography>
                 </CardBody>
-                <CardFooter className="flex flex-col items-center sm:items-start text-center sm:text-start pt-0">
-                    <Link href={`/events/${event.id}`}>
-                        <Button>View More</Button>
+
+                <CardFooter className="flex flex-row gap-2 flex-wrap items-center sm:items-start text-center sm:text-start pt-0">
+                    <Link
+                        href={`/events/${event.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <Button color="blue">View Page</Button>
                     </Link>
+
+                    <Link href={`/admin/events/edit/${event.id}`}>
+                        <Button color="orange">Edit</Button>
+                    </Link>
+
+                    <Button
+                        color="red"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            deleteEventWithId(event.id);
+                        }}
+                    >
+                        Delete
+                    </Button>
                 </CardFooter>
             </Card>
         </div>
@@ -72,8 +145,13 @@ const SkeletonEventCard = () => {
     );
 };
 
-export default function EventsIndex() {
-    const { isLoading, error, data: events } = useQuery("frasertix-events", () => getAllEvents());
+export default function EventsAdminPage() {
+    const {
+        isLoading,
+        error,
+        data: events,
+        refetch: refetchEvents,
+    } = useQuery("frasertix-events", () => getAllEvents());
 
     if (error) console.error(error);
 
@@ -86,19 +164,24 @@ export default function EventsIndex() {
     const previousEvents = events
         ?.filter((event) => event.end_timestamp.getTime() < Date.now())
         .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
-
     return (
         <Layout
             name="Events"
-            userProtected={true}
-            className="p-4 sm:p-8 lg:px-12"
+            className="p-4 md:p-8 lg:px-12"
+            adminProtected
         >
-            <Typography
-                variant="h1"
-                className="mb-4 text-center"
-            >
-                Events
-            </Typography>
+            <div className="flex flex-col items-center gap-1 mb-4">
+                <Typography
+                    variant="h1"
+                    className="text-center"
+                >
+                    Manage Events
+                </Typography>
+
+                <Link href="/admin/events/create">
+                    <Button color="blue">Create Event</Button>
+                </Link>
+            </div>
 
             {!(isLoading || error) ? (
                 <div className="flex flex-col gap-4">
@@ -115,8 +198,7 @@ export default function EventsIndex() {
                                 variant="lead"
                                 className="text-center lg:w-3/4"
                             >
-                                It looks like there aren&apos;t any events yet. Check this website later when an event
-                                is being held!
+                                It looks like there aren&apos;t any events yet. You can add one with the button above.
                             </Typography>
                         </div>
                     )}
@@ -134,6 +216,7 @@ export default function EventsIndex() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>
@@ -154,6 +237,7 @@ export default function EventsIndex() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>
@@ -174,6 +258,7 @@ export default function EventsIndex() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
+                                        refetchEvents={refetchEvents}
                                     />
                                 ))}
                             </div>

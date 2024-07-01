@@ -2,10 +2,13 @@ package models
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/aritrosaha10/frasertickets/lib"
+	"github.com/rs/zerolog/log"
 	"github.com/xeipuuv/gojsonschema"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -61,7 +64,12 @@ func CheckIfEventExists(ctx context.Context, id primitive.ObjectID) (bool, error
 }
 
 func CreateNewEvent(ctx context.Context, event Event) (primitive.ObjectID, error) {
-	// TODO: Parse custom event schema
+	// Validate custom fields schema
+	schemaLoader := gojsonschema.NewGoLoader(event.RawCustomFieldsSchema)
+	_, err := gojsonschema.NewSchema(schemaLoader)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
 
 	// Try to add document
 	res, err := lib.Datastore.Db.Collection(eventsColName).InsertOne(ctx, event)
@@ -88,13 +96,14 @@ func ValidateCustomEventFields(ctx context.Context, event Event, customFields ma
 
 func UpdateExistingEvent(ctx context.Context, id string, updates map[string]interface{}) error {
 	UPDATABLE_KEYS := map[string]bool{
-		"name":            true,
-		"description":     true,
-		"img_url":         true,
-		"location":        true,
-		"address":         true,
-		"start_timestamp": true,
-		"end_timestamp":   true,
+		"name":                 true,
+		"description":          true,
+		"img_urls":             true,
+		"location":             true,
+		"address":              true,
+		"start_timestamp":      true,
+		"end_timestamp":        true,
+		"custom_fields_schema": false, // Not allowed because since a ticket might exist with only old attributes
 	}
 
 	// Get event to get the custom field schema
@@ -111,8 +120,25 @@ func UpdateExistingEvent(ctx context.Context, id string, updates map[string]inte
 			return ErrEditNotAllowed
 		}
 
-		// Add the key/val pair in BSON
-		bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: val})
+		// Convert timestamps to time.Time objects
+		if key == "start_timestamp" || key == "end_timestamp" {
+			// TODO: Validate if the start_timestamp is before end_timestamp, probably not necessary but may be helpful
+			if timestampStr, ok := val.(string); ok {
+				timestamp, err := time.Parse(time.RFC3339, timestampStr)
+				if err == nil {
+					bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: timestamp})
+				} else {
+					log.Warn().Err(err).Str("key", key).Msg("could not parse timestamp as RFC3339")
+					return errors.Join(fmt.Errorf("could not parse timestamp as RFC3339"), err)
+				}
+			} else {
+				log.Warn().Err(err).Str("key", key).Msg("could not parse timestamp as string")
+				return errors.Join(fmt.Errorf("could not parse timestamp as string"), err)
+			}
+		} else {
+			// Add the key/val pair in BSON
+			bsonUpdates = append(bsonUpdates, bson.E{Key: key, Value: val})
+		}
 	}
 
 	// Try to update document in DB

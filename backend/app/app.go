@@ -36,6 +36,11 @@ func Run() {
 	lib.Auth = auth
 	log.Debug().Msg("connected to auth server")
 
+	// Set up authentication
+	cloudStorage := lib.CreateNewStorage()
+	lib.CloudStorage = cloudStorage
+	log.Debug().Msg("connected to cloud storage")
+
 	// Initialize all indices on the database
 	err := models.CreateTicketIndices(context.Background())
 	if err != nil {

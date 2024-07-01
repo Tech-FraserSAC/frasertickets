@@ -127,6 +127,16 @@ func GetTickets(ctx context.Context, filter bson.M) ([]Ticket, error) {
 	return tickets, nil
 }
 
+func GetTicketCount(ctx context.Context, filter bson.M) (int64, error) {
+	// Try to get data from MongoDB
+	count, err := lib.Datastore.Db.Collection(ticketsColName).CountDocuments(ctx, filter)
+	if err != nil {
+		return -1, err
+	}
+
+	return count, nil
+}
+
 func SearchForTicket(
 	ctx context.Context,
 	eventID primitive.ObjectID,

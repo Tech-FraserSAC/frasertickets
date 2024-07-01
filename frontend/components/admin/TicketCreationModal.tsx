@@ -40,7 +40,7 @@ export default function TicketCreationModal({
         },
         {
             enabled: presetEvent === undefined,
-            refetchOnWindowFocus: false // Prevents text flash for event selector
+            refetchOnWindowFocus: false, // Prevents text flash for event selector
         },
     );
 
