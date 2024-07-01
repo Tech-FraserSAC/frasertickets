@@ -13,10 +13,12 @@ import { ValidationError, date, object, string } from "yup";
 
 import { getEvent } from "@/lib/backend/event";
 import createEvent from "@/lib/backend/event/createEvent";
+import uploadEventPhoto from "@/lib/backend/event/uploadEventPhoto";
 
 import Layout from "@/components/Layout";
 
 import DateTimePicker from "react-tailwindcss-datetimepicker";
+import updateEvent from "@/lib/backend/event/updateEvent";
 
 interface UploadedFile {
     file: File;
@@ -45,6 +47,8 @@ export default function EventsCreationAdminPage() {
     const [dataReady, setDataReady] = useState<boolean>(false);
     const [busy, setBusy] = useState<boolean>(false);
 
+    const [eventId, setEventId] = useState<string>("");
+    const [origEventName, setOrigEventName] = useState<string>("");
     const [eventName, setEventName] = useState<string>("");
     const [locationName, setLocationName] = useState<string>("");
     const [address, setAddress] = useState<string>("");
@@ -87,7 +91,7 @@ export default function EventsCreationAdminPage() {
 
     const onDragEnd = (result: any) => {
         if (!result.destination) return;
-    
+
         setImages((currentImages) => {
             const reorderedImages = Array.from(currentImages);
             const [movedImage] = reorderedImages.splice(result.source.index, 1);
@@ -95,7 +99,6 @@ export default function EventsCreationAdminPage() {
             return reorderedImages;
         });
     };
-    
 
     const uploadEventToDB = async () => {
         if (images.length === 0) {
@@ -152,30 +155,55 @@ export default function EventsCreationAdminPage() {
             return;
         }
 
-        // Convert data into FormData & send to server
-        // const formData = new FormData();
-        // Object.entries(newEventData).forEach(([key, val]) => formData.append(key, typeof val === "string" ? val : JSON.stringify(val)));
-        // fileUploads.forEach(file => { formData.append("images", file) });
+        const imgsToUpload = images
+            .map((img, i) => ({ fInfo: img, idx: i }))
+            .filter((img) => typeof img.fInfo !== "string") as {
+            fInfo: UploadedFile;
+            idx: Number;
+        }[];
+        let newImgUrls: string[];
+        try {
+            const newlyUploadedImgUrls = await Promise.all(imgsToUpload.map(async (imgFileRef) => ({
+                url: await uploadEventPhoto(imgFileRef.fInfo.file),
+                origIdx: imgFileRef.idx,
+            })));
+            newImgUrls = images.map((img, i) => typeof img === "string" ? img : newlyUploadedImgUrls.find(val => val.origIdx === i)!.url);
+        } catch (e) {
+            console.error(e);
+            Swal.fire({
+                title: "Something went wrong",
+                text: "The new images could not be uploaded. Please try again later.",
+                icon: "error"
+            });
+            return;
+        }
 
-        // let eventId: string;
-        // try {
-        //     eventId = (await createEvent(formData)).id;
-        // } catch (e) {
-        //     console.error(e)
-        //     Swal.fire({
-        //         title: "Something went wrong",
-        //         text: "Your new event could not be added. Please try again later.",
-        //         icon: "error"
-        //     });
-        //     return;
-        // }
+        try {
+            await updateEvent(eventId, {
+                name: eventName,
+                location: locationName,
+                address: address,
+                description: description,
+                start_timestamp: selectedRange.start,
+                end_timestamp: selectedRange.end,
+                img_urls: newImgUrls,
+            });
+        } catch (e) {
+            console.error(e)
+            Swal.fire({
+                title: "Something went wrong",
+                text: "The event could not be updated. Please try again later.",
+                icon: "error"
+            });
+            return;
+        }
 
-        // router.push(`/events/${eventId}`);
-        // Swal.fire({
-        //     title: "Successfully created event!",
-        //     text: "Your event has successfully been created. Redirecting you to the event page...",
-        //     icon: "success",
-        // });
+        router.push(`/events/${eventId}`);
+        Swal.fire({
+            title: "Successfully updated event!",
+            text: "Your event has successfully been updated. Redirecting you to the event page...",
+            icon: "success",
+        });
     };
 
     const onFormSubmit = async () => {
@@ -200,9 +228,12 @@ export default function EventsCreationAdminPage() {
                 router.push("/admin/events");
                 return;
             }
+            
+            setEventId(id);
 
             try {
                 const oldEventData = await getEvent(id);
+                setOrigEventName(oldEventData.name);
                 setEventName(oldEventData.name);
                 setLocationName(oldEventData.location);
                 setAddress(oldEventData.address);
@@ -229,7 +260,7 @@ export default function EventsCreationAdminPage() {
 
     return (
         <Layout
-            name={eventName ? `Edit Event "${eventName}"` : "Edit Event"}
+            name={eventName ? `Edit Event "${origEventName}"` : "Edit Event"}
             className="flex flex-col items-center p-4 md:p-8"
             adminProtected
         >
@@ -246,7 +277,7 @@ export default function EventsCreationAdminPage() {
                     variant="h1"
                     className="text-center mb-4"
                 >
-                    Edit Event "{eventName}"
+                    Edit Event "{origEventName}"
                 </Typography>
             </div>
 
@@ -291,7 +322,10 @@ export default function EventsCreationAdminPage() {
                             <div className="flex flex-col gap-4">
                                 {images.length > 0 && (
                                     <DragDropContext onDragEnd={onDragEnd}>
-                                        <Droppable droppableId="images" direction="horizontal">
+                                        <Droppable
+                                            droppableId="images"
+                                            direction="horizontal"
+                                        >
                                             {(provided) => (
                                                 <div
                                                     className="flex flex-row items-center justify-center w-full space-x-2"

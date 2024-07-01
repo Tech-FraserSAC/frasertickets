@@ -16,6 +16,7 @@ import (
 	"github.com/aritrosaha10/frasertickets/models"
 	"github.com/aritrosaha10/frasertickets/util"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httprate"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -49,6 +50,14 @@ func (ctrl EventController) Routes() chi.Router {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AdminAuthorizerMiddleware)
 		r.Post("/", ctrl.Create) // POST /events - add new event to database, only available to admins
+
+		r.Group(func(r chi.Router) {
+			r.Use(httprate.Limit(20, time.Minute, httprate.WithKeyFuncs(
+				httprate.KeyByRealIP,
+				httprate.KeyByEndpoint,
+			)))
+			r.Post("/upload-photo", ctrl.UploadPhoto) // POST /events/upload-photo - uploads new photo for event in GCP, only available to admins
+		})
 	})
 
 	r.Route("/{id}", func(r chi.Router) {
@@ -340,6 +349,126 @@ func (ctrl EventController) Create(w http.ResponseWriter, r *http.Request) {
 		Msg("event created")
 }
 
+// UploadPhoto godoc
+//
+//	@Summary		Uploads a event photo
+//	@Description	Uploads an event photo to google cloud storage. Only available to admins. This should only be used when uploading new photos while editing an event.
+//	@Tags			event
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Success		200
+//	@Failure		400
+//	@Failure		500
+//	@Security		ApiKeyAuth
+//	@Router			/events/upload-photo [post]
+func (ctrl EventController) UploadPhoto(w http.ResponseWriter, r *http.Request) {
+	// TODO: maybe consider using formstream in the future if performance optimizations are needed
+	err := r.ParseMultipartForm(10 << 20) // 10 MB
+	if err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("raw form data is invalid")))
+		return
+	}
+
+	// Validate there's one photo before uploading
+	fileHeaders := r.MultipartForm.File["image"]
+	if len(fileHeaders) != 1 {
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("more/less than 1 image provided")))
+		return
+	}
+	fileHeader := fileHeaders[0]
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType != "image/png" && mimeType != "image/jpeg" {
+		render.Render(w, r, util.ErrInvalidRequest(fmt.Errorf("non-image file provided, only provide png or jpg files")))
+		return
+	}
+
+	// Process and upload all photo
+	file, err := fileHeader.Open()
+	if err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not open provided image"), err)))
+		return
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not parse provided image"), err)))
+		return
+	}
+
+	img := bimg.NewImage(buf.Bytes())
+	imgSize, err := img.Size()
+	if err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("failed to get img size"), err)))
+		return
+	}
+	imgOpts := bimg.Options{
+		Quality: 100,
+		Width:   imgSize.Width,
+		Height:  imgSize.Height,
+		Type:    bimg.WEBP,
+	}
+
+	// Crop to 2000px width if larger
+	if imgSize.Width > 2000 {
+		imgOpts.Width = 2000
+		imgOpts.Height = imgSize.Height * 2000 / imgSize.Width
+	} else if imgSize.Height > 2000 {
+		imgOpts.Height = 1000
+		imgOpts.Width = imgSize.Width * 2000 / imgSize.Height
+	}
+
+	processedImg, err := img.Process(imgOpts)
+	if err != nil {
+		render.Render(w, r, util.ErrInvalidRequest(errors.Join(fmt.Errorf("could not compress image"), err)))
+		return
+	}
+
+	// Start writing image to GCP
+	processedImgFname := uuid.New().String() + ".webp"
+	cloudStorageObj := lib.CloudStorage.MediaBucket.Object(processedImgFname)
+
+	// Prepare to write byte array to cloud storage
+	wc := cloudStorageObj.NewWriter(r.Context())
+	if _, err = wc.Write(processedImg); err != nil {
+		log.Error().Err(err).Msg("could not write bytes to cloud storage")
+		render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+		return
+	}
+	if err = wc.Close(); err != nil {
+		log.Error().Err(err).Msg("could not close byte writer to cloud storage")
+		render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+		return
+	}
+
+	if err = cloudStorageObj.ACL().Set(r.Context(), storage.AllUsers, storage.RoleReader); err != nil {
+		log.Error().Err(err).Msg("could not set permissions of cloud storage obj")
+		render.Render(w, r, util.ErrServer(fmt.Errorf("could not save image")))
+		return
+	}
+
+	imgUrl := fmt.Sprintf("https://storage.googleapis.com/%s/%s", lib.CloudStorage.MediaBucketName, processedImgFname)
+	log.Info().Str("url", imgUrl).Msg("uploaded image to gcp")
+
+	w.Write([]byte(imgUrl))
+
+	// Write audit info log
+	token, err := util.GetUserTokenFromContext(r.Context())
+	uid := ""
+	if err == nil {
+		uid = token.UID
+	}
+	log.Info().
+		Str("type", "audit").
+		Str("controller", "event").
+		Str("requester_uid", uid).
+		Str("action", "createEvent").
+		Str("imgUrl", imgUrl).
+		Int64("initialImgSize", fileHeader.Size).
+		Bool("privileged", true).
+		Msg("uploaded event img to gcp")
+}
+
 // List godoc
 //
 //	@Summary		Get an event
@@ -560,9 +689,17 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested event
 	id := chi.URLParam(r, "id")
 
+	// Try to convert the given ID into an Object ID
+	eventID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error().Err(err).Msg("could not convert url param to object id")
+		render.Render(w, r, util.ErrInvalidRequest(err))
+		return
+	}
+
 	// Get JSON body
 	var requestedUpdates map[string]interface{}
-	err := json.NewDecoder(r.Body).Decode(&requestedUpdates)
+	err = json.NewDecoder(r.Body).Decode(&requestedUpdates)
 	if err != nil {
 		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrInvalidRequest(err))
@@ -570,7 +707,7 @@ func (ctrl EventController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if it exists
-	_, err = models.GetEvent(r.Context(), bson.M{"_id": id})
+	_, err = models.GetEvent(r.Context(), bson.M{"_id": eventID})
 	if err == mongo.ErrNoDocuments {
 		log.Error().Stack().Err(err).Send()
 		render.Render(w, r, util.ErrNotFound)
