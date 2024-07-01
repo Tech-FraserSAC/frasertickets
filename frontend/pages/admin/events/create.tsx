@@ -336,7 +336,10 @@ export default function EventsCreationAdminPage() {
                                                     or drag and drop<span className="text-red-500"> *</span>
                                                 </p>
                                                 <p className="text-xs text-blue-gray-500">(Max. 5, PNG or JPG)</p>
-                                                <p className="text-xs text-blue-gray-500">Note: all images will be cropped to the initial image's aspect ratio.</p>
+                                                <p className="text-xs text-blue-gray-500">
+                                                    Note: all images will be cropped to the initial image's aspect
+                                                    ratio.
+                                                </p>
                                             </>
                                         ) : (
                                             <>
