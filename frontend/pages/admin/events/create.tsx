@@ -337,7 +337,7 @@ export default function EventsCreationAdminPage() {
                                                 </p>
                                                 <p className="text-xs text-blue-gray-500">(Max. 5, PNG or JPG)</p>
                                                 <p className="text-xs text-blue-gray-500">
-                                                    Note: all images will be cropped to the initial image's aspect
+                                                    Note: all images will be cropped to the initial image&apos;s aspect
                                                     ratio.
                                                 </p>
                                             </>
