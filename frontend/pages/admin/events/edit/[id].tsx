@@ -280,7 +280,7 @@ export default function EventsCreationAdminPage() {
                     variant="h1"
                     className="text-center mb-4"
                 >
-                    Edit Event "{origEventName}"
+                    Edit Event &quot;{origEventName}&quot;
                 </Typography>
             </div>
 
