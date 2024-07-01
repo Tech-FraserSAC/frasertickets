@@ -77,11 +77,15 @@ export default function EventsIndex() {
 
     if (error) console.error(error);
 
-    const currentEvents = events?.filter(
-        (event) => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now(),
-    );
-    const upcomingEvents = events?.filter((event) => event.start_timestamp.getTime() > Date.now());
-    const previousEvents = events?.filter((event) => event.end_timestamp.getTime() < Date.now());
+    const currentEvents = events
+        ?.filter((event) => event.start_timestamp.getTime() < Date.now() && event.end_timestamp.getTime() > Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
+    const upcomingEvents = events
+        ?.filter((event) => event.start_timestamp.getTime() > Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
+    const previousEvents = events
+        ?.filter((event) => event.end_timestamp.getTime() < Date.now())
+        .sort((a, b) => b.start_timestamp.getTime() - a.start_timestamp.getTime());
 
     return (
         <Layout
