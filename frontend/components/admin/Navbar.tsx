@@ -145,7 +145,7 @@ const navListItems = [
 
 function NavList() {
     return (
-        <ul className="my-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center">
+        <ul className="my-2 flex flex-col xl:gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
                 <Link
                     key={key}
@@ -186,7 +186,7 @@ export function ComplexNavbar() {
                         FraserTickets (Admin)
                     </Typography>
                 </Link>
-                <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 lg:block">
+                <div className="absolute top-1/2 left-1/2 hidden lg:-translate-x-[47%] xl:-translate-x-1/2 -translate-y-1/2 lg:block">
                     <NavList />
                 </div>
                 <IconButton
