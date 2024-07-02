@@ -12,7 +12,6 @@ import Swal from "sweetalert2";
 import { ValidationError, array, date, object, string } from "yup";
 
 import createEvent from "@/lib/backend/event/createEvent";
-import trimFileName from "@/util/trimFileName";
 
 import Layout from "@/components/Layout";
 
