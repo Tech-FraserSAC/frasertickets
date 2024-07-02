@@ -1,61 +1,69 @@
-import {
-    Navbar,
-    Typography,
-    Button,
-    Menu,
-    MenuHandler,
-    MenuList,
-    MenuItem,
-    IconButton,
-    Collapse,
-} from "@material-tailwind/react";
-import {
-    UserCircleIcon,
-    ChevronDownIcon,
-    PowerIcon,
-    Bars2Icon,
-    CalendarDaysIcon,
-    ArrowRightOnRectangleIcon,
-    UserIcon,
-    UsersIcon,
-    TicketIcon,
-    QrCodeIcon
-} from "@heroicons/react/24/outline";
 import { createElement, useEffect, useState } from "react";
-import { useFirebaseAuth } from "../FirebaseAuthContext";
+
 import Image from "next/image";
-import DefaultAvatar from "@/assets/default-avatar.jpg"
-import logOut from "@/util/logOut";
 import Link from "next/link";
 import router from "next/router";
+
+import {
+    ArrowRightOnRectangleIcon,
+    Bars2Icon,
+    CalendarDaysIcon,
+    ChevronDownIcon,
+    QrCodeIcon,
+    QueueListIcon,
+    TicketIcon,
+    UserIcon,
+    UsersIcon,
+} from "@heroicons/react/24/outline";
+import {
+    Button,
+    Collapse,
+    IconButton,
+    Menu,
+    MenuHandler,
+    MenuItem,
+    MenuList,
+    Navbar,
+    Typography,
+} from "@material-tailwind/react";
+
+import logOut from "@/util/logOut";
+
+import { useFirebaseAuth } from "@/components/FirebaseAuthContext";
+
+import DefaultAvatar from "@/assets/default-avatar.jpg";
 
 // profile menu component
 const profileMenuItems = [
     {
         label: "Enter User Portal",
         icon: UserIcon,
-        action: () => router.push("/events")
+        action: () => router.push("/events"),
     },
     {
         label: "Sign Out",
         icon: ArrowRightOnRectangleIcon,
-        action: () => logOut()
+        action: () => logOut(),
     },
 ];
 
 function ProfileMenu() {
-    const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const { user } = useFirebaseAuth()
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { user } = useFirebaseAuth();
 
-    const closeMenu = () => setIsMenuOpen(false)
+    const closeMenu = () => setIsMenuOpen(false);
 
     return (
-        <Menu open={isMenuOpen} handler={setIsMenuOpen} placement="bottom-end">
+        <Menu
+            open={isMenuOpen}
+            handler={setIsMenuOpen}
+            placement="bottom-end"
+        >
             <MenuHandler>
                 <Button
                     variant="text"
                     color="blue-gray"
-                    className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 md:ml-auto"
+                    className="flex items-center gap-1 rounded-full py-0.5 pr-2 pl-0.5 lg:ml-auto"
                 >
                     <Image
                         src={user?.photoURL ?? DefaultAvatar}
@@ -69,8 +77,7 @@ function ProfileMenu() {
 
                     <ChevronDownIcon
                         strokeWidth={2.5}
-                        className={`h-3 w-3 transition-transform ${isMenuOpen ? "rotate-180" : ""
-                            }`}
+                        className={`h-3 w-3 transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
                     />
                 </Button>
             </MenuHandler>
@@ -81,13 +88,12 @@ function ProfileMenu() {
                         <MenuItem
                             key={label}
                             onClick={() => {
-                                action()
-                                closeMenu()
+                                action();
+                                closeMenu();
                             }}
-                            className={`flex items-center gap-2 rounded ${isLastItem
-                                ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10"
-                                : ""
-                                }`}
+                            className={`flex items-center gap-2 rounded ${
+                                isLastItem ? "hover:bg-red-500/10 focus:bg-red-500/10 active:bg-red-500/10" : ""
+                            }`}
                         >
                             {createElement(icon, {
                                 className: `h-4 w-4 ${isLastItem ? "text-red-500" : ""}`,
@@ -109,43 +115,52 @@ function ProfileMenu() {
     );
 }
 
-// nav list component
 const navListItems = [
-    // {
-    //     label: "Events",
-    //     icon: CalendarDaysIcon,
-    //     link: "/events"
-    // },
+    {
+        label: "Events",
+        icon: CalendarDaysIcon,
+        link: "/admin/events",
+    },
     {
         label: "Tickets",
         icon: TicketIcon,
-        link: "/admin/tickets"
+        link: "/admin/tickets",
+    },
+    {
+        label: "Queued Tickets",
+        icon: QueueListIcon,
+        link: "/admin/queued-tickets",
     },
     {
         label: "Users",
         icon: UsersIcon,
-        link: "/admin/users"
+        link: "/admin/users",
     },
     {
         label: "Scan",
         icon: QrCodeIcon,
-        link: "/admin/scan"
+        link: "/admin/scan",
     },
 ];
 
 function NavList() {
     return (
-        <ul className="my-2 flex flex-col gap-2 md:mb-0 md:mt-0 md:flex-row md:items-center">
+        <ul className="my-2 flex flex-col xl:gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center">
             {navListItems.map(({ label, icon, link }, key) => (
-                <Link key={key} href={link}>
+                <Link
+                    key={key}
+                    href={link}
+                >
                     <Typography
                         variant="small"
                         color="blue-gray"
                         className="font-normal"
                     >
-                        <MenuItem className="flex items-center gap-2 md:rounded-full">
-                            {createElement(icon, { className: "h-[18px] w-[18px]" })}{" "}
-                            {label}
+                        <MenuItem className="flex items-center gap-2 lg:rounded-full">
+                            {createElement(icon, {
+                                className: "h-[18px] w-[18px]",
+                            })}{" "}
+                            <span>{label}</span>
                         </MenuItem>
                     </Typography>
                 </Link>
@@ -160,23 +175,18 @@ export function ComplexNavbar() {
     const toggleIsNavOpen = () => setIsNavOpen((cur) => !cur);
 
     useEffect(() => {
-        window.addEventListener(
-            "resize",
-            () => window.innerWidth >= 768 && setIsNavOpen(false),
-        );
+        window.addEventListener("resize", () => window.innerWidth >= 1024 && setIsNavOpen(false));
     }, []);
 
     return (
-        <Navbar className="md:mx-4 md:mt-4 p-2 rounded-none md:rounded-full md:pl-6 w-auto transition-all duration-150 max-w-none">
+        <Navbar className="lg:mx-4 lg:mt-4 p-2 rounded-none lg:rounded-full lg:pl-6 w-auto transition-all duration-150 max-w-none">
             <div className="relative mx-auto flex items-center text-blue-gray-900">
                 <Link href="/admin">
-                    <Typography
-                        className="mr-4 ml-2 cursor-pointer font-medium text-xl"
-                    >
+                    <Typography className="mr-4 ml-2 cursor-pointer font-medium text-xl">
                         FraserTickets (Admin)
                     </Typography>
                 </Link>
-                <div className="absolute top-2/4 left-2/4 hidden -translate-x-2/4 -translate-y-2/4 md:block">
+                <div className="absolute top-1/2 left-1/2 hidden lg:-translate-x-[47%] xl:-translate-x-1/2 -translate-y-1/2 lg:block">
                     <NavList />
                 </div>
                 <IconButton
@@ -184,13 +194,16 @@ export function ComplexNavbar() {
                     color="blue-gray"
                     variant="text"
                     onClick={toggleIsNavOpen}
-                    className="ml-auto mr-2 md:hidden"
+                    className="ml-auto mr-2 lg:hidden"
                 >
                     <Bars2Icon className="h-6 w-6" />
                 </IconButton>
                 <ProfileMenu />
             </div>
-            <Collapse open={isNavOpen} className="h-full">
+            <Collapse
+                open={isNavOpen}
+                className="h-full"
+            >
                 <NavList />
             </Collapse>
         </Navbar>

@@ -13,4 +13,4 @@ swagger.json
 swagger.yaml
 
 # Any CSVs we might have to load, definitely don't want them going into repo
-.csv
+*.csv

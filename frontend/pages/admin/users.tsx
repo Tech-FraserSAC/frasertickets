@@ -1,17 +1,19 @@
-import Layout from "@/components/admin/Layout";
-import getAllUsers from "@/lib/backend/user/getAllUsers";
-import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
-import { Typography } from "@material-tailwind/react";
 import Image from "next/image";
-import { useState } from "react";
+
+import { Typography } from "@material-tailwind/react";
+import { ColDef } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
 import { useMutation, useQuery } from "react-query";
 
-import { AgGridReact } from 'ag-grid-react'; // the AG Grid React Component
-import { ColDef } from "ag-grid-community";
+import { editUser, getAllUsers } from "@/lib/backend/user";
+import { cleanDisplayNameWithStudentNumber } from "@/util/cleanDisplayName";
 
-import 'ag-grid-community/styles/ag-grid.css'; // Core grid CSS, always needed
-import 'ag-grid-community/styles/ag-theme-alpine.css'; // Optional theme CSS
-import editUser from "@/lib/backend/user/editUser";
+import Layout from "@/components/Layout";
+
+// Core grid CSS, always needed
+import "ag-grid-community/styles/ag-grid.css";
+// Optional theme CSS
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
 const ProfilePictureCellRenderer = (props: any) => {
     return (
@@ -26,27 +28,27 @@ const ProfilePictureCellRenderer = (props: any) => {
                 unoptimized
             />
         </div>
-    )
-}
+    );
+};
 
 export default function UserTablePage() {
-    const { isLoading, error, data: users, refetch: refetchUsers } = useQuery(
-        'frasertix-admin-users', () => (
-        getAllUsers()
-    ))
+    const { data: users, refetch: refetchUsers } = useQuery("frasertix-admin-users", () => getAllUsers());
 
-    const updateFullNameMutation = useMutation(({ userId, newFullName }: { userId: string, newFullName: string }) => {
-        if (newFullName.trim() === "") {
-            alert("Please provide a non-empty name.")
-            throw "New name is empty"
-        }
-        
-        return editUser(userId, { full_name: newFullName })
-    }, {
-        onSuccess: () => {
-            return refetchUsers()
-        }
-    })
+    const updateFullNameMutation = useMutation(
+        ({ userId, newFullName }: { userId: string; newFullName: string }) => {
+            if (newFullName.trim() === "") {
+                alert("Please provide a non-empty name.");
+                throw "New name is empty";
+            }
+
+            return editUser(userId, { full_name: newFullName });
+        },
+        {
+            onSuccess: () => {
+                return refetchUsers();
+            },
+        },
+    );
 
     const columnDefs: ColDef[] = [
         {
@@ -56,50 +58,46 @@ export default function UserTablePage() {
             width: 75,
             filter: false,
             sortable: false,
-            flex: 0
+            flex: 0,
         },
         {
             field: "full_name",
             headerName: "Full Name",
-            valueFormatter: (params: any) => (
-                cleanDisplayNameWithStudentNumber(
-                    params.data.full_name,
-                    params.data.student_number
-                )
-            ),
+            valueFormatter: (params: any) =>
+                cleanDisplayNameWithStudentNumber(params.data.full_name, params.data.student_number),
             editable: true,
-            valueGetter: params => params.data.full_name,
-            valueSetter: params => {
+            valueGetter: (params) => params.data.full_name,
+            valueSetter: (params) => {
                 try {
                     updateFullNameMutation.mutate({
                         userId: params.data.id,
-                        newFullName: params.newValue
-                    })
-                    return true
+                        newFullName: params.newValue,
+                    });
+                    return true;
                 } catch (e) {
-                    console.error(e)
-                    return false
+                    console.error(e);
+                    return false;
                 }
-            }
+            },
         },
         {
             field: "student_number",
             headerName: "Student #",
             comparator: (a, b, nodeA, nodeB, isDesc) => {
-                const numA = Number(a.replace(/\D/g,''))
-                const numB = Number(b.replace(/\D/g,''))
+                const numA = Number(a.replace(/\D/g, ""));
+                const numB = Number(b.replace(/\D/g, ""));
                 if (Number.isNaN(numA) || Number.isNaN(numB)) {
                     return 0;
                 }
 
-                return numA - numB
-            }
+                return numA - numB;
+            },
         },
         {
             field: "admin",
             headerName: "Admin?",
         },
-    ]
+    ];
 
     const defaultColDef: ColDef = {
         sortable: true,
@@ -107,14 +105,26 @@ export default function UserTablePage() {
         flex: 1,
         rowDrag: false,
         lockVisible: true,
-        resizable: true
-    }
+        resizable: true,
+    };
 
     return (
-        <Layout name="Users" className="p-4 md:p-8 lg:px-12">
-            <Typography variant="h1" className="text-center mb-4">Users</Typography>
+        <Layout
+            name="Users"
+            className="p-4 md:p-8 lg:px-12"
+            adminProtected
+        >
+            <Typography
+                variant="h1"
+                className="text-center mb-4"
+            >
+                Users
+            </Typography>
             <div className="overflow-x-auto w-full">
-                <div className="ag-theme-alpine" style={{ width: "100%", height: "68vh" }}>
+                <div
+                    className="ag-theme-alpine"
+                    style={{ width: "100%", height: "68vh" }}
+                >
                     <AgGridReact
                         rowData={users}
                         columnDefs={columnDefs}
@@ -123,11 +133,11 @@ export default function UserTablePage() {
                         rowSelection="multiple"
                         gridOptions={{
                             suppressScrollOnNewData: true,
-                            getRowId: params => params.data.id
+                            getRowId: (params) => params.data.id,
                         }}
                     />
                 </div>
             </div>
         </Layout>
-    )
+    );
 }

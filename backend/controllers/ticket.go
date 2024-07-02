@@ -20,9 +20,10 @@ import (
 )
 
 type ticketControllerCreateRequestBody struct {
-	StudentNumber string `json:"studentNumber" validate:"required"`
-	EventID       string `json:"eventID" validate:"required,mongodb"`
-	MaxScanCount  int    `json:"maxScanCount" validate:"gte=0"`
+	StudentNumber string                 `json:"studentNumber" validate:"required"`
+	EventID       string                 `json:"eventID" validate:"required,mongodb"`
+	MaxScanCount  int                    `json:"maxScanCount" validate:"gte=0"`
+	CustomFields  map[string]interface{} `json:"customFields" validate:"required"`
 }
 
 type ticketControllerSearchRequestBody struct {
@@ -35,7 +36,8 @@ type ticketControllerScanRequestBody struct {
 }
 
 type ticketControllerUpdateRequestBody struct {
-	MaxScanCount int `json:"maxScanCount"`
+	MaxScanCount int                    `json:"maxScanCount"`
+	CustomFields map[string]interface{} `json:"customFields"`
 }
 
 type TicketController struct{}
@@ -66,8 +68,8 @@ func (ctrl TicketController) Routes() chi.Router {
 		// Admin-only routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AdminAuthorizerMiddleware)
-			r.Patch("/", ctrl.Update)  // PATCH /events/{id} - update ticket, only available to admins
-			r.Delete("/", ctrl.Delete) // DELETE /events/{id} - delete ticket, only available to admins
+			r.Patch("/", ctrl.Update)  // PATCH /tickets/{id} - update ticket, only available to admins
+			r.Delete("/", ctrl.Delete) // DELETE /tickets/{id} - delete ticket, only available to admins
 		})
 	})
 
@@ -83,6 +85,7 @@ func (ctrl TicketController) Routes() chi.Router {
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets [get]
 func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
@@ -116,10 +119,30 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check admin status for next part, if there's an error, just ignore it
+	// as isAdmin will still be false
+	isAdmin, _ := util.CheckIfAdmin(r.Context())
+
 	// Convert into list of renderers to turn into JSON
 	renderers := []render.Renderer{}
 	for _, ticket := range tickets {
 		t := ticket // Duplicate it before passing by reference to avoid only passing the last user obj
+
+		if !isAdmin {
+			// Remove any sensitive custom data fields before handing it to user
+			customDataSchema, err := util.ConvertRawCustomFieldsSchema(t.EventData.RawCustomFieldsSchema)
+			if err != nil {
+				// Just don't show custom fields if the schema doesn't work
+				t.CustomFields = nil
+			} else {
+				for key, property := range customDataSchema.Properties {
+					if !property.UserVisible {
+						delete(t.CustomFields, key)
+					}
+				}
+			}
+		}
+
 		renderers = append(renderers, &t)
 	}
 
@@ -150,6 +173,7 @@ func (ctrl TicketController) ListSelf(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/user/{uid} [get]
 func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 	// Get user UID
@@ -211,14 +235,27 @@ func (ctrl TicketController) ListUser(w http.ResponseWriter, r *http.Request) {
 //	@Summary		List all tickets
 //	@Description	List all tickets. Only available to admins.
 //	@Tags			ticket
+//	@Param          eventId	query string false "filter by event ID"
 //	@Produce		json
 //	@Success		200	{object}	[]models.Ticket
 //	@Failure		403
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/all [get]
 func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
+	// Filter by event if search query provided
+	eventIdRaw := r.URL.Query().Get("eventId")
+	filter := bson.M{}
+
+	if eventIdRaw != "" {
+		eventId, err := primitive.ObjectIDFromHex(eventIdRaw)
+		if err == nil {
+			filter["event"] = eventId
+		}
+	}
+
 	// Try to get tickets
-	tickets, err := models.GetTickets(r.Context(), bson.M{})
+	tickets, err := models.GetTickets(r.Context(), filter)
 	if err != nil {
 		log.Error().Err(err).Msg("could not fetch all tickets")
 		render.Render(w, r, util.ErrServer(err))
@@ -255,19 +292,20 @@ func (ctrl TicketController) ListAll(w http.ResponseWriter, r *http.Request) {
 
 // Create creates a new ticket.
 //
-//		@Summary		Create new ticket
-//		@Description	Create a new ticket. Only available to admins.
-//		@Tags			ticket
-//	 @Accept json
-//		@Produce		json
-//		@Param			event	body		ticketControllerCreateRequestBody	true	"Ticket details"
-//		@Success		200	{object}	models.Ticket
-//		@Failure		400
-//		@Failure		403
-//		@Failure		404
-//		@Failure		409
-//		@Failure		500
-//		@Router			/tickets [post]
+//	@Summary		Create new ticket
+//	@Description	Create a new ticket. Only available to admins.
+//	@Tags			ticket
+//	@Accept json
+//	@Produce		json
+//	@Param			event	body	ticketControllerCreateRequestBody	true	"Ticket details"
+//	@Success		200		{object}	models.Ticket
+//	@Failure		400
+//	@Failure		403
+//	@Failure		404
+//	@Failure		409
+//	@Failure		500
+//	@Security		ApiKeyAuth
+//	@Router			/tickets [post]
 func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	var (
 		ticketRaw ticketControllerCreateRequestBody
@@ -349,6 +387,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 	ticket.EventData = event
 	ticket.Timestamp = time.Now()
 	ticket.MaxScanCount = ticketRaw.MaxScanCount
+	ticket.CustomFields = ticketRaw.CustomFields
 
 	// Try to add to DB
 	id, err := models.CreateNewTicket(r.Context(), ticket)
@@ -415,6 +454,7 @@ func (ctrl TicketController) Create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [get]
 func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
@@ -463,6 +503,21 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Remove any sensitive custom data fields before handing it to user if they aren't admin
+	if !isAdmin {
+		customDataSchema, err := util.ConvertRawCustomFieldsSchema(ticket.EventData.RawCustomFieldsSchema)
+		if err != nil {
+			// Just don't show custom fields if the schema doesn't work
+			ticket.CustomFields = nil
+		} else {
+			for key, property := range customDataSchema.Properties {
+				if !property.UserVisible {
+					delete(ticket.CustomFields, key)
+				}
+			}
+		}
+	}
+
 	// Return as JSON, fallback if it fails
 	if err := render.Render(w, r, &ticket); err != nil {
 		render.Render(w, r, util.ErrRender(err))
@@ -497,6 +552,7 @@ func (ctrl TicketController) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/search [post]
 func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerSearchRequestBody
@@ -591,6 +647,7 @@ func (ctrl TicketController) Search(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/scan [post]
 func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 	var searchQuery ticketControllerScanRequestBody
@@ -741,6 +798,7 @@ func (ctrl TicketController) Scan(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [patch]
 func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 	var updateReq ticketControllerUpdateRequestBody
@@ -790,14 +848,17 @@ func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(updateReq)
-
 	updateBody := make(map[string]interface{})
 	if updateReq.MaxScanCount != 0 {
 		if updateReq.MaxScanCount == -1 {
 			updateBody["maxScanCount"] = 0
 		} else {
 			updateBody["maxScanCount"] = updateReq.MaxScanCount
+		}
+	}
+	for key, val := range updateReq.CustomFields {
+		if key != "maxScanCount" {
+			updateBody[key] = val
 		}
 	}
 
@@ -838,6 +899,7 @@ func (ctrl TicketController) Update(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/tickets/{id} [delete]
 func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested ticket
@@ -885,6 +947,3 @@ func (ctrl TicketController) Delete(w http.ResponseWriter, r *http.Request) {
 		Bool("privileged", true).
 		Msg("deleted ticket")
 }
-
-// event ID: 64bdebd2be3ba505e0c17137
-// user ID: 37907632-77e4-46ad-b133-6c589e5172e6

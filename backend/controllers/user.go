@@ -74,6 +74,7 @@ func (ctrl UserController) Routes() chi.Router {
 //	@Produce		json
 //	@Success		200	{object}	[]models.User
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/users [get]
 func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 	users, err := models.GetAllUsers(r.Context())
@@ -120,6 +121,7 @@ func (ctrl UserController) List(w http.ResponseWriter, r *http.Request) {
 //	@Failure		401
 //	@Failure		403
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/users [post]
 func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 	// Get UID and user record
@@ -229,6 +231,7 @@ func (ctrl UserController) Create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/users/{id} [get]
 func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 	// Get ID of requested user
@@ -285,6 +288,7 @@ func (ctrl UserController) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		403
 //	@Failure		404
 //	@Failure		500
+//	@Security		ApiKeyAuth
 //	@Router			/users/{id} [patch]
 func (ctrl UserController) Update(w http.ResponseWriter, r *http.Request) {
 	// Only keys that can be updated
