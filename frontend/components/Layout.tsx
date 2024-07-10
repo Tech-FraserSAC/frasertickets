@@ -40,8 +40,8 @@ export default function Layout({
 
     const title = `${name} | FraserTickets`;
     const description = adminProtected
-        ? "The digital ticketing platform for John Fraser S.S."
-        : "An admin page for FraserTickets.";
+        ? "An admin page for FraserTickets."
+        : "The digital ticketing platform for John Fraser S.S.";
 
     useEffect(() => {
         if (user === null && loaded && userProtected) {
