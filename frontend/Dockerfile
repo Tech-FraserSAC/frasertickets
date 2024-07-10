@@ -1,6 +1,13 @@
 # Stage 1: Build the application
 FROM node:18-alpine AS builder
 
+# Import build args as env vars
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_GCLOUD_CLIENT_ID
+
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_GCLOUD_CLIENT_ID=$NEXT_PUBLIC_GCLOUD_CLIENT_ID
+
 # Set the working directory
 WORKDIR /app
 
