@@ -37,9 +37,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/package.json ./
 
-# Expose the port the app runs on
-EXPOSE 8080
-
 # Start the Next.js application and listen on the port provided by the PORT environment variable
 CMD ["sh", "-c", "npx next start -p $PORT"]
 
