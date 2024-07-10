@@ -9,9 +9,9 @@ steps:
       - frontend
       - '-f'
       - frontend/Dockerfile
-      - '-e'
+      - '--env'
       - 'NEXT_PUBLIC_BACKEND_URL="$_NEXT_PUBLIC_BACKEND_URL"'
-      - '-e'
+      - '--env'
       - 'NEXT_PUBLIC_GCLOUD_CLIENT_ID="$_NEXT_PUBLIC_GCLOUD_CLIENT_ID"'
     id: Build
   - name: gcr.io/cloud-builders/docker
