@@ -15,7 +15,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: aritrosaha10/frasertickets-backend
+  IMAGE_NAME: Tech-FraserSAC/frasertickets-backend
 
 jobs:
   build-and-push-image:
