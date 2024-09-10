@@ -4,4 +4,4 @@ The digital ticketing platform custom-developed for the Student Activity Council
 ## Copyright
 Made by Aritro Saha with the aid of the John Fraser SAC. 
 
-This project is under the GNU General Public License, version 3. More info is available in [LICENSE].
+This project is under the GNU General Public License, version 3. More info is available in [LICENSE](LICENSE).
