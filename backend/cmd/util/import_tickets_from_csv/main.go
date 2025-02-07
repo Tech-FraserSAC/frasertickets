@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -80,10 +81,16 @@ func main() {
 		log.Fatal().Msg("csv has no cols")
 	}
 
+	// Account for carriage return in Window's enter key
+	var pltScn string
+	if runtime.GOOS == "windows" {
+		pltScn = "\n"
+	}
+
 	// Get important information about spreadsheet from user
 	var studentNameColNum int
 	fmt.Printf("What column # stores student names (assumed to be in format 'Last Name, First Name') [1-%d]? ", csvReader.FieldsPerRecord)
-	if n, err := fmt.Scanf("%d", &studentNameColNum); err != nil || n != 1 {
+	if n, err := fmt.Scanf("%d"+pltScn, &studentNameColNum); err != nil || n != 1 {
 		log.Fatal().Err(err).Msg("could not parse col #")
 	}
 	if studentNameColNum < 1 || studentNameColNum > int(csvReader.FieldsPerRecord) {
@@ -93,7 +100,7 @@ func main() {
 
 	var studentNumberColNum int
 	fmt.Printf("What column # stores student numbers [1-%d]? ", csvReader.FieldsPerRecord)
-	if n, err := fmt.Scanf("%d", &studentNumberColNum); err != nil || n != 1 {
+	if n, err := fmt.Scanf("%d"+pltScn, &studentNumberColNum); err != nil || n != 1 {
 		log.Fatal().Err(err).Msg("could not parse col #")
 	}
 	if studentNumberColNum < 1 || studentNumberColNum > int(csvReader.FieldsPerRecord) {
@@ -103,7 +110,7 @@ func main() {
 
 	var localMaxScanCountColNum int // -1 -> no given column number
 	fmt.Printf("What column # stores the maximum scan count for a ticket? [1-%d, 0 for none]? ", csvReader.FieldsPerRecord)
-	if n, err := fmt.Scanf("%d", &localMaxScanCountColNum); err != nil || n != 1 {
+	if n, err := fmt.Scanf("%d"+pltScn, &localMaxScanCountColNum); err != nil || n != 1 {
 		log.Fatal().Err(err).Msg("could not parse local max scan count")
 	}
 	if localMaxScanCountColNum < 0 || localMaxScanCountColNum > int(csvReader.FieldsPerRecord) {
@@ -113,7 +120,7 @@ func main() {
 
 	var globalMaxScanCount int
 	fmt.Printf("What should the default maximum scan count be per ticket [>=0, 0 for infinite]? ")
-	if n, err := fmt.Scanf("%d", &globalMaxScanCount); err != nil || n != 1 {
+	if n, err := fmt.Scanf("%d"+pltScn, &globalMaxScanCount); err != nil || n != 1 {
 		log.Fatal().Err(err).Msg("could not parse global max scan count")
 	}
 	if globalMaxScanCount < 0 {
